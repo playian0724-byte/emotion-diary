@@ -68,7 +68,7 @@ $('my-emotions').innerHTML=mine.map(e=>'<button type="button" class="emotion '+(
 document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.select;if(selection.includes(id))selection=selection.filter(x=>x!==id);else if(selection.length<4)selection.push(id);else toast('감정은 최대 4개까지 선택할 수 있어요.');renderChoices();renderPreview()}))
 }
 function renderPreview(){paintOrb($('today-orb'),selection);$('today-orb').classList.toggle('empty',selection.length===0);$('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'하나만 선택해도 충분해요.';$('save-day').disabled=selection.length===0||saving}
-function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='create')startWater();else stopWater();window.scrollTo({top:0,behavior:'instant'})}
+function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='create')startWater();else stopWater();window.scrollTo(0,0)}
 function shiftMonth(delta){month=new Date(month.getFullYear(),month.getMonth()+delta,1);renderCalendar()}
 function renderCalendar(){
 const y=month.getFullYear(),m=month.getMonth(),n=new Date(y,m+1,0).getDate(),leading=new Date(y,m,1).getDay();
