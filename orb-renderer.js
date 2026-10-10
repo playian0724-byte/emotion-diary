@@ -1,4 +1,4 @@
-/* 결. V8.1 — experimental, single-context WebGL2 luminous glass renderer.
+/* 결. V8.2 — experimental, single-context WebGL2 luminous glass renderer.
    One active large orb only; V7 Canvas remains the fallback.
    This script has no dependencies and does not alter stored records. */
 (function(global){
@@ -62,26 +62,26 @@ void main(){
   // Interior: the edges remain bright stained glass rather than opaque shadow.
   float z=sqrt(max(0.,1.-r*r));
   float surface=.79+.07*pow(z,.85);
-  float core=gaussian(p,L,vec2(mix(.21,.29,beat),mix(.20,.28,beat)));
-  float scatter=gaussian(p,L,vec2(mix(.50,.67,beat),mix(.48,.63,beat)));
+  float core=gaussian(p,L,vec2(mix(.25,.34,beat),mix(.24,.32,beat)));
+  float scatter=gaussian(p,L,vec2(mix(.56,.71,beat),mix(.54,.69,beat)));
   float shimmer=gaussian(p,L+vec2(.075,.04),vec2(mix(.11,.15,beat),mix(.10,.14,beat)));
   float innerMask=1.-smoothstep(.67,.97,r);
   vec3 litColor=mix(local,vec3(1.,.985,.95),.58);
-  float light=(.16+.045*beat)*scatter+(.27+.105*beat)*core;
+  float light=(.20+.055*beat)*scatter+(.22+.075*beat)*core;
   vec3 sphere=local*surface + litColor*light;
   sphere=mix(sphere,vec3(1.,.982,.956),(.075+.045*beat)*shimmer*innerMask);
   sphere=clamp(sphere,0.,1.);
 
   // Continuous transparent shell: no discontinuous halo/sphere transition
   // and no white rim. A smooth slightly softened outer edge.
-  float sphereAlpha=1.-smoothstep(.973,1.045,r);
+  float sphereAlpha=1.-smoothstep(.986,1.026,r);
 
   // Halo is a soft halo with a wider reach, separately colored by direction.
   vec2 n=p/max(r,.00001);
   vec3 haloColor=pigmentAt(n*.94);
-  float reach=mix(.36,.44,beat);
+  float reach=mix(.30,.36,beat);
   float radial=exp(-pow(max(r-1.,0.)/reach,1.50));
-  float outerMask=1.-smoothstep(1.57,1.85,r);
+  float outerMask=1.-smoothstep(1.44,1.72,r);
   float haloPulse=.84+.24*beat;
   float haloAlpha=.23*radial*haloPulse*outerMask;
 
