@@ -221,190 +221,6 @@ nav button.active{font-weight:630;color:#232725}
 }
 
 
-/* V5 — ONE material, no artificial glass layers or differently colored rim.
-   The studio light and soft falloff are already baked into the image texture. */
-.orb,
-.preview>.orb,
-.mixresult .orb,
-.flying-orb .orb{
-  border:none;
-  outline:none;
-  isolation:auto;
-  background-color:transparent;
-  background-size:100% 100%;
-  box-shadow:0 9px 24px rgba(32,43,48,.10);
-}
-.orb::before,.orb::after{content:none!important;display:none!important}
-.preview>.orb{box-shadow:0 13px 29px rgba(30,43,49,.095)}
-.mixresult .orb{box-shadow:0 12px 28px rgba(30,43,49,.10)}
-.flying-orb .orb{box-shadow:0 8px 19px rgba(30,43,49,.09)}
-.orb.empty{
-  border:0;
-  background:#edf0eb!important;
-  box-shadow:inset 0 0 0 1px #e2e6e0
-}
-.cal-day.recorded .mini{
-  border:0;
-  outline:0;
-  background-size:100% 100%;
-  box-shadow:0 2px 5px rgba(35,45,48,.095)
-}
-.cal-day.recorded .mini::after{content:none!important;display:none!important}
-.cal-day .mini{background-size:100% 100%}
-.swatch{border:0;box-shadow:none}
-
-/* V6 — Inside Out-inspired colored-glass orbs: luminous interior, a whisper
-   of matching-color ambient light, and slow breathing. All other UI stays still. */
-.orb:not(.empty){
-  box-shadow:
-    0 0 17px 1px var(--orb-halo,rgba(69,126,166,.09)),
-    0 8px 19px rgba(24,42,43,.075);
-}
-.preview>.orb:not(.empty){
-  animation:orb-breathe 6.2s ease-in-out infinite;
-  will-change:filter,box-shadow;
-}
-.mixresult .orb{
-  box-shadow:
-    0 0 17px 1px var(--orb-halo,rgba(69,126,166,.09)),
-    0 8px 20px rgba(24,42,43,.075);
-  animation:orb-breathe 6.2s ease-in-out infinite;
-}
-.flying-orb .orb{
-  animation:none!important;
-  filter:none!important;
-  box-shadow:0 0 9px var(--orb-halo,transparent),0 6px 15px rgba(30,43,49,.085)
-}
-.cal-day.recorded .mini{
-  box-shadow:
-    0 0 5px var(--orb-mini-halo,rgba(60,110,150,.04)),
-    0 1px 3px rgba(35,45,48,.07);
-  animation:none
-}
-@keyframes orb-breathe{
-  0%,100%{
-    filter:brightness(1) saturate(1);
-    box-shadow:0 0 17px 1px var(--orb-halo,transparent),0 8px 19px rgba(24,42,43,.075)
-  }
-  50%{
-    filter:brightness(1.045) saturate(1.02);
-    box-shadow:0 0 24px 3px var(--orb-halo-strong,var(--orb-halo,transparent)),0 8px 19px rgba(24,42,43,.075)
-  }
-}
-@media(prefers-reduced-motion:reduce){
-  .preview>.orb:not(.empty),.mixresult .orb{animation:none!important;filter:none!important}
-}
-
-
-/* V7 — moving light inside the stained glass, with a halo that follows it.
-   The existing V6 breathing filter only changed the whole sphere's brightness.
-   These two diffused light layers move INSIDE the orb; the outer glow travels
-   in phase with the same 7.6s trajectory. No sharp specular or white rim. */
-.preview>.orb:not(.empty),
-.mixresult .orb {
-  position:relative;
-  isolation:isolate;
-  overflow:hidden;
-  animation:orb-v7-halo 7.6s ease-in-out infinite;
-  will-change:box-shadow;
-  --orb-light-strength:1;
-}
-.preview>.orb:not(.empty)::before,
-.mixresult .orb::before,
-.flying-orb .orb::before{
-  content:"" !important;
-  display:block !important;
-  position:absolute;
-  inset:-17%;
-  z-index:1;
-  border-radius:50%;
-  pointer-events:none;
-  background:
-    radial-gradient(ellipse 20% 21% at 49% 49%,
-      rgba(255,255,255,.78) 0%,
-      rgba(255,254,245,.62) 24%,
-      rgba(255,255,255,.22) 55%,
-      rgba(255,255,255,0) 100%),
-    radial-gradient(ellipse 43% 39% at 49% 49%,
-      rgba(255,255,255,.34) 0%,
-      rgba(255,255,255,.15) 38%,
-      rgba(255,255,255,0) 100%);
-  filter:blur(6px);
-  mix-blend-mode:screen;
-  opacity:.84;
-  animation:orb-v7-core 7.6s ease-in-out infinite;
-  transform:translate(-12px,6px) scale(.96);
-  will-change:transform,opacity;
-}
-.preview>.orb:not(.empty)::after,
-.mixresult .orb::after,
-.flying-orb .orb::after{
-  content:"" !important;
-  display:block !important;
-  position:absolute;
-  inset:-6%;
-  z-index:2;
-  border-radius:50%;
-  pointer-events:none;
-  background:
-    radial-gradient(ellipse 12% 14% at 43% 49%,rgba(255,255,255,.60),rgba(255,255,255,0) 100%),
-    radial-gradient(ellipse 24% 10% at 59% 59%,rgba(255,255,255,.34),rgba(255,255,255,0) 100%);
-  filter:blur(3px);
-  mix-blend-mode:screen;
-  opacity:.67;
-  animation:orb-v7-shimmer 7.6s ease-in-out infinite;
-  will-change:transform,opacity;
-}
-@keyframes orb-v7-core{
-  0%,100%{transform:translate(-12px,6px) scale(.93);opacity:.72}
-  33%{transform:translate(12px,-9px) scale(1.08);opacity:1}
-  66%{transform:translate(8px,12px) scale(1.02);opacity:.88}
-}
-@keyframes orb-v7-shimmer{
-  0%,100%{transform:translate(-13px,5px) rotate(-10deg);opacity:.48}
-  33%{transform:translate(12px,-8px) rotate(4deg);opacity:.87}
-  66%{transform:translate(7px,12px) rotate(12deg);opacity:.66}
-}
-@keyframes orb-v7-halo{
-  0%,100%{
-    box-shadow:-7px 4px 22px 3px var(--orb-halo,rgba(72,147,200,.16)),
-      0 7px 18px rgba(24,42,43,.055)
-  }
-  33%{
-    box-shadow:9px -7px 29px 5px var(--orb-halo-strong,var(--orb-halo,rgba(72,147,200,.22))),
-      0 7px 18px rgba(24,42,43,.055)
-  }
-  66%{
-    box-shadow:7px 9px 25px 4px var(--orb-halo,rgba(72,147,200,.16)),
-      0 7px 18px rgba(24,42,43,.055)
-  }
-}
-/* Saving should remain a single flight, not a moving light show. */
-.flying-orb .orb{
-  animation:none!important;
-  box-shadow:0 0 17px 2px var(--orb-halo,rgba(72,147,200,.15)),
-    0 6px 15px rgba(30,43,49,.06);
-}
-.flying-orb .orb::before,.flying-orb .orb::after{
-  animation:none!important;
-  transform:translate(0,0);
-  opacity:.75
-}
-.orb.empty::before,.orb.empty::after{content:none!important;display:none!important}
-.cal-day.recorded .mini{animation:none!important}
-/* Honor iOS Accessibility > Motion > Reduce Motion. */
-@media(prefers-reduced-motion:reduce){
-  .preview>.orb:not(.empty),.mixresult .orb{animation:none!important;will-change:auto}
-  .preview>.orb:not(.empty)::before,.preview>.orb:not(.empty)::after,
-  .mixresult .orb::before,.mixresult .orb::after{
-    animation:none!important;
-    transform:none!important;
-    opacity:.72!important;
-    will-change:auto
-  }
-}
-
-
 /* V8 opt-in WebGL2 orb. One transparent canvas includes the sphere and
    spatial multicolor halo in a single render pass, without any CSS white rim. */
 .orb.shader-orb,
@@ -444,3 +260,44 @@ nav button.active{font-weight:630;color:#232725}
   border:0;
   box-shadow:none
 }
+
+
+/* V9 — quiet, color-first orbs. No shader effects, specular highlights,
+   glass stickers, white rims, haloes, moving lights or animations. */
+.orb:not(.shader-orb),
+.preview>.orb:not(.shader-orb),
+.mixresult .orb:not(.shader-orb),
+.flying-orb .orb:not(.shader-orb){
+  background-size:100% 100%;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  animation:none!important;
+  filter:none!important;
+  isolation:auto!important;
+  will-change:auto!important
+}
+.orb::before,.orb::after,
+.preview>.orb:not(.empty)::before,
+.preview>.orb:not(.empty)::after,
+.mixresult .orb::before,.mixresult .orb::after,
+.flying-orb .orb::before,.flying-orb .orb::after{
+  content:none!important;
+  display:none!important;
+  animation:none!important
+}
+.orb.empty{
+  background:#edf0eb!important;
+  box-shadow:inset 0 0 0 1px #e2e6e0!important;
+}
+.cal-day.recorded .mini{
+  border:0!important;
+  box-shadow:none!important;
+  background-size:100% 100%;
+  animation:none!important
+}
+.cal-day.recorded .mini::after{
+  content:none!important;
+  display:none!important
+}
+.swatch{border:0!important;box-shadow:none!important}
