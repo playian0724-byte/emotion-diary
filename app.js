@@ -212,8 +212,8 @@ catch(e){}
 dest.classList.remove('arriving');dest.classList.add('landed');setTimeout(()=>dest.classList.remove('landed'),450)}
 ghost.remove();saving=false;renderPreview();try{navigator.vibrate?.(12)}catch(e){}toast('저장됨')
 }
-function resetMix(){if(v8Shader)v8Shader.detach();$('ink-dropper')?.classList.remove('dispensing');amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;$('water').style.opacity='1';$('mix-stats').style.opacity='0';$('blend-panel').hidden=true;$('mix-button').disabled=true;$('mix-undo').disabled=false;$('mix-name').value='';$('mix-definition').value='';$('mix-summary').textContent='감정을 떨어뜨려 보세요.';renderMixButtons();drawWater();startWater()}
-function renderMixButtons(){$('drop-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion" data-drop="'+e.id+'"><span class="pipette-swatch" style="--ink-color:'+e.color+'"><svg viewBox="0 0 36 36" aria-hidden="true" focusable="false"><path d="M24 4c1.7-1.7 4.3-1.7 6 0s1.7 4.3 0 6l-2 2-8-8 2-2Z" fill="var(--ink-color)" stroke="var(--ink-color)" stroke-width="1.4"/><path d="m22.5 7.5-14 14-3.5 9.5 9.5-3.5 14-14" fill="none" stroke="#717872" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="m11 21 4 4-5.4 2 1.4-6Z" fill="var(--ink-color)"/><path d="m18 10 8 8" fill="none" stroke="#717872" stroke-width="2" stroke-linecap="round"/></svg></span>'+e.name+(amounts[e.id]?'<span class="drop-count">×'+amounts[e.id]+'</span>':'')+'</button>').join('');
+function resetMix(){if(v8Shader)v8Shader.detach();amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;$('water').style.opacity='1';$('mix-stats').style.opacity='0';$('blend-panel').hidden=true;$('mix-button').disabled=true;$('mix-undo').disabled=false;$('mix-name').value='';$('mix-definition').value='';$('mix-summary').textContent='감정을 떨어뜨려 보세요.';renderMixButtons();drawWater();startWater()}
+function renderMixButtons(){$('drop-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion" data-drop="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+e.name+(amounts[e.id]?'<span class="drop-count">×'+amounts[e.id]+'</span>':'')+'</button>').join('');
 document.querySelectorAll('[data-drop]').forEach(btn=>{
 const id=btn.dataset.drop;let pointerHandled=false;
 btn.addEventListener('pointerdown',ev=>{if(ev.button!==0&&ev.pointerType==='mouse')return;ev.preventDefault();pointerHandled=true;addDrop(id);clearTimeout(droppingTimer);clearInterval(repeatTimer);droppingTimer=setTimeout(()=>{repeatTimer=setInterval(()=>addDrop(id),230)},470)});
@@ -226,9 +226,7 @@ if(mixed||mixBusy){toast('다시 만들기를 선택하세요.');return}
 const num=Object.values(amounts).reduce((a,b)=>a+b,0);if(num>=36){toast('최대 36방울까지 가능합니다.');return}
 amounts[id]=(amounts[id]||0)+1;
 const e=byId(id),t=num+1,theta=t*2.3999632297;
-const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-const d={id,x:.5+.24*Math.cos(theta),y:.5+.24*Math.sin(theta),time:performance.now()+(reduced?0:245),color:e.color};
-drops.push(d);renderInkDropper(d);
+drops.push({id,x:.5+.24*Math.cos(theta),y:.5+.24*Math.sin(theta),time:performance.now(),color:e.color});
 $('mix-button').disabled=false;$('mix-summary').textContent='총 '+(num+1)+'방울';const btn=document.querySelector('[data-drop="'+id+'"]');if(btn){let badge=btn.querySelector('.drop-count');if(!badge){badge=document.createElement('span');badge.className='drop-count';btn.append(badge)}badge.textContent='×'+amounts[id]}startWater();
 }
 function undoDrop(){if(mixed)return;const d=drops.pop();if(d){amounts[d.id]--;if(!amounts[d.id])delete amounts[d.id]}$('mix-button').disabled=!drops.length;$('mix-summary').textContent=drops.length?'총 '+drops.length+'방울':'감정을 떨어뜨려 보세요.';renderMixButtons();drawWater()}
@@ -253,20 +251,9 @@ function stopWater(){
 }
 function smoothstep(v){v=clamp(v);return v*v*(3-2*v)}
 function lerp(a,b,t){return a+(b-a)*t}
-/* V11 — a droplet is an individual expanding dye source again.
+/* V12 — V8's simple colored-circle controls, with each dye drop spreading again.
    The original multi-drop water experience flows into V10's continuous
    single-Canvas coagulation, rather than a second fade-in marble. */
-function renderInkDropper(d){
- const node=$('ink-dropper');
- if(!node||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
- node.style.left=(d.x*100).toFixed(2)+'%';
- node.style.top=(d.y*100).toFixed(2)+'%';
- node.style.setProperty('--ink',d.color);
- node.classList.remove('dispensing');
- // Restart on every tap/long press, matching the exact new dye position.
- void node.offsetWidth;
- node.classList.add('dispensing');
-}
 function drawWater(now=performance.now()){
  const canvas=$('water-canvas'),host=$('water');
  if(!canvas||!host)return;
@@ -395,7 +382,6 @@ function blendMix(){
  mixStartedAt=performance.now();
  lastWaterFrame=0;
  $('mix-summary').textContent='섞는 중';
- $('ink-dropper')?.classList.remove('dispensing');
  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
    mixStartedAt-=mixDuration;
    drawWater(performance.now());
