@@ -167,6 +167,7 @@ function create(){
  window.addEventListener('resize',onResize,{passive:true});
  return {
    mount(next,chosen){
+     if(lost){clearHost();return false}
      if(!next||!chosen?.length){clearHost();return false}
      if(host!==next){
        clearHost();host=next;next.appendChild(canvas);next.classList.add('shader-orb');
