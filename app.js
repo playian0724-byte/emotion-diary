@@ -74,75 +74,94 @@ function blendColors(colors,weights){
 }
 function hue(hex){const [r,g,b]=hexRgb(hex),hi=Math.max(r,g,b),lo=Math.min(r,g,b),d=hi-lo;if(!d)return 0;let h=hi===r?((g-b)/d)%6:hi===g?(b-r)/d+2:(r-g)/d+4;return (h*60+360)%360}
 
-/* V5 — a single shaded sphere texture. There is no separate white rim or
-   CSS glass sticker: pigment, directional shading and specular reflection
-   are rendered together in the same sphere. */
+/* V6: translucent stained-glass feel, softly illuminated from within.
+   No opaque white rim, hard outline, neon glow or layered specular stickers.
+   Spatial interpolation still respects 2/3/4 polygon corner placements. */
+function emotionGlow(inputColors,opacity=.11){
+ const colors=inputColors.filter(Boolean);
+ if(!colors.length)return 'rgba(0,0,0,0)';
+ const lab=colors.map(rgbToLab),weights=colors.map(()=>1),color=blendColors(colors,weights);
+ const rgb=[0,2,4].map(i=>parseInt(color.slice(i+1,i+3),16));
+ return 'rgba('+rgb.join(',')+','+opacity+')'
+}
 function orbStyleForColors(inputColors){
  const cs=inputColors.filter(Boolean).slice(0,4).map(c=>c.toUpperCase()).sort((a,b)=>hue(a)-hue(b));
  if(!cs.length)return '#ECEEEB';
- const key='v5|'+cs.join('|');
+ const key='v6-luminous|'+cs.join('|');
  if(orbCache.has(key))return orbCache.get(key);
- const size=220,canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;
+ const size=224,canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;
  const ctx=canvas.getContext('2d');if(!ctx)return cs[0];
- const pixels=ctx.createImageData(size,size),out=pixels.data;
- const labs=cs.map(rgbToLab),num=cs.length;
- const pigments=cs.map(hexRgb);
+ const image=ctx.createImageData(size,size),px=image.data;
+ const labs=cs.map(rgbToLab),num=cs.length,original=hexRgb(cs[0]);
+ const center=(size-1)/2,r=size*.491;
  const sqrt3=Math.sqrt(3);
- const r=size*.495,center=(size-1)*.5;
  for(let y=0;y<size;y++){
    const yy=(y-center)/r;
    for(let x=0;x<size;x++){
-     const xx=(x-center)/r,dist=xx*xx+yy*yy;
-     if(dist>1.014)continue;
-     const i=(y*size+x)*4;
-     const d=Math.min(1,dist),nz=Math.sqrt(1-d);
-     let col;
-     if(num===1){col=pigments[0].map(v=>v*255)}
+     const xx=(x-center)/r,d2=xx*xx+yy*yy;
+     if(d2>=1.014)continue;
+     const d=Math.min(1,d2),z=Math.sqrt(1-d),idx=(y*size+x)*4;
+     let rgb;
+     if(num===1){rgb=original.map(v=>Math.round(v*255))}
      else{
        let w;
-       if(num===2){const t=clamp((xx+yy+2)/4);w=[1-t,t]}
-       else if(num===3){
+       if(num===2){
+         // A slightly shorter transition, retaining wide blocks of each color.
+         const t=clamp(.5+.36*(xx+yy));w=[1-smoothstep(t),smoothstep(t)]
+       }else if(num===3){
          const top=(1-yy)/3;
-         w=[top,(1-top-xx/sqrt3)/2,(1-top+xx/sqrt3)/2];
-       } else {const u=(xx+1)/2,v=(yy+1)/2;w=[(1-u)*(1-v),u*(1-v),u*v,(1-u)*v]}
-       const lab=[
-         labs.reduce((s,p,j)=>s+p[0]*w[j],0),
-         labs.reduce((s,p,j)=>s+p[1]*w[j],0),
-         labs.reduce((s,p,j)=>s+p[2]*w[j],0)
-       ];
-       const c=Math.hypot(lab[1],lab[2]);
-       const target=labs.reduce((s,p,j)=>s+Math.hypot(p[1],p[2])*w[j],0);
-       if(c>.015&&c<target*.80){const adjust=Math.min(1.30,target*.80/c);lab[1]*=adjust;lab[2]*=adjust}
-       col=labRgb(...lab);
+         w=[top,(1-top-xx/sqrt3)/2,(1-top+xx/sqrt3)/2]
+       }else{
+         const u=(xx+1)/2,v=(yy+1)/2;
+         w=[(1-u)*(1-v),u*(1-v),u*v,(1-u)*v]
+       }
+       if(num>2){
+         // A mild corner emphasis reduces the broad muddy center without hard edges.
+         const shaped=w.map(v=>Math.pow(Math.max(0,v),1.48));
+         const total=shaped.reduce((a,b)=>a+b,0)||1;w=shaped.map(v=>v/total)
+       }
+       const lab=[0,1,2].map(i=>labs.reduce((s,p,j)=>s+p[i]*w[j],0));
+       const chroma=Math.hypot(lab[1],lab[2]);
+       const expected=labs.reduce((s,p,j)=>s+Math.hypot(p[1],p[2])*w[j],0);
+       if(chroma>.013&&chroma<expected*.85){
+         const lift=Math.min(1.27,expected*.85/chroma);
+         lab[1]*=lift;lab[2]*=lift
+       }
+       rgb=labRgb(...lab)
      }
-     // Broad studio illumination, falling to a deeper tone at bottom-right.
-     // There is deliberately no outline or hue-shifted border.
-     const diffuse=Math.max(0,(-.36*xx-.47*yy+.805*nz));
-     const tone=Math.max(.48,Math.min(1.06,.49+.56*diffuse));
-     const sideShade=1-.065*Math.pow(1-nz,1.35);
-     // One reflection source: a soft photographic spot with a faint halo.
-     const u=(xx+.33),v=(yy+.35);
-     const shine=.79*Math.exp(-.5*(u*u/(.066*.066)+v*v/(.082*.082)))
-        +.12*Math.exp(-.5*(u*u/(.15*.15)+v*v/(.17*.17)));
-     const shade=tone*sideShade;
-     out[i]=Math.round(Math.min(255,col[0]*shade*(1-shine)+255*shine));
-     out[i+1]=Math.round(Math.min(255,col[1]*shade*(1-shine)+255*shine));
-     out[i+2]=Math.round(Math.min(255,col[2]*shade*(1-shine)+255*shine));
-     // Partial alpha only for the outermost subpixel: no visible ring.
-     out[i+3]=Math.round(255*clamp((1.012-dist)*size/3.4));
+     // Illuminated pigment beneath a thin glass surface; a gentle cloud texture.
+     const cloud=Math.sin(xx*5.9+yy*2.5)*Math.cos(yy*4.4-xx*2.1);
+     const core=Math.exp(-((xx+.04)**2/.61**2+(yy+.075)**2/.66**2));
+     const innerCloud=Math.exp(-((xx-.22)**2/.34**2+(yy+.16)**2/.42**2));
+     const light=.71+.15*z+.25*core+.060*innerCloud+.022*cloud;
+     const falloff=.96-.085*Math.pow(1-z,1.5)-.046*Math.max(yy,0);
+     // One diffused reflection, restrained enough to keep the underlying color.
+     const glint=.18*Math.exp(-((xx+.37)**2/.19**2+(yy+.44)**2/.23**2));
+     const glass=.09*core+.045*innerCloud+glint;
+     for(let k=0;k<3;k++){
+       const lit=rgb[k]*light*falloff;
+       px[idx+k]=Math.round(clamp(lit*(1-glass)+255*glass,0,255))
+     }
+     // Silhouette antialiasing only. No separately colored outline.
+     const radius=Math.sqrt(d2);
+     px[idx+3]=Math.round(255*clamp((1.002-radius)*size*.53))
    }
  }
- ctx.putImageData(pixels,0,0);
+ ctx.putImageData(image,0,0);
  const bg='url("'+canvas.toDataURL('image/png')+'") center/100% 100% no-repeat';
  orbCache.set(key,bg);
  return bg
 }
 function orbStyle(ids){
- const colors=ids.filter(id=>byId(id)).slice(0,4).map(id=>byId(id).color);
- return orbStyleForColors(colors)
+ return orbStyleForColors(ids.filter(id=>byId(id)).slice(0,4).map(id=>byId(id).color))
 }
-function paintOrb(node,ids){node.style.background=orbStyle(ids)}
-
+function paintOrb(node,ids){
+ const colors=ids.filter(id=>byId(id)).slice(0,4).map(id=>byId(id).color);
+ node.style.background=orbStyleForColors(colors);
+ node.style.setProperty('--orb-halo',emotionGlow(colors,.115));
+ node.style.setProperty('--orb-halo-strong',emotionGlow(colors,.17));
+ node.style.setProperty('--orb-mini-halo',emotionGlow(colors,.055));
+}
 function renderChoices(){
 const selected=new Set(selection);
 $('base-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion '+(selected.has(e.id)?'active':'')+'" data-select="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+e.name+(selected.has(e.id)?'<span class="checkmark">✓</span>':'')+'</button>').join('');
@@ -279,6 +298,8 @@ function blendMix(){
  const color=blendColors(components.map(e=>byId(e.id).color),components.map(e=>e.n));
  mixed={color,components:components.map(e=>({id:e.id,ratio:e.n/sum}))};
  $('mixed-orb').style.background=orbStyleForColors([color]);
+ $('mixed-orb').style.setProperty('--orb-halo',emotionGlow([color],.115));
+ $('mixed-orb').style.setProperty('--orb-halo-strong',emotionGlow([color],.17));
  $('mix-stats').textContent=mixed.components.map(c=>byId(c.id).name+' '+Math.round(c.ratio*100)+'%').join(' · ');
  $('mix-stats').style.opacity='0';
  $('mix-button').disabled=true;mixBusy=true;mixStartedAt=performance.now();lastWaterFrame=0;
