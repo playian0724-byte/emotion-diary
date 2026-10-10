@@ -19,13 +19,13 @@
 
 ## V8 WebGL2 셰이더 실험
 
-**[V7과 V8.1 구슬 나란히 비교하기](https://playian0724-byte.github.io/emotion-diary/compare.html)** · [V8 실제 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=webgl&v=8.1) · [V7 기본 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=legacy&v=8.1)
+**[V7과 V8.2 구슬 나란히 비교하기](https://playian0724-byte.github.io/emotion-diary/compare.html)** · [V8 실제 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=webgl&v=8.2) · [V7 기본 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=legacy&v=8.2)
 
-[**V8.1 빛·후광 튜닝**](./docs/V8_1_TUNING.md) · [V8 실험 구현 및 QA](./docs/V8_EXPERIMENT.md)
+[**V8.2 빛·후광 튜닝**](./docs/V8_2_LIGHT_BALANCE.md) · [V8.1 이전 튜닝](./docs/V8_1_TUNING.md) · [V8 실험 구현 및 QA](./docs/V8_EXPERIMENT.md)
 
 ## V8 Shader 전환 설계
 
-[**V8 WebGL2 전환 설계안**](./docs/V8_SHADER_TRANSITION.md) — 단색 테두리 제거, 감정별 색상을 따르는 위치별 후광, 동일한 광원 이동, 정적 달력 렌더링 및 Safari fallback. ****V7 기본 / V8.1 실험 모드 구현 완료**. 실제 iPhone Safari 검증은 아직 진행 전입니다.**
+[**V8 WebGL2 전환 설계안**](./docs/V8_SHADER_TRANSITION.md) — 단색 테두리 제거, 감정별 색상을 따르는 위치별 후광, 동일한 광원 이동, 정적 달력 렌더링 및 Safari fallback. ****V7 기본 / V8.2 실험 모드 구현 완료**. 실제 iPhone Safari 검증은 아직 진행 전입니다.**
 
 ## 개발 구조
 
