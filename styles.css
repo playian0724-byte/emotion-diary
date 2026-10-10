@@ -420,7 +420,12 @@ nav button.active{font-weight:630;color:#232725}
   animation:none!important;
   isolation:auto!important
 }
-.orb.shader-orb::before,.orb.shader-orb::after{
+.preview>.orb.shader-orb:not(.empty)::before,
+.preview>.orb.shader-orb:not(.empty)::after,
+.mixresult .orb.shader-orb::before,
+.mixresult .orb.shader-orb::after,
+.orb.shader-orb::before,
+.orb.shader-orb::after{
   display:none!important;
   content:none!important;
   animation:none!important
