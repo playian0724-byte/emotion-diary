@@ -169,8 +169,27 @@ const mine=[...SAMPLES,...db.custom];
 $('my-emotions').innerHTML=mine.map(e=>'<button type="button" class="emotion '+(selected.has(e.id)?'active':'')+'" data-select="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+escapeHTML(e.name||'이름 미정')+(selected.has(e.id)?'<span class="checkmark">✓</span>':'')+'</button>').join('');
 document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.select;if(selection.includes(id))selection=selection.filter(x=>x!==id);else if(selection.length<4)selection.push(id);else toast('최대 4개까지 선택할 수 있습니다.');renderChoices();renderPreview()}))
 }
-function renderPreview(){paintOrb($('today-orb'),selection);$('today-orb').classList.toggle('empty',selection.length===0);$('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'감정을 선택하세요.';$('save-day').disabled=selection.length===0||saving}
-function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='create')startWater();else stopWater();window.scrollTo(0,0)}
+// V8 experiment is opt-in: ?renderer=webgl. Default remains the V7 material.
+const WEBGL_EXPERIMENT=new URLSearchParams(window.location.search).get('renderer')==='webgl';
+let v8Shader=null,v8Failed=false;
+function syncOrbShader(){
+ if(!WEBGL_EXPERIMENT||v8Failed||!window.GyeolShader)return;
+ const active=document.querySelector('.screen.active')?.id;
+ let node=null,colors=[];
+ if(active==='today'&&selection.length){
+   node=$('today-orb');colors=selection.filter(id=>byId(id)).map(id=>byId(id).color);
+ }else if(active==='create'&&mixed&&!mixBusy&&!$('blend-panel').hidden){
+   node=$('mixed-orb');colors=[mixed.color];
+ }
+ if(!node){v8Shader?.detach();return}
+ if(!v8Shader){v8Shader=window.GyeolShader.create();if(!v8Shader){v8Failed=true;return}}
+ try{v8Shader.mount(node,colors)}catch(e){
+   console.warn('V8 shader unavailable, V7 fallback is active',e);
+   v8Shader.detach();v8Failed=true;
+ }
+}
+function renderPreview(){paintOrb($('today-orb'),selection);$('today-orb').classList.toggle('empty',selection.length===0);$('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'감정을 선택하세요.';$('save-day').disabled=selection.length===0||saving;syncOrbShader()}
+function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='create')startWater();else stopWater();syncOrbShader();window.scrollTo(0,0)}
 function shiftMonth(delta){month=new Date(month.getFullYear(),month.getMonth()+delta,1);renderCalendar()}
 function renderCalendar(){
 const y=month.getFullYear(),m=month.getMonth(),n=new Date(y,m+1,0).getDate(),leading=new Date(y,m,1).getDay();
@@ -204,7 +223,7 @@ catch(e){}
 dest.classList.remove('arriving');dest.classList.add('landed');setTimeout(()=>dest.classList.remove('landed'),450)}
 ghost.remove();saving=false;renderPreview();try{navigator.vibrate?.(12)}catch(e){}toast('저장됨')
 }
-function resetMix(){amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;$('water').style.opacity='1';$('mixed-orb').style.opacity='0';$('mixed-orb').style.transform='scale(.68)';$('mix-stats').style.opacity='0';$('blend-panel').hidden=true;$('mix-button').disabled=true;$('mix-undo').disabled=false;$('mix-name').value='';$('mix-definition').value='';$('mix-summary').textContent='감정을 떨어뜨려 보세요.';renderMixButtons();drawWater();startWater()}
+function resetMix(){if(v8Shader)v8Shader.detach();amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;$('water').style.opacity='1';$('mixed-orb').style.opacity='0';$('mixed-orb').style.transform='scale(.68)';$('mix-stats').style.opacity='0';$('blend-panel').hidden=true;$('mix-button').disabled=true;$('mix-undo').disabled=false;$('mix-name').value='';$('mix-definition').value='';$('mix-summary').textContent='감정을 떨어뜨려 보세요.';renderMixButtons();drawWater();startWater()}
 function renderMixButtons(){$('drop-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion" data-drop="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+e.name+(amounts[e.id]?'<span class="drop-count">×'+amounts[e.id]+'</span>':'')+'</button>').join('');
 document.querySelectorAll('[data-drop]').forEach(btn=>{
 const id=btn.dataset.drop;let pointerHandled=false;
@@ -287,6 +306,7 @@ function drawWater(now=performance.now()){
      mixBusy=false;parent.style.opacity='0';sphere.style.opacity='1';sphere.style.transform='scale(1)';
      $('mix-stats').style.opacity='1';$('blend-panel').hidden=false;$('mix-undo').disabled=true;
      $('mix-summary').textContent='완성';
+     syncOrbShader();
      try{navigator.vibrate?.(8)}catch(e){}
    }
  }
@@ -325,4 +345,5 @@ $('save-word').onclick=()=>createEmotion(false);$('use-word').onclick=()=>create
 window.addEventListener('resize',()=>drawWater());
 renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixButtons()
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+window.GyeolPreview={orbStyleForColors,emotionGlow};
+if(document.body.dataset.page!=='compare'){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();}
