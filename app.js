@@ -158,9 +158,9 @@ function orbStyle(ids){
 function paintOrb(node,ids){
  const colors=ids.filter(id=>byId(id)).slice(0,4).map(id=>byId(id).color);
  node.style.background=orbStyleForColors(colors);
- node.style.setProperty('--orb-halo',emotionGlow(colors,.115));
- node.style.setProperty('--orb-halo-strong',emotionGlow(colors,.17));
- node.style.setProperty('--orb-mini-halo',emotionGlow(colors,.055));
+ node.style.setProperty('--orb-halo',emotionGlow(colors,.22));
+ node.style.setProperty('--orb-halo-strong',emotionGlow(colors,.34));
+ node.style.setProperty('--orb-mini-halo',emotionGlow(colors,.07));
 }
 function renderChoices(){
 const selected=new Set(selection);
@@ -298,8 +298,8 @@ function blendMix(){
  const color=blendColors(components.map(e=>byId(e.id).color),components.map(e=>e.n));
  mixed={color,components:components.map(e=>({id:e.id,ratio:e.n/sum}))};
  $('mixed-orb').style.background=orbStyleForColors([color]);
- $('mixed-orb').style.setProperty('--orb-halo',emotionGlow([color],.115));
- $('mixed-orb').style.setProperty('--orb-halo-strong',emotionGlow([color],.17));
+ $('mixed-orb').style.setProperty('--orb-halo',emotionGlow([color],.22));
+ $('mixed-orb').style.setProperty('--orb-halo-strong',emotionGlow([color],.34));
  $('mix-stats').textContent=mixed.components.map(c=>byId(c.id).name+' '+Math.round(c.ratio*100)+'%').join(' · ');
  $('mix-stats').style.opacity='0';
  $('mix-button').disabled=true;mixBusy=true;mixStartedAt=performance.now();lastWaterFrame=0;
