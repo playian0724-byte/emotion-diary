@@ -70,8 +70,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     status=document.getElementById('render-status');
   const shader=window.GyeolShader?.create();
   function select(name){
-    const colors=presets[name]||presets.blue;
     const old=window.GyeolPreview;
+    const colors=[...(presets[name]||presets.blue)].sort((a,b)=>old.hue(a)-old.hue(b));
     if(old){
       legacy.style.background=old.orbStyleForColors(colors);
       legacy.style.setProperty('--orb-halo',old.emotionGlow(colors,.22));
