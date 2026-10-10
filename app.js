@@ -182,6 +182,7 @@ function syncOrbShader(){
    node=$('mixed-orb');colors=[mixed.color];
  }
  if(!node){v8Shader?.detach();return}
+ colors.sort((a,b)=>hue(a)-hue(b));
  if(!v8Shader){v8Shader=window.GyeolShader.create();if(!v8Shader){v8Failed=true;return}}
  try{v8Shader.mount(node,colors)}catch(e){
    console.warn('V8 shader unavailable, V7 fallback is active',e);
@@ -345,5 +346,5 @@ $('save-word').onclick=()=>createEmotion(false);$('use-word').onclick=()=>create
 window.addEventListener('resize',()=>drawWater());
 renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixButtons()
 }
-window.GyeolPreview={orbStyleForColors,emotionGlow};
+window.GyeolPreview={orbStyleForColors,emotionGlow,hue};
 if(document.body.dataset.page!=='compare'){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();}
