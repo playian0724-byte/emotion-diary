@@ -73,22 +73,76 @@ function blendColors(colors,weights){
  return toHex(labRgb(lightness,hi*Math.cos(angle),hi*Math.sin(angle)));
 }
 function hue(hex){const [r,g,b]=hexRgb(hex),hi=Math.max(r,g,b),lo=Math.min(r,g,b),d=hi-lo;if(!d)return 0;let h=hi===r?((g-b)/d)%6:hi===g?(b-r)/d+2:(r-g)/d+4;return (h*60+360)%360}
+
+/* V5 — a single shaded sphere texture. There is no separate white rim or
+   CSS glass sticker: pigment, directional shading and specular reflection
+   are rendered together in the same sphere. */
+function orbStyleForColors(inputColors){
+ const cs=inputColors.filter(Boolean).slice(0,4).map(c=>c.toUpperCase()).sort((a,b)=>hue(a)-hue(b));
+ if(!cs.length)return '#ECEEEB';
+ const key='v5|'+cs.join('|');
+ if(orbCache.has(key))return orbCache.get(key);
+ const size=220,canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;
+ const ctx=canvas.getContext('2d');if(!ctx)return cs[0];
+ const pixels=ctx.createImageData(size,size),out=pixels.data;
+ const labs=cs.map(rgbToLab),num=cs.length;
+ const pigments=cs.map(hexRgb);
+ const sqrt3=Math.sqrt(3);
+ const r=size*.495,center=(size-1)*.5;
+ for(let y=0;y<size;y++){
+   const yy=(y-center)/r;
+   for(let x=0;x<size;x++){
+     const xx=(x-center)/r,dist=xx*xx+yy*yy;
+     if(dist>1.014)continue;
+     const i=(y*size+x)*4;
+     const d=Math.min(1,dist),nz=Math.sqrt(1-d);
+     let col;
+     if(num===1){col=pigments[0].map(v=>v*255)}
+     else{
+       let w;
+       if(num===2){const t=clamp((xx+yy+2)/4);w=[1-t,t]}
+       else if(num===3){
+         const top=(1-yy)/3;
+         w=[top,(1-top-xx/sqrt3)/2,(1-top+xx/sqrt3)/2];
+       } else {const u=(xx+1)/2,v=(yy+1)/2;w=[(1-u)*(1-v),u*(1-v),u*v,(1-u)*v]}
+       const lab=[
+         labs.reduce((s,p,j)=>s+p[0]*w[j],0),
+         labs.reduce((s,p,j)=>s+p[1]*w[j],0),
+         labs.reduce((s,p,j)=>s+p[2]*w[j],0)
+       ];
+       const c=Math.hypot(lab[1],lab[2]);
+       const target=labs.reduce((s,p,j)=>s+Math.hypot(p[1],p[2])*w[j],0);
+       if(c>.015&&c<target*.80){const adjust=Math.min(1.30,target*.80/c);lab[1]*=adjust;lab[2]*=adjust}
+       col=labRgb(...lab);
+     }
+     // Broad studio illumination, falling to a deeper tone at bottom-right.
+     // There is deliberately no outline or hue-shifted border.
+     const diffuse=Math.max(0,(-.36*xx-.47*yy+.805*nz));
+     const tone=Math.max(.48,Math.min(1.06,.49+.56*diffuse));
+     const sideShade=1-.065*Math.pow(1-nz,1.35);
+     // One reflection source: a soft photographic spot with a faint halo.
+     const u=(xx+.33),v=(yy+.35);
+     const shine=.79*Math.exp(-.5*(u*u/(.066*.066)+v*v/(.082*.082)))
+        +.12*Math.exp(-.5*(u*u/(.15*.15)+v*v/(.17*.17)));
+     const shade=tone*sideShade;
+     out[i]=Math.round(Math.min(255,col[0]*shade*(1-shine)+255*shine));
+     out[i+1]=Math.round(Math.min(255,col[1]*shade*(1-shine)+255*shine));
+     out[i+2]=Math.round(Math.min(255,col[2]*shade*(1-shine)+255*shine));
+     // Partial alpha only for the outermost subpixel: no visible ring.
+     out[i+3]=Math.round(255*clamp((1.012-dist)*size/3.4));
+   }
+ }
+ ctx.putImageData(pixels,0,0);
+ const bg='url("'+canvas.toDataURL('image/png')+'") center/100% 100% no-repeat';
+ orbCache.set(key,bg);
+ return bg
+}
 function orbStyle(ids){
-const key=ids.filter(id=>byId(id)).slice(0,4).sort((a,b)=>hue(byId(a).color)-hue(byId(b).color)).join('|');
-if(orbCache.has(key))return orbCache.get(key);
-const cs=key?key.split('|').map(id=>byId(id).color):[];
-if(cs.length<2){const result=cs[0]||'#ECEEEB';orbCache.set(key,result);return result}
-const labs=cs.map(rgbToLab),size=150,canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;const ctx=canvas.getContext('2d');if(!ctx)return '#D4D4D4';
-const im=ctx.createImageData(size,size),px=im.data;
-for(let y=0;y<size;y++){const yy=2*y/(size-1)-1;for(let x=0;x<size;x++){
-const xx=2*x/(size-1)-1;let w;
-if(cs.length===2){let t=clamp((xx+yy+2)/4);w=[1-t,t]}
-else if(cs.length===3){let wa=(1-yy)/3;w=[wa,(1-wa-xx/Math.sqrt(3))/2,(1-wa+xx/Math.sqrt(3))/2]}
-else{const u=(xx+1)/2,v=(yy+1)/2;w=[(1-u)*(1-v),u*(1-v),u*v,(1-u)*v]}
-const lab=[0,1,2].map(i=>labs.reduce((s,p,j)=>s+p[i]*w[j],0));const cc=Math.hypot(lab[1],lab[2]),avgC=labs.reduce((s,p,j)=>s+Math.hypot(p[1],p[2])*w[j],0);if(cc>.013&&cc<avgC*.84){const boost=Math.min(1.33,avgC*.84/cc);lab[1]*=boost;lab[2]*=boost}const [r,g,b]=labRgb(...lab),idx=(y*size+x)*4;px[idx]=r;px[idx+1]=g;px[idx+2]=b;px[idx+3]=255;
-}}
-ctx.putImageData(im,0,0);const url='url("'+canvas.toDataURL('image/png')+'") center/cover no-repeat';orbCache.set(key,url);return url}
+ const colors=ids.filter(id=>byId(id)).slice(0,4).map(id=>byId(id).color);
+ return orbStyleForColors(colors)
+}
 function paintOrb(node,ids){node.style.background=orbStyle(ids)}
+
 function renderChoices(){
 const selected=new Set(selection);
 $('base-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion '+(selected.has(e.id)?'active':'')+'" data-select="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+e.name+(selected.has(e.id)?'<span class="checkmark">✓</span>':'')+'</button>').join('');
@@ -224,7 +278,7 @@ function blendMix(){
  const sum=components.reduce((s,e)=>s+e.n,0);if(!sum)return;
  const color=blendColors(components.map(e=>byId(e.id).color),components.map(e=>e.n));
  mixed={color,components:components.map(e=>({id:e.id,ratio:e.n/sum}))};
- $('mixed-orb').style.background=color;
+ $('mixed-orb').style.background=orbStyleForColors([color]);
  $('mix-stats').textContent=mixed.components.map(c=>byId(c.id).name+' '+Math.round(c.ratio*100)+'%').join(' · ');
  $('mix-stats').style.opacity='0';
  $('mix-button').disabled=true;mixBusy=true;mixStartedAt=performance.now();lastWaterFrame=0;
