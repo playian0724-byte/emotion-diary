@@ -16,7 +16,8 @@ const SAMPLES=[
 const KEY='gyeol-v2';const $=id=>document.getElementById(id);
 let db={records:{},custom:[]},selection=[],month=new Date(new Date().getFullYear(),new Date().getMonth(),1),saving=false;
 let drops=[],amounts={},mixed=null,droppingTimer=null,repeatTimer=null,raf=0,mixBusy=false,toastTimer=0;
-let nextUnnamed=1,mixStartedAt=0,mixDuration=1700,lastWaterFrame=0;
+let nextUnnamed=1,mixStartedAt=0,mixDuration=1900,lastWaterFrame=0;
+let mixRaster=null;
 const orbCache=new Map();
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const isoDay=(d=new Date())=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
@@ -167,8 +168,6 @@ function syncOrbShader(){
  let node=null,colors=[];
  if(active==='today'&&selection.length){
    node=$('today-orb');colors=selection.filter(id=>byId(id)).map(id=>byId(id).color);
- }else if(active==='create'&&mixed&&!mixBusy&&!$('blend-panel').hidden){
-   node=$('mixed-orb');colors=[mixed.color];
  }
  if(!node){v8Shader?.detach();return}
  colors.sort((a,b)=>hue(a)-hue(b));
@@ -213,7 +212,7 @@ catch(e){}
 dest.classList.remove('arriving');dest.classList.add('landed');setTimeout(()=>dest.classList.remove('landed'),450)}
 ghost.remove();saving=false;renderPreview();try{navigator.vibrate?.(12)}catch(e){}toast('저장됨')
 }
-function resetMix(){if(v8Shader)v8Shader.detach();amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;$('water').style.opacity='1';$('mixed-orb').style.opacity='0';$('mixed-orb').style.transform='scale(.68)';$('mix-stats').style.opacity='0';$('blend-panel').hidden=true;$('mix-button').disabled=true;$('mix-undo').disabled=false;$('mix-name').value='';$('mix-definition').value='';$('mix-summary').textContent='감정을 떨어뜨려 보세요.';renderMixButtons();drawWater();startWater()}
+function resetMix(){if(v8Shader)v8Shader.detach();amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;$('water').style.opacity='1';$('mix-stats').style.opacity='0';$('blend-panel').hidden=true;$('mix-button').disabled=true;$('mix-undo').disabled=false;$('mix-name').value='';$('mix-definition').value='';$('mix-summary').textContent='감정을 떨어뜨려 보세요.';renderMixButtons();drawWater();startWater()}
 function renderMixButtons(){$('drop-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion" data-drop="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+e.name+(amounts[e.id]?'<span class="drop-count">×'+amounts[e.id]+'</span>':'')+'</button>').join('');
 document.querySelectorAll('[data-drop]').forEach(btn=>{
 const id=btn.dataset.drop;let pointerHandled=false;
@@ -231,74 +230,126 @@ drops.push({id,x:.5+.24*Math.cos(theta),y:.5+.24*Math.sin(theta),time:performanc
 $('mix-button').disabled=false;$('mix-summary').textContent='총 '+(num+1)+'방울';const btn=document.querySelector('[data-drop="'+id+'"]');if(btn){let badge=btn.querySelector('.drop-count');if(!badge){badge=document.createElement('span');badge.className='drop-count';btn.append(badge)}badge.textContent='×'+amounts[id]}startWater();
 }
 function undoDrop(){if(mixed)return;const d=drops.pop();if(d){amounts[d.id]--;if(!amounts[d.id])delete amounts[d.id]}$('mix-button').disabled=!drops.length;$('mix-summary').textContent=drops.length?'총 '+drops.length+'방울':'감정을 떨어뜨려 보세요.';renderMixButtons();drawWater()}
+/* V10 — One water canvas carries the actual pigment from diffuse drops
+   into a single solid circle. No DOM marble, crossfade, or scale-in layer. */
 function startWater(){
  if(raf)return;
  function frame(t){
    raf=0;
    if(!$('create').classList.contains('active'))return;
-   if(t-lastWaterFrame>27||mixBusy){drawWater(t);lastWaterFrame=t}
-   if(!mixed||mixBusy)raf=requestAnimationFrame(frame);
+   if(t-lastWaterFrame>(mixBusy?30:85)){
+     drawWater(t);lastWaterFrame=t
+   }
+   if(!mixed||mixBusy)raf=requestAnimationFrame(frame)
  }
  raf=requestAnimationFrame(frame)
 }
-function stopWater(){if(raf){cancelAnimationFrame(raf);raf=0}clearInterval(repeatTimer);clearTimeout(droppingTimer)}
+function stopWater(){
+ if(raf){cancelAnimationFrame(raf);raf=0}
+ clearInterval(repeatTimer);clearTimeout(droppingTimer)
+}
 function smoothstep(v){v=clamp(v);return v*v*(3-2*v)}
 function lerp(a,b,t){return a+(b-a)*t}
+function groupedPigments(){
+ const groups=new Map();
+ drops.forEach(d=>{
+   const g=groups.get(d.id)||{id:d.id,n:0,x:0,y:0,color:d.color};
+   g.n++;g.x+=d.x;g.y+=d.y;groups.set(d.id,g)
+ });
+ return [...groups.values()].map(g=>({
+   x:g.x/g.n,y:g.y/g.n,n:g.n,
+   rgb:hexRgb(g.color).map(v=>Math.round(v*255))
+ }))
+}
 function drawWater(now=performance.now()){
- const node=$('water-canvas'),parent=$('water');
- if(!node||!parent)return;
- const w=parent.clientWidth,h=parent.clientHeight;if(w<1||h<1)return;
- const dpr=Math.min(window.devicePixelRatio||1,1.6);
- if(node.width!==Math.round(w*dpr)||node.height!==Math.round(h*dpr)){node.width=Math.round(w*dpr);node.height=Math.round(h*dpr)}
- const ctx=node.getContext('2d');if(!ctx)return;
- ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
- const p=mixBusy?clamp((now-mixStartedAt)/mixDuration):mixed?1:0;
- const easing=smoothstep(p),cx=w/2,cy=h/2;
- // The colors swirl inward. Each pool becomes closer to the same resulting color.
- if(mixBusy&&mixed&&p>.14){
-   const q=smoothstep((p-.14)/.79);
-   const rgb=[0,2,4].map(j=>parseInt(mixed.color.slice(j+1,j+3),16));
-   const r=lerp(20,Math.min(98,w*.35),q);
-   const g=ctx.createRadialGradient(cx,cy,4,cx,cy,r*1.45);
-   g.addColorStop(0,'rgba('+rgb.join(',')+','+(q*.46)+')');
-   g.addColorStop(.65,'rgba('+rgb.join(',')+','+(q*.25)+')');
-   g.addColorStop(1,'rgba('+rgb.join(',')+',0)');
-   ctx.fillStyle=g;ctx.fillRect(cx-r*1.5,cy-r*1.5,r*3,r*3);
+ const canvas=$('water-canvas'),host=$('water');
+ if(!canvas||!host)return;
+ const w=host.clientWidth,h=host.clientHeight;
+ if(w<1||h<1)return;
+ const dpr=Math.min(window.devicePixelRatio||1,1.5);
+ const width=Math.round(w*dpr),height=Math.round(h*dpr);
+ if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}
+ const ctx=canvas.getContext('2d');if(!ctx)return;
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ ctx.clearRect(0,0,w,h);
+ if(!drops.length)return;
+
+ // Lower internal field resolution for stable mobile performance.
+ // It is a calculation buffer, never another composited/visible orb layer.
+ const scale=Math.min(1,250/w);
+ const rw=Math.max(1,Math.round(w*scale)),rh=Math.max(1,Math.round(h*scale));
+ if(!mixRaster||mixRaster.width!==rw||mixRaster.height!==rh){
+   const buffer=document.createElement('canvas');
+   buffer.width=rw;buffer.height=rh;
+   const bctx=buffer.getContext('2d');
+   if(!bctx)return;
+   mixRaster={buffer,ctx:bctx,width:rw,height:rh,
+     image:bctx.createImageData(rw,rh)}
  }
- drops.forEach((d,i)=>{
-   const age=Math.max(0,(now-d.time)/1000);
-   const dx=(d.x-.5)*w,dy=(d.y-.5)*h,angle=easing*Math.PI*2.15;
-   const convergence=1-.94*easing,swirlX=dx*Math.cos(angle)-dy*Math.sin(angle),swirlY=dx*Math.sin(angle)+dy*Math.cos(angle);
-   const x=cx+swirlX*convergence+(!mixBusy?Math.sin(now/2200+i)*1.6:0);
-   const y=cy+swirlY*convergence+(!mixBusy?Math.cos(now/2500+i)*1.6:0);
-   const base=Math.min(w*.38,14+age*49);
-   const r=lerp(base,Math.min(w*.24,72),easing);
-   const raw=mixed?blendColors([d.color,mixed.color],[1-smoothstep(p*.94),smoothstep(p*.94)]):d.color;
-   const rgb=[0,2,4].map(j=>parseInt(raw.slice(j+1,j+3),16));
-   const fade=1-smoothstep((p-.64)/.36);
-   const g=ctx.createRadialGradient(x,y,0,x,y,r);
-   g.addColorStop(0,'rgba('+rgb.join(',')+','+(.42*fade)+')');
-   g.addColorStop(.43,'rgba('+rgb.join(',')+','+(.27*fade)+')');
-   g.addColorStop(1,'rgba('+rgb.join(',')+',0)');
-   ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);
-   if(!mixBusy&&!mixed&&age<1.12){
-     ctx.beginPath();ctx.arc(x,y,Math.max(2,age*25),0,Math.PI*2);
-     ctx.lineWidth=1;ctx.strokeStyle='rgba('+rgb.join(',')+','+(.24*(1-age/1.12))+')';ctx.stroke();
+ const data=mixRaster.image.data;
+ const p=mixBusy?clamp((now-mixStartedAt)/mixDuration):mixed?1:0;
+ const move=smoothstep(p),shape=smoothstep((p-.40)/.57);
+ const merge=smoothstep((p-.13)/.84);
+ const cx=w*.5,cy=h*.5,turn=move*Math.PI*.85;
+ const co=Math.cos(turn),si=Math.sin(turn);
+ const sources=groupedPigments().map((g,i)=>{
+   const dx=g.x*w-cx,dy=g.y*h-cy;
+   const spread=1-move;
+   const radius=lerp(Math.min(89,43+Math.sqrt(g.n)*15),81,move);
+   const drift=(!mixBusy&&!mixed)?Math.sin(now/2550+i*2.9)*1.3:0;
+   return {
+     x:cx+(dx*co-dy*si)*spread+drift,
+     y:cy+(dx*si+dy*co)*spread,
+     r2:radius*radius,
+     strength:.78+Math.log2(1+g.n)*.32,
+     rgb:g.rgb
    }
  });
- if(mixBusy&&mixed){
-   const arrival=smoothstep((p-.43)/.53);
-   const sphere=$('mixed-orb');
-   sphere.style.opacity=String(arrival);
-   sphere.style.transform='scale('+lerp(.58,1,arrival).toFixed(3)+') rotate('+(easing*185).toFixed(1)+'deg)';
-   parent.style.opacity=String(1-smoothstep((p-.54)/.46));
-   if(p>=1){
-     mixBusy=false;parent.style.opacity='0';sphere.style.opacity='1';sphere.style.transform='scale(1)';
-     $('mix-stats').style.opacity='1';$('blend-panel').hidden=false;$('mix-undo').disabled=true;
-     $('mix-summary').textContent='완성';
-     syncOrbShader();
-     try{navigator.vibrate?.(8)}catch(e){}
+ const finishRgb=mixed?hexRgb(mixed.color).map(v=>Math.round(v*255)):null;
+ const sphereRadius=Math.min(73,h*.34,w*.27);
+ // Compute ONE contiguous color/opacity field whose shape contracts from
+ // watercolor puddles into a 146px circle. It never introduces another orb.
+ for(let y=0;y<rh;y++){
+   const py=(y+.5)*h/rh,dy=py-cy;
+   for(let x=0;x<rw;x++){
+     const px=(x+.5)*w/rw,dx=px-cx;
+     const i=(y*rw+x)*4;
+     let density=0,red=0,green=0,blue=0;
+     for(const s of sources){
+       const xx=px-s.x,yy=py-s.y,dist2=xx*xx+yy*yy;
+       if(dist2>s.r2*5.8)continue;
+       const weight=Math.exp(-2.1*dist2/s.r2)*s.strength;
+       density+=weight;
+       red+=weight*s.rgb[0];green+=weight*s.rgb[1];blue+=weight*s.rgb[2]
+     }
+     const dyeAlpha=(1-Math.exp(-1.35*density))*.69;
+     const distance=Math.hypot(dx,dy);
+     const discAlpha=clamp((sphereRadius+.65-distance)/1.3);
+     const alpha=lerp(dyeAlpha,discAlpha,shape);
+     if(alpha<.003){
+       data[i]=0;data[i+1]=0;data[i+2]=0;data[i+3]=0;
+       continue
+     }
+     const inv=density>.00001?1/density:0;
+     const color=finishRgb||[0,0,0];
+     data[i]=Math.round(clamp(lerp(red*inv,color[0],merge),0,255));
+     data[i+1]=Math.round(clamp(lerp(green*inv,color[1],merge),0,255));
+     data[i+2]=Math.round(clamp(lerp(blue*inv,color[2],merge),0,255));
+     data[i+3]=Math.round(255*clamp(alpha))
    }
+ }
+ mixRaster.ctx.putImageData(mixRaster.image,0,0);
+ ctx.imageSmoothingEnabled=true;
+ ctx.imageSmoothingQuality='high';
+ ctx.drawImage(mixRaster.buffer,0,0,w,h);
+
+ if(mixBusy&&p>=1){
+   mixBusy=false;
+   $('mix-stats').style.opacity='1';
+   $('blend-panel').hidden=false;
+   $('mix-undo').disabled=true;
+   $('mix-summary').textContent='완성';
+   try{navigator.vibrate?.(8)}catch(e){}
  }
 }
 function blendMix(){
@@ -307,12 +358,17 @@ function blendMix(){
  const sum=components.reduce((s,e)=>s+e.n,0);if(!sum)return;
  const color=blendColors(components.map(e=>byId(e.id).color),components.map(e=>e.n));
  mixed={color,components:components.map(e=>({id:e.id,ratio:e.n/sum}))};
- $('mixed-orb').style.background=orbStyleForColors([color]);
  $('mix-stats').textContent=mixed.components.map(c=>byId(c.id).name+' '+Math.round(c.ratio*100)+'%').join(' · ');
  $('mix-stats').style.opacity='0';
- $('mix-button').disabled=true;mixBusy=true;mixStartedAt=performance.now();lastWaterFrame=0;
+ $('mix-button').disabled=true;
+ mixBusy=true;
+ mixStartedAt=performance.now();
+ lastWaterFrame=0;
  $('mix-summary').textContent='섞는 중';
- startWater();
+ if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
+   mixStartedAt-=mixDuration;
+   drawWater(performance.now());
+ }else startWater();
 }
 function createEmotion(addToDay){
 if(!mixed)return;const name=$('mix-name').value.trim(),definition=$('mix-definition').value.trim(),id='custom-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
