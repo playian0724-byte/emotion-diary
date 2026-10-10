@@ -18,6 +18,8 @@ let db={records:{},custom:[]},selection=[],month=new Date(new Date().getFullYear
 let drops=[],amounts={},mixed=null,droppingTimer=null,repeatTimer=null,raf=0,mixBusy=false,toastTimer=0;
 let nextUnnamed=1,mixStartedAt=0,mixDuration=1900,lastWaterFrame=0;
 let mixRaster=null;
+// Long press is for small ratio adjustments, not fast continuous pouring.
+const HOLD_START_MS=780,HOLD_REPEAT_MS=850,INK_BLOOM_SECONDS=2.8;
 const orbCache=new Map();
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const isoDay=(d=new Date())=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
@@ -216,7 +218,7 @@ function resetMix(){if(v8Shader)v8Shader.detach();amounts={};drops=[];mixed=null
 function renderMixButtons(){$('drop-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion" data-drop="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+e.name+(amounts[e.id]?'<span class="drop-count">×'+amounts[e.id]+'</span>':'')+'</button>').join('');
 document.querySelectorAll('[data-drop]').forEach(btn=>{
 const id=btn.dataset.drop;let pointerHandled=false;
-btn.addEventListener('pointerdown',ev=>{if(ev.button!==0&&ev.pointerType==='mouse')return;ev.preventDefault();pointerHandled=true;addDrop(id);clearTimeout(droppingTimer);clearInterval(repeatTimer);droppingTimer=setTimeout(()=>{repeatTimer=setInterval(()=>addDrop(id),230)},470)});
+btn.addEventListener('pointerdown',ev=>{if(ev.button!==0&&ev.pointerType==='mouse')return;ev.preventDefault();pointerHandled=true;addDrop(id);clearTimeout(droppingTimer);clearInterval(repeatTimer);droppingTimer=setTimeout(()=>{repeatTimer=setInterval(()=>addDrop(id),HOLD_REPEAT_MS)},HOLD_START_MS)});
 const finish=()=>{clearTimeout(droppingTimer);clearInterval(repeatTimer);droppingTimer=repeatTimer=null};
 btn.addEventListener('pointerup',finish);btn.addEventListener('pointercancel',finish);btn.addEventListener('pointerleave',finish);btn.addEventListener('contextmenu',e=>e.preventDefault());
 btn.addEventListener('click',ev=>{if(ev.detail===0)addDrop(id);else if(!pointerHandled)addDrop(id);pointerHandled=false})});
@@ -237,8 +239,8 @@ function startWater(){
  function frame(t){
    raf=0;
    if(!$('create').classList.contains('active'))return;
-   const fresh=drops.length&&t-drops[drops.length-1].time<1300;
-   if(t-lastWaterFrame>(mixBusy||fresh?33:95)){
+   const fresh=drops.length&&t-drops[drops.length-1].time<INK_BLOOM_SECONDS*1000+200;
+   if(t-lastWaterFrame>(mixBusy?33:fresh?(drops.length>18?65:45):120)){
      drawWater(t);lastWaterFrame=t
    }
    if(!mixed||mixBusy)raf=requestAnimationFrame(frame)
@@ -251,7 +253,7 @@ function stopWater(){
 }
 function smoothstep(v){v=clamp(v);return v*v*(3-2*v)}
 function lerp(a,b,t){return a+(b-a)*t}
-/* V12 — V8's simple colored-circle controls, with each dye drop spreading again.
+/* V13 — slower, wider individual dye diffusion with V8 circular swatch controls.
    The original multi-drop water experience flows into V10's continuous
    single-Canvas coagulation, rather than a second fade-in marble. */
 function drawWater(now=performance.now()){
@@ -285,11 +287,11 @@ function drawWater(now=performance.now()){
  const cx=w*.5,cy=h*.5,turn=move*Math.PI*.85;
  const co=Math.cos(turn),si=Math.sin(turn);
  const sources=drops.map((d,i)=>{
-   const age=Math.max(0,(now-d.time)/1000);
-   const opening=smoothstep(age/.95);
+   const age=Math.max(0,((mixBusy||mixed?mixStartedAt:now)-d.time)/1000);
+   const opening=smoothstep(age/INK_BLOOM_SECONDS);
    // An individual ink drop starts compact, then blooms outward in water.
    // Previous V10 grouped all same-color drops and erased this behavior.
-   const bloomRadius=lerp(9,Math.min(84,w*.23),opening);
+   const bloomRadius=lerp(9,Math.min(195,Math.max(w*.48,h*.67)),opening);
    const radius=lerp(bloomRadius,69,move);
    const dx=(d.x-.5)*w,dy=(d.y-.5)*h;
    const drift=(!mixBusy&&!mixed)?Math.sin(now/2100+i*1.7)*1.4:0;
@@ -297,7 +299,7 @@ function drawWater(now=performance.now()){
      x:cx+(dx*co-dy*si)*(1-move)+drift,
      y:cy+(dx*si+dy*co)*(1-move),
      r2:radius*radius,
-     strength:.76,
+     strength:.66,
      rgb:hexRgb(d.color).map(v=>Math.round(v*255)),
      age,
      opening
@@ -316,7 +318,7 @@ function drawWater(now=performance.now()){
      for(const ink of sources){
        const xx=px-ink.x,yy=py-ink.y,dist2=xx*xx+yy*yy;
        if(dist2>ink.r2*5.2)continue;
-       const weight=Math.exp(-2.25*dist2/ink.r2)*ink.strength;
+       const weight=Math.exp(-1.68*dist2/ink.r2)*ink.strength;
        density+=weight;
        red+=weight*ink.rgb[0];green+=weight*ink.rgb[1];blue+=weight*ink.rgb[2]
      }
@@ -343,9 +345,9 @@ function drawWater(now=performance.now()){
  // It belongs to the same Canvas, and is gone before condensation begins.
  if(!mixBusy&&!mixed){
    sources.forEach(ink=>{
-     if(ink.age>=1.15)return;
-     const q=smoothstep(ink.age/1.15);
-     const r=lerp(3,39,q);
+     if(ink.age>=2.2)return;
+     const q=smoothstep(ink.age/2.2);
+     const r=lerp(3,74,q);
      const opacity=.24*(1-q);
      ctx.beginPath();ctx.arc(ink.x,ink.y,r,0,Math.PI*2);
      ctx.lineWidth=1.1;
