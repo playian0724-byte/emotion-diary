@@ -43,27 +43,34 @@ const rgb=[4.0767416621*ll-3.3077115913*mm+.2309699292*ss,-1.2684380046*ll+2.609
 return rgb.map(x=>Math.round(255*clamp(x<=.0031308?12.92*x:1.055*Math.pow(Math.max(0,x),1/2.4)-.055)))}
 function toHex(rgb){return '#'+rgb.map(v=>Math.round(clamp(v,0,255)).toString(16).padStart(2,'0')).join('').toUpperCase()}
 function blendColors(colors,weights){
- const sum=weights.reduce((a,b)=>a+b,0)||1,labs=colors.map(rgbToLab);
- const avg=[0,1,2].map(j=>labs.reduce((a,c,i)=>a+c[j]*weights[i]/sum,0));
- // Hue direction comes from the weighted emotion mixture.
- // Preserve some perceptual chroma so mixed emotional colors do not turn unnecessarily gray.
- const target=labs.reduce((s,v,i)=>s+Math.hypot(v[1],v[2])*weights[i]/sum,0);
- let c=Math.hypot(avg[1],avg[2]);
- if(colors.length>1&&target>0.001){
-   const desired=Math.min(target*.85,Math.max(c,target*.63));
-   let dirA,dirB;
-   if(c>.003){dirA=avg[1]/c;dirB=avg[2]/c}
-   else{let k=weights.indexOf(Math.max(...weights));const dominant=labs[k];let angle=Math.atan2(dominant[2],dominant[1]);dirA=Math.cos(angle);dirB=Math.sin(angle)}
-   // Avoid hard clipping: softly reduce chroma if the blended hue leaves sRGB.
-   let scale=desired;
-   const inGamut=(l,a,b)=>{let L=l+.3963377774*a+.2158037573*b,M=l-.1055613458*a-.0638541728*b,S=l-.0894841775*a-1.291485548*b;
-     let ll=L*L*L,mm=M*M*M,ss=S*S*S;
-     let rgb=[4.0767416621*ll-3.3077115913*mm+.2309699292*ss,-1.2684380046*ll+2.6097574011*mm-.3413193965*ss,-.0041960863*ll-.7034186147*mm+1.707614701*ss];
-     return rgb.every(x=>x>=-.00001&&x<=1.00001)};
-   if(!inGamut(avg[0],dirA*scale,dirB*scale)){let lo=0,hi=scale;for(let i=0;i<11;i++){const mid=(lo+hi)/2;if(inGamut(avg[0],dirA*mid,dirB*mid))lo=mid;else hi=mid}scale=lo}
-   avg[1]=dirA*scale;avg[2]=dirB*scale;
+ if(colors.length===1)return colors[0];
+ const labs=colors.map(rgbToLab),sum=weights.reduce((a,b)=>a+b,0)||1;
+ const lightness=labs.reduce((s,p,i)=>s+p[0]*weights[i]/sum,0);
+ let targetC=0,sx=0,sy=0;
+ labs.forEach((p,i)=>{
+   const c=Math.hypot(p[1],p[2]),angle=Math.atan2(p[2],p[1]),w=weights[i]/sum;
+   targetC+=c*w; sx+=Math.cos(angle)*w; sy+=Math.sin(angle)*w
+ });
+ // Circular hue interpolation keeps mixtures colorful rather than averaging opposite
+ // OKLab components into gray. This is a deliberately artistic, not physical, paint model.
+ let angle=Math.atan2(sy,sx);
+ if(Math.hypot(sx,sy)<.025){
+   const strongest=weights.indexOf(Math.max(...weights));angle=Math.atan2(labs[strongest][2],labs[strongest][1])
  }
- return toHex(labRgb(...avg));
+ let lo=0,hi=targetC*.88;
+ const inGamut=(C)=>{
+   const a=C*Math.cos(angle),b=C*Math.sin(angle);
+   const L=Math.pow(lightness+.3963377774*a+.2158037573*b,3);
+   const M=Math.pow(lightness-.1055613458*a-.0638541728*b,3);
+   const S=Math.pow(lightness-.0894841775*a-1.291485548*b,3);
+   return [
+      4.0767416621*L-3.3077115913*M+.2309699292*S,
+      -1.2684380046*L+2.6097574011*M-.3413193965*S,
+      -.0041960863*L-.7034186147*M+1.707614701*S
+   ].every(v=>v>=0&&v<=1)
+ };
+ if(!inGamut(hi)){for(let i=0;i<11;i++){const mid=(lo+hi)/2;if(inGamut(mid))lo=mid;else hi=mid}hi=lo}
+ return toHex(labRgb(lightness,hi*Math.cos(angle),hi*Math.sin(angle)));
 }
 function hue(hex){const [r,g,b]=hexRgb(hex),hi=Math.max(r,g,b),lo=Math.min(r,g,b),d=hi-lo;if(!d)return 0;let h=hi===r?((g-b)/d)%6:hi===g?(b-r)/d+2:(r-g)/d+4;return (h*60+360)%360}
 function orbStyle(ids){
@@ -78,7 +85,7 @@ const xx=2*x/(size-1)-1;let w;
 if(cs.length===2){let t=clamp((xx+yy+2)/4);w=[1-t,t]}
 else if(cs.length===3){let wa=(1-yy)/3;w=[wa,(1-wa-xx/Math.sqrt(3))/2,(1-wa+xx/Math.sqrt(3))/2]}
 else{const u=(xx+1)/2,v=(yy+1)/2;w=[(1-u)*(1-v),u*(1-v),u*v,(1-u)*v]}
-const lab=[0,1,2].map(i=>labs.reduce((s,p,j)=>s+p[i]*w[j],0));const [r,g,b]=labRgb(...lab),idx=(y*size+x)*4;px[idx]=r;px[idx+1]=g;px[idx+2]=b;px[idx+3]=255;
+const lab=[0,1,2].map(i=>labs.reduce((s,p,j)=>s+p[i]*w[j],0));const cc=Math.hypot(lab[1],lab[2]),avgC=labs.reduce((s,p,j)=>s+Math.hypot(p[1],p[2])*w[j],0);if(cc>.013&&cc<avgC*.84){const boost=Math.min(1.33,avgC*.84/cc);lab[1]*=boost;lab[2]*=boost}const [r,g,b]=labRgb(...lab),idx=(y*size+x)*4;px[idx]=r;px[idx+1]=g;px[idx+2]=b;px[idx+3]=255;
 }}
 ctx.putImageData(im,0,0);const url='url("'+canvas.toDataURL('image/png')+'") center/cover no-repeat';orbCache.set(key,url);return url}
 function paintOrb(node,ids){node.style.background=orbStyle(ids)}
