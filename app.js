@@ -226,7 +226,8 @@ if(mixed||mixBusy){toast('다시 만들기를 선택하세요.');return}
 const num=Object.values(amounts).reduce((a,b)=>a+b,0);if(num>=36){toast('최대 36방울까지 가능합니다.');return}
 amounts[id]=(amounts[id]||0)+1;
 const e=byId(id),t=num+1,theta=t*2.3999632297;
-const d={id,x:.5+.24*Math.cos(theta),y:.5+.24*Math.sin(theta),time:performance.now(),color:e.color};
+const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const d={id,x:.5+.24*Math.cos(theta),y:.5+.24*Math.sin(theta),time:performance.now()+(reduced?0:245),color:e.color};
 drops.push(d);renderInkDropper(d);
 $('mix-button').disabled=false;$('mix-summary').textContent='총 '+(num+1)+'방울';const btn=document.querySelector('[data-drop="'+id+'"]');if(btn){let badge=btn.querySelector('.drop-count');if(!badge){badge=document.createElement('span');badge.className='drop-count';btn.append(badge)}badge.textContent='×'+amounts[id]}startWater();
 }
