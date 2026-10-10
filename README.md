@@ -17,6 +17,10 @@
 
 [**V7 내부 조명과 동기화 명세**](./docs/V7_LIGHT_MOTION.md) · [V6 발광 구슬 명세](./docs/V6_GLOW_SYSTEM.md) · [V5 재질 명세](./docs/V5_ORB_MATERIAL.md) · [V4 미니멀 디자인 시스템](./docs/V4_DESIGN_SYSTEM.md) · [V3 색채·애니메이션 명세서](./docs/V3_VISUAL_SYSTEM.md) · [V2 기능 명세서](./docs/V2_SPEC.md)
 
+## 다음 단계: V8 Shader 전환 설계
+
+[**V8 WebGL2 전환 설계안**](./docs/V8_SHADER_TRANSITION.md) — 단색 테두리 제거, 감정별 색상을 따르는 위치별 후광, 동일한 광원 이동, 정적 달력 렌더링 및 Safari fallback. **현재 서비스 버전은 V7이며 V8은 아직 구현 전입니다.**
+
 ## 개발 구조
 
 - `index.html` — 화면 및 의미 구조
