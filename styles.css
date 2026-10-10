@@ -219,3 +219,36 @@ nav button.active{font-weight:630;color:#232725}
 @media(prefers-reduced-motion:reduce){
   .emotion{transition:none}
 }
+
+
+/* V5 — ONE material, no artificial glass layers or differently colored rim.
+   The studio light and soft falloff are already baked into the image texture. */
+.orb,
+.preview>.orb,
+.mixresult .orb,
+.flying-orb .orb{
+  border:none;
+  outline:none;
+  isolation:auto;
+  background-color:transparent;
+  background-size:100% 100%;
+  box-shadow:0 9px 24px rgba(32,43,48,.10);
+}
+.orb::before,.orb::after{content:none!important;display:none!important}
+.preview>.orb{box-shadow:0 13px 29px rgba(30,43,49,.095)}
+.mixresult .orb{box-shadow:0 12px 28px rgba(30,43,49,.10)}
+.flying-orb .orb{box-shadow:0 8px 19px rgba(30,43,49,.09)}
+.orb.empty{
+  border:0;
+  background:#edf0eb!important;
+  box-shadow:inset 0 0 0 1px #e2e6e0
+}
+.cal-day.recorded .mini{
+  border:0;
+  outline:0;
+  background-size:100% 100%;
+  box-shadow:0 2px 5px rgba(35,45,48,.095)
+}
+.cal-day.recorded .mini::after{content:none!important;display:none!important}
+.cal-day .mini{background-size:100% 100%}
+.swatch{border:0;box-shadow:none}
