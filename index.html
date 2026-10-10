@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#fbfbf9">
 <meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
 <title>결. — 감정 일기</title>
-<link rel="stylesheet" href="./styles.css?v=11">
+<link rel="stylesheet" href="./styles.css?v=12">
 <script defer src="./orb-renderer.js?v=8.2"></script>
-<script defer src="./app.js?v=11"></script>
+<script defer src="./app.js?v=12"></script>
 </head>
 <body>
 <main class="app">
@@ -52,15 +52,6 @@
 <div class="intro" style="margin-top:10px"><h1>새 감정</h1><p class="mix-desc">감정을 섞어 색을 만드세요.</p></div>
 <div class="mix-stage" id="mix-stage">
 <div id="water" class="water" aria-label="감정 방울이 퍼지는 자유로운 수면"><canvas id="water-canvas"></canvas></div>
-<div id="ink-dropper" class="ink-dropper" aria-hidden="true">
-  <svg viewBox="0 0 52 70" focusable="false" aria-hidden="true">
-    <path d="M19 8V5a7 7 0 0 1 14 0v3" stroke="#555E59" stroke-width="2" stroke-linecap="round" fill="none"/>
-    <rect x="17" y="8" width="18" height="8" rx="4" fill="#F9FAF7" stroke="#737E78" stroke-width="1.7"/>
-    <path d="M20 16V44L26 58 32 44V16Z" fill="#FCFCFA" stroke="#737E78" stroke-width="1.7" stroke-linejoin="round"/>
-    <path d="M21.6 32H30.4V44L26 54 21.6 44Z" fill="var(--ink)" opacity=".82"/>
-  </svg>
-  <span class="ink-dropper-bead"></span>
-</div>
 <div id="mixresult" class="mixresult" aria-live="polite"><div id="mix-stats" class="mixstats"></div></div>
 </div>
 <div class="drop-hint" id="mix-summary">감정을 떨어뜨려 보세요.</div>
