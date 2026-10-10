@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#fbfbf9">
 <meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
 <title>결. — 감정 일기 V2</title>
-<link rel="stylesheet" href="./styles.css?v=2">
-<script defer src="./app.js?v=2"></script>
+<link rel="stylesheet" href="./styles.css?v=3">
+<script defer src="./app.js?v=3"></script>
 </head>
 <body>
 <main class="app">
@@ -49,8 +49,10 @@
 <section id="create" class="screen" aria-label="새 감정 만들기">
 <button id="create-back" type="button" class="back">‹ 돌아가기</button>
 <div class="intro" style="margin-top:10px"><h1>아직 이름 없는 마음</h1><p class="mix-desc">기본 감정을 한 방울씩 떨어뜨려 표현해 보세요.</p></div>
+<div class="mix-stage" id="mix-stage">
 <div id="water" class="water" aria-label="감정 방울이 퍼지는 자유로운 수면"><canvas id="water-canvas"></canvas></div>
 <div id="mixresult" class="mixresult" aria-live="polite"><div class="orb" id="mixed-orb"></div><div id="mix-stats" class="mixstats"></div></div>
+</div>
 <div class="drop-hint" id="mix-summary">감정을 탭하거나 길게 눌러 떨어뜨려 보세요.</div>
 <div class="heading-row"><h2>기본 감정</h2><span class="subline">탭 1회 = 1방울 · 길게 누르기 = 연속</span></div>
 <div class="grid-emotions mix-buttons" id="drop-emotions"></div>
