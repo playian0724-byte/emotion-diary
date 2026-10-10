@@ -1,21 +1,72 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>결. — 감정 일기</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f6f6f5;color:#292929;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}.app{max-width:490px;min-height:100vh;margin:auto;padding:24px 22px 90px;background:#fafaf9}header{display:flex;justify-content:space-between;align-items:center}.logo{font-size:27px;font-weight:700}nav{display:flex;gap:7px}button{font:inherit;cursor:pointer}nav button{border:0;background:none;color:#888;padding:9px 7px}nav button.active{color:#222;font-weight:700}h1{font-size:25px;letter-spacing:-1px;margin:32px 0 8px}p{color:#989898;margin:0}.orbzone{height:248px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}.orb{width:170px;height:170px;border-radius:50%;box-shadow:inset -13px -15px 25px #0000000c,inset 9px 12px 24px #ffffff65,0 9px 30px #00000007;transition:background .3s}.orb.empty{background:#eee;border:1px solid #ddd}.hint{font-size:13px;color:#999}.section{display:flex;justify-content:space-between;align-items:center;margin:22px 0 15px}.section strong{font-size:16px}.section button{border:0;background:none;color:#999}.emotions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.emotion{background:#fff;border:1px solid #e8e8e8;border-radius:17px;min-height:92px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;color:#555;font-size:13px}.emotion.selected{border:2px solid #444;background:#f4f4f2}.dot{width:36px;height:36px;border-radius:50%}.note{display:block;width:100%;padding:15px;margin-top:12px;border:1px solid #e7e7e7;border-radius:13px;font:inherit;resize:vertical;min-height:75px;background:white}.primary{width:100%;border:0;border-radius:15px;background:#292929;color:white;padding:17px;font-weight:600;margin-top:15px}.primary:disabled{opacity:.3}.quiet{border:0;background:none;color:#666;font-size:14px;margin:16px 0}.saved{display:grid;grid-template-columns:repeat(7,1fr);gap:9px;margin:23px 0}.day{display:flex;flex-direction:column;align-items:center;gap:8px;color:#999;font-size:12px;padding:0;border:0;background:none}.mini{width:100%;aspect-ratio:1;border-radius:50%;background:#eeeeee;border:1px solid #e5e5e5}.panel{display:none}.panel.active{display:block}.card{padding:18px;border:1px solid #eee;background:white;border-radius:18px;margin:16px 0}.row{display:flex;gap:12px;align-items:center}.small{color:#888;font-size:12px}.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);border-radius:24px;background:#292929;color:white;padding:12px 18px;font-size:13px;display:none;white-space:nowrap}footer{margin-top:35px;color:#aaa;font-size:12px}
-</style></head><body><main class="app"><header><div class="logo">결.</div><nav><button data-tab="today" class="active">오늘</button><button data-tab="archive">기록</button><button data-tab="dictionary">사전</button></nav></header>
-<section id="today" class="panel active"><h1>오늘은 어떤 마음이었나요?</h1><p>가까운 감정을 골라보세요.</p><div class="orbzone"><div id="orb" class="orb empty"></div><div id="chosen" class="hint">감정 하나만 골라도 충분해요.</div></div><div class="section"><strong>기본 감정</strong><button id="clear">초기화</button></div><div class="emotions" id="emotions"></div><div class="section"><strong>나의 감정</strong><span class="small">미리 만든 감정 예시</span></div><div class="emotions" id="custom"></div><button class="quiet" id="newEmotion">+ 새로운 감정 만들기</button><textarea id="note" class="note" placeholder="무슨 일이 있었나요? (선택)"></textarea><button class="primary" id="save" disabled>오늘의 구슬 저장</button></section>
-<section id="archive" class="panel"><h1>나의 기록</h1><p>하루하루의 마음이 모이는 곳</p><div id="month" class="section"></div><div id="calendar" class="saved"></div><div class="card"><div class="small">날짜를 누르면 그날의 감정을 볼 수 있어요.</div><div id="detail" style="margin-top:12px"></div></div></section>
-<section id="dictionary" class="panel"><h1>감정 사전</h1><p>내 마음의 이름들</p><div class="card"><strong>새 감정 만들기</strong><p class="small" style="margin-top:9px">기본 감정을 탭으로 한 방울씩 더하고, 길게 눌러 양을 조절해 하나의 단색으로 만드는 기능은 후속 버전에서 구현해요.</p></div><div id="dict"></div></section><footer>결. — 기록은 가볍게, 이해는 천천히.</footer></main><div id="toast" class="toast"></div>
-<script>
-const basics=[["기쁨","#eac874"],["평온","#98b9aa"],["슬픔","#90aad1"],["불안","#b5a0c6"],["분노","#d69b92"],["놀람","#d5b88d"],["혐오","#9eab88"],["기대","#e0b89e"]];
-const personal=[["여운","#c6acc5"],["후련함","#a9c9c0"],["아련함","#b4a1bf"]];
-const all=[...basics,...personal];let selection=[],records={};try{records=JSON.parse(localStorage.getItem("gyeolRecords")||"{}")}catch(e){}
-const el=id=>document.getElementById(id), dateKey=()=>{let d=new Date;return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
-function toast(message){el("toast").textContent=message;el("toast").style.display="block";setTimeout(()=>el("toast").style.display="none",2000)}
-function gradient(cols){if(!cols.length)return "#eeeeee";if(cols.length===1)return cols[0];if(cols.length===2)return "linear-gradient(135deg,"+cols.join(",")+")";if(cols.length===3)return "conic-gradient(from 0deg at 50% 50%,"+cols[0]+","+cols[1]+","+cols[2]+","+cols[0]+")";return "conic-gradient(from 45deg,"+cols.join(",")+","+cols[0]+")"}
-function render(){[["emotions",basics,0],["custom",personal,basics.length]].forEach(([id,arr,offset])=>{el(id).innerHTML=arr.map((e,i)=>'<button class="emotion '+(selection.includes(i+offset)?"selected":"")+'" data-idx="'+(i+offset)+'"><span class="dot" style="background:'+e[1]+'"></span>'+e[0]+'</button>').join("")});document.querySelectorAll(".emotion").forEach(b=>b.onclick=()=>{let i=Number(b.dataset.idx);if(selection.includes(i))selection=selection.filter(v=>v!==i);else if(selection.length<4)selection.push(i);else toast("감정은 최대 4개까지 선택할 수 있어요.");render()});el("orb").style.background=gradient(selection.map(i=>all[i][1]));el("orb").classList.toggle("empty",!selection.length);el("chosen").textContent=selection.length?selection.map(i=>all[i][0]).join(" · "):"감정 하나만 골라도 충분해요.";el("save").disabled=!selection.length}
-function calendar(){let d=new Date,y=d.getFullYear(),m=d.getMonth()+1,n=new Date(y,m,0).getDate();el("month").innerHTML="<strong>"+y+"년 "+m+"월</strong>";el("calendar").innerHTML=Array.from({length:n},(_,i)=>{let k=y+"-"+String(m).padStart(2,"0")+"-"+String(i+1).padStart(2,"0"),r=records[k];return '<button class="day" data-date="'+k+'">'+(i+1)+'<span class="mini" style="'+(r?"background:"+gradient(r.ids.map(j=>all[j][1])):"")+'"></span></button>'}).join("");document.querySelectorAll("[data-date]").forEach(b=>b.onclick=()=>{let r=records[b.dataset.date];el("detail").textContent=r?r.ids.map(i=>all[i][0]).join(" · ")+(r.note?" — "+r.note:""):"기록이 없는 날이에요."})}
-function dict(){el("dict").innerHTML=personal.map(([n,c])=>'<div class="card row"><span class="dot" style="background:'+c+'"></span><strong>'+n+'</strong><span class="small">예시</span></div>').join("")}
-el("clear").onclick=()=>{selection=[];render()};el("newEmotion").onclick=()=>{document.querySelector('[data-tab="dictionary"]').click();toast("혼합 도구는 다음 버전에 추가할게요.")};
-el("save").onclick=()=>{if(!selection.length)return;records[dateKey()]={ids:[...selection],note:el("note").value};try{localStorage.setItem("gyeolRecords",JSON.stringify(records))}catch(e){}calendar();toast("오늘의 구슬을 저장했어요.")};
-document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id===b.dataset.tab));if(b.dataset.tab==="archive")calendar();if(b.dataset.tab==="dictionary")dict()});
-render();calendar();dict();
-</script></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fbfbf9">
+<meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
+<title>결. — 감정 일기 V2</title>
+<link rel="stylesheet" href="./styles.css?v=2">
+<script defer src="./app.js?v=2"></script>
+</head>
+<body>
+<main class="app">
+<header>
+<a class="brand" href="./" aria-label="결 홈">결.</a>
+<nav aria-label="주요 화면">
+<button type="button" data-open="today" class="active">오늘</button>
+<button type="button" data-open="archive">기록</button>
+<button type="button" data-open="dictionary">사전</button>
+</nav>
+</header>
+<section id="today" class="screen active" aria-label="오늘의 감정 기록">
+<div class="intro"><h1>오늘은 어떤 마음이었나요?</h1><p id="today-date"></p></div>
+<div class="preview"><div id="today-orb" class="orb empty" role="img" aria-label="선택한 감정의 색깔 구슬"></div><div id="selected-label" class="subline" aria-live="polite">하나만 선택해도 충분해요.</div></div>
+<div class="heading-row"><h2>기본 감정</h2><button class="subtle-button" type="button" id="reset-select">초기화</button></div>
+<div class="grid-emotions" id="base-emotions"></div>
+<div class="heading-row"><h2>나의 감정</h2><span class="subline">기억해 둔 마음들</span></div>
+<div class="grid-emotions" id="my-emotions"></div>
+<button type="button" class="secondary-action" id="add-custom"><span class="plus-box">+</span><span>표현하기 어렵다면, 새 감정 만들기</span><span class="right-arrow">›</span></button>
+<label class="heading-row" for="memo"><h2>오늘의 메모</h2><span class="subline">선택</span></label>
+<textarea id="memo" class="memo" placeholder="무슨 일이 있었나요? 적지 않아도 괜찮아요." maxlength="1000"></textarea>
+<button id="save-day" class="button-primary" type="button" disabled>오늘의 구슬 저장</button>
+<p class="hintbox">감정 하나는 단색, 여러 감정은 함께 놓인 그라데이션으로 기록돼요.</p>
+</section>
+<section id="archive" class="screen" aria-label="감정 아카이브">
+<div class="intro calendar-title"><h1>나의 기록</h1><p>하루하루의 마음이 모이는 곳</p></div>
+<div class="calendar-controls"><strong id="month-label"></strong><div class="arrow-buttons"><button type="button" id="month-prev" aria-label="이전 달">‹</button><button type="button" id="month-next" aria-label="다음 달">›</button></div></div>
+<div id="calendar" aria-label="달력"></div>
+<div class="entry-card" id="record-detail"></div>
+<p class="hintbox">빈 구슬은 기록하지 않은 날이에요. 좋은 감정과 나쁜 감정의 점수는 매기지 않아요.</p>
+</section>
+<section id="dictionary" class="screen" aria-label="나의 감정 사전">
+<div class="intro"><h1>감정 사전</h1><p>내가 발견한 마음에 이름을 붙이는 곳</p></div>
+<button type="button" class="secondary-action" id="start-create"><span class="plus-box">+</span><span>나만의 감정 만들기</span><span class="right-arrow">›</span></button>
+<div class="heading-row"><h2>내가 만든 감정</h2><span class="subline">Private</span></div>
+<div id="dictionary-list" class="dictionary-list"></div>
+<p class="hintbox">지금 버전의 사전은 기기 안에만 저장돼요. Public 공유 및 다른 사람의 감정 발견은 후속 개발 대상이에요.</p>
+</section>
+<section id="create" class="screen" aria-label="새 감정 만들기">
+<button id="create-back" type="button" class="back">‹ 돌아가기</button>
+<div class="intro" style="margin-top:10px"><h1>아직 이름 없는 마음</h1><p class="mix-desc">기본 감정을 한 방울씩 떨어뜨려 표현해 보세요.</p></div>
+<div id="water" class="water" aria-label="감정 방울이 퍼지는 자유로운 수면"><canvas id="water-canvas"></canvas></div>
+<div id="mixresult" class="mixresult" aria-live="polite"><div class="orb" id="mixed-orb"></div><div id="mix-stats" class="mixstats"></div></div>
+<div class="drop-hint" id="mix-summary">감정을 탭하거나 길게 눌러 떨어뜨려 보세요.</div>
+<div class="heading-row"><h2>기본 감정</h2><span class="subline">탭 1회 = 1방울 · 길게 누르기 = 연속</span></div>
+<div class="grid-emotions mix-buttons" id="drop-emotions"></div>
+<div class="mix-controls"><button type="button" id="mix-undo" class="button-outline">한 방울 취소</button><button type="button" id="mix-reset" class="button-outline">다시 만들기</button></div>
+<button type="button" id="mix-button" class="button-primary" disabled>섞기</button>
+<div id="blend-panel" hidden>
+<label class="input-label" for="mix-name">이 감정의 이름 <span class="subline">선택</span></label>
+<input id="mix-name" class="text-field" placeholder="아직 이름을 붙이지 않아도 돼요." maxlength="40" autocomplete="off">
+<label class="input-label" for="mix-definition">내가 느낀 뜻 <span class="subline">선택</span></label>
+<textarea id="mix-definition" class="memo" placeholder="어떤 마음인지 적어두세요." maxlength="500"></textarea>
+<div class="privacy-row"><span>공개 범위</span><span>Private · 나만 보기</span></div>
+<p class="help">이름 없이 저장한 감정도 사전에서 ‘이름 미정’으로 알아볼 수 있어요. 공개 기능은 아직 지원하지 않아요.</p>
+<div class="result-actions"><button id="save-word" type="button" class="button-outline">사전에 저장</button><button id="use-word" type="button" class="button-primary">오늘 사용하기</button></div>
+</div>
+</section>
+<div class="bottom-brand">결. — 기록은 가볍게, 이해는 천천히.</div>
+</main>
+<div class="toast" id="toast" aria-live="polite"></div>
+</body></html>
