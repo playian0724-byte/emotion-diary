@@ -301,3 +301,24 @@ nav button.active{font-weight:630;color:#232725}
   display:none!important
 }
 .swatch{border:0!important;box-shadow:none!important}
+
+
+/* V10 — a single visible water Canvas: diffuse pigments consolidate into
+   a crisp flat marble in-place. No separate marble overlay or crossfade. */
+.mix-stage{isolation:isolate}
+.mix-stage::after{content:none!important;display:none!important}
+.water{z-index:1;opacity:1!important;will-change:auto}
+.water canvas{image-rendering:auto}
+.mixresult{
+  z-index:2;
+  justify-content:flex-end;
+  padding:0 11px 13px;
+  background:transparent
+}
+.mixresult .mixstats{
+  margin:0;
+  max-width:100%;
+  font-size:11px;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
