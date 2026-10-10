@@ -117,7 +117,7 @@ const num=Object.values(amounts).reduce((a,b)=>a+b,0);if(num>=36){toast('최대 
 amounts[id]=(amounts[id]||0)+1;
 const e=byId(id),t=num+1,theta=t*2.3999632297;
 drops.push({id,x:.5+.24*Math.cos(theta),y:.5+.24*Math.sin(theta),time:performance.now(),color:e.color});
-$('mix-button').disabled=false;$('mix-summary').textContent='총 '+(num+1)+'방울 · 섞기 전에는 비율을 표시하지 않아요.';renderMixButtons();startWater();
+$('mix-button').disabled=false;$('mix-summary').textContent='총 '+(num+1)+'방울 · 섞기 전에는 비율을 표시하지 않아요.';const btn=document.querySelector('[data-drop="'+id+'"]');if(btn){let badge=btn.querySelector('.drop-count');if(!badge){badge=document.createElement('span');badge.className='drop-count';btn.append(badge)}badge.textContent='×'+amounts[id]}startWater();
 }
 function undoDrop(){if(mixed)return;const d=drops.pop();if(d){amounts[d.id]--;if(!amounts[d.id])delete amounts[d.id]}$('mix-button').disabled=!drops.length;$('mix-summary').textContent=drops.length?'총 '+drops.length+'방울':'감정을 탭하거나 길게 눌러 떨어뜨려 보세요.';renderMixButtons();drawWater()}
 function startWater(){if(raf)return;function loop(t){raf=0;if(!$('create').classList.contains('active'))return;drawWater(t);raf=requestAnimationFrame(loop)}raf=requestAnimationFrame(loop)}
