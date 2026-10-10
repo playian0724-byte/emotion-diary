@@ -6,10 +6,10 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
-## V7 기능 및 디자인
+## V9 기능 및 디자인 — 색만 남기기
 
 - **오늘 기록:** 기본/개인 감정 1~4개 선택, 선택적 메모, 로컬 저장
-- **그라데이션:** 1개 단색, 2개 양방향, 3개 삼각형의 꼭짓점, 4개 사각형의 꼭짓점 기준. 선명한 팔레트, 유리 속 움직이는 내부 광원과 Shimmer, 같은 방향으로 이동하는 부드러운 후광. 기록에는 비율을 적용하지 않음.
+- **그라데이션:** 1개 단색, 2개 양방향, 3개 삼각형의 꼭짓점, 4개 사각형의 꼭짓점 기준. 선명한 원색과 부드러운 다색 연결만 유지. 광원, Shimmer, 후광, 유리광택, 그림자 없음. 기록에는 비율을 적용하지 않음.
 - **감정 만들기:** 넓은 수면에서 탭/롱프레스로 방울 추가, 개별 색이 회전하며 하나의 색으로 합쳐지는 연속 애니메이션, 섞기 완료 후 혼합 비율 공개
 - **나의 사전:** 새로운 단색 감정에 이름과 정의를 선택적으로 붙여 개인 사전에 저장, 일기에 재사용
 - **달력 저장:** 구슬이 회전·축소하며 오늘 날짜로 이동하는 애니메이션
@@ -17,15 +17,18 @@
 
 [**V7 내부 조명과 동기화 명세**](./docs/V7_LIGHT_MOTION.md) · [V6 발광 구슬 명세](./docs/V6_GLOW_SYSTEM.md) · [V5 재질 명세](./docs/V5_ORB_MATERIAL.md) · [V4 미니멀 디자인 시스템](./docs/V4_DESIGN_SYSTEM.md) · [V3 색채·애니메이션 명세서](./docs/V3_VISUAL_SYSTEM.md) · [V2 기능 명세서](./docs/V2_SPEC.md)
 
-## V8 WebGL2 셰이더 실험
 
-**[V7과 V8.2 구슬 나란히 비교하기](https://playian0724-byte.github.io/emotion-diary/compare.html)** · [V8 실제 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=webgl&v=8.2) · [V7 기본 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=legacy&v=8.2)
+[**V9 원색 구슬 디자인 원칙**](./docs/V9_COLOR_FIRST.md)
 
-[**V8.2 빛·후광 튜닝**](./docs/V8_2_LIGHT_BALANCE.md) · [V8.1 이전 튜닝](./docs/V8_1_TUNING.md) · [V8 실험 구현 및 QA](./docs/V8_EXPERIMENT.md)
+## V8.2 광원 실험 아카이브
 
-## V8 Shader 전환 설계
+**[현재 원색과 이전 V8.2 광원 나란히 비교하기](https://playian0724-byte.github.io/emotion-diary/compare.html)** · [이전 V8.2 실험 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=webgl&v=9) · [현재 V9 원색 앱](https://playian0724-byte.github.io/emotion-diary/?v=9)
 
-[**V8 WebGL2 전환 설계안**](./docs/V8_SHADER_TRANSITION.md) — 단색 테두리 제거, 감정별 색상을 따르는 위치별 후광, 동일한 광원 이동, 정적 달력 렌더링 및 Safari fallback. ****V7 기본 / V8.2 실험 모드 구현 완료**. 실제 iPhone Safari 검증은 아직 진행 전입니다.**
+[**V8.2 빛·후광 튜닝 (이전 실험)**](./docs/V8_2_LIGHT_BALANCE.md) · [V8.1 이전 튜닝](./docs/V8_1_TUNING.md) · [V8 실험 구현 및 QA](./docs/V8_EXPERIMENT.md)
+
+## 보류한 V8 Shader 전환 설계
+
+[**V8 WebGL2 전환 설계안**](./docs/V8_SHADER_TRANSITION.md) — 단색 테두리 제거, 감정별 색상을 따르는 위치별 후광, 동일한 광원 이동, 정적 달력 렌더링 및 Safari fallback. ****V9 원색 디자인이 기본이고, 발광 WebGL2 V8.2는 비교·연구용으로만 유지**합니다. 실제 iPhone Safari 검증은 아직 진행 전입니다.**
 
 ## 개발 구조
 
