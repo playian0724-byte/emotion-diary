@@ -74,40 +74,39 @@ function blendColors(colors,weights){
 }
 function hue(hex){const [r,g,b]=hexRgb(hex),hi=Math.max(r,g,b),lo=Math.min(r,g,b),d=hi-lo;if(!d)return 0;let h=hi===r?((g-b)/d)%6:hi===g?(b-r)/d+2:(r-g)/d+4;return (h*60+360)%360}
 
-/* V6: translucent stained-glass feel, softly illuminated from within.
-   No opaque white rim, hard outline, neon glow or layered specular stickers.
-   Spatial interpolation still respects 2/3/4 polygon corner placements. */
+/* V9 — Color first.
+   Flat pigment only: no directional light, glass reflection, halo or shimmer.
+   One emotion stays its exact hex; 2–4 emotions form a softly joined color field. */
 function emotionGlow(inputColors,opacity=.11){
  const colors=inputColors.filter(Boolean);
  if(!colors.length)return 'rgba(0,0,0,0)';
- const lab=colors.map(rgbToLab),weights=colors.map(()=>1),color=blendColors(colors,weights);
+ const color=blendColors(colors,colors.map(()=>1));
  const rgb=[0,2,4].map(i=>parseInt(color.slice(i+1,i+3),16));
  return 'rgba('+rgb.join(',')+','+opacity+')'
 }
 function orbStyleForColors(inputColors){
  const cs=inputColors.filter(Boolean).slice(0,4).map(c=>c.toUpperCase()).sort((a,b)=>hue(a)-hue(b));
- if(!cs.length)return '#ECEEEB';
- const key='v6-luminous|'+cs.join('|');
+ if(!cs.length)return '#EDF0EB';
+ const key='v9-flat|'+cs.join('|');
  if(orbCache.has(key))return orbCache.get(key);
  const size=224,canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;
  const ctx=canvas.getContext('2d');if(!ctx)return cs[0];
  const image=ctx.createImageData(size,size),px=image.data;
- const labs=cs.map(rgbToLab),num=cs.length,original=hexRgb(cs[0]);
- const center=(size-1)/2,r=size*.491;
- const sqrt3=Math.sqrt(3);
+ const labs=cs.map(rgbToLab),num=cs.length,pigments=cs.map(hexRgb);
+ const center=(size-1)/2,rad=size*.495,sqrt3=Math.sqrt(3);
  for(let y=0;y<size;y++){
-   const yy=(y-center)/r;
+   const yy=(y-center)/rad;
    for(let x=0;x<size;x++){
-     const xx=(x-center)/r,d2=xx*xx+yy*yy;
-     if(d2>=1.014)continue;
-     const d=Math.min(1,d2),z=Math.sqrt(1-d),idx=(y*size+x)*4;
+     const xx=(x-center)/rad,d=Math.hypot(xx,yy);
+     if(d>=1.008)continue;
+     const idx=(y*size+x)*4;
      let rgb;
-     if(num===1){rgb=original.map(v=>Math.round(v*255))}
+     if(num===1)rgb=pigments[0].map(v=>v*255);
      else{
        let w;
        if(num===2){
-         // A slightly shorter transition, retaining wide blocks of each color.
-         const t=clamp(.5+.36*(xx+yy));w=[1-smoothstep(t),smoothstep(t)]
+         const t=smoothstep(clamp(.5+(xx+yy)*.46));
+         w=[1-t,t]
        }else if(num===3){
          const top=(1-yy)/3;
          w=[top,(1-top-xx/sqrt3)/2,(1-top+xx/sqrt3)/2]
@@ -115,36 +114,25 @@ function orbStyleForColors(inputColors){
          const u=(xx+1)/2,v=(yy+1)/2;
          w=[(1-u)*(1-v),u*(1-v),u*v,(1-u)*v]
        }
-       if(num>2){
-         // A mild corner emphasis reduces the broad muddy center without hard edges.
-         const shaped=w.map(v=>Math.pow(Math.max(0,v),1.48));
-         const total=shaped.reduce((a,b)=>a+b,0)||1;w=shaped.map(v=>v/total)
+       if(num>=3){
+         const shaped=w.map(v=>Math.pow(Math.max(v,0),1.9));
+         const sum=shaped.reduce((a,b)=>a+b,0)||1;
+         w=shaped.map(v=>v/sum)
        }
-       const lab=[0,1,2].map(i=>labs.reduce((s,p,j)=>s+p[i]*w[j],0));
+       const lab=[0,1,2].map(k=>labs.reduce((sum,p,j)=>sum+p[k]*w[j],0));
        const chroma=Math.hypot(lab[1],lab[2]);
-       const expected=labs.reduce((s,p,j)=>s+Math.hypot(p[1],p[2])*w[j],0);
-       if(chroma>.013&&chroma<expected*.85){
-         const lift=Math.min(1.27,expected*.85/chroma);
-         lab[1]*=lift;lab[2]*=lift
+       const expected=labs.reduce((sum,p,j)=>sum+Math.hypot(p[1],p[2])*w[j],0);
+       if(chroma>.015&&chroma<expected*.82){
+         const scale=Math.min(1.25,expected*.82/chroma);
+         lab[1]*=scale;lab[2]*=scale
        }
        rgb=labRgb(...lab)
      }
-     // Illuminated pigment beneath a thin glass surface; a gentle cloud texture.
-     const cloud=Math.sin(xx*5.9+yy*2.5)*Math.cos(yy*4.4-xx*2.1);
-     const core=Math.exp(-((xx+.04)**2/.61**2+(yy+.075)**2/.66**2));
-     const innerCloud=Math.exp(-((xx-.22)**2/.34**2+(yy+.16)**2/.42**2));
-     const light=.71+.15*z+.25*core+.060*innerCloud+.022*cloud;
-     const falloff=.96-.085*Math.pow(1-z,1.5)-.046*Math.max(yy,0);
-     // One diffused reflection, restrained enough to keep the underlying color.
-     const glint=.18*Math.exp(-((xx+.37)**2/.19**2+(yy+.44)**2/.23**2));
-     const glass=.09*core+.045*innerCloud+glint;
-     for(let k=0;k<3;k++){
-       const lit=rgb[k]*light*falloff;
-       px[idx+k]=Math.round(clamp(lit*(1-glass)+255*glass,0,255))
-     }
-     // Silhouette antialiasing only. No separately colored outline.
-     const radius=Math.sqrt(d2);
-     px[idx+3]=Math.round(255*clamp((1.002-radius)*size*.53))
+     px[idx]=Math.round(clamp(rgb[0],0,255));
+     px[idx+1]=Math.round(clamp(rgb[1],0,255));
+     px[idx+2]=Math.round(clamp(rgb[2],0,255));
+     // 1–2px antialiasing; the edge itself never glows.
+     px[idx+3]=Math.round(255*clamp((1.005-d)*rad));
    }
  }
  ctx.putImageData(image,0,0);
@@ -158,9 +146,9 @@ function orbStyle(ids){
 function paintOrb(node,ids){
  const colors=ids.filter(id=>byId(id)).slice(0,4).map(id=>byId(id).color);
  node.style.background=orbStyleForColors(colors);
- node.style.setProperty('--orb-halo',emotionGlow(colors,.22));
- node.style.setProperty('--orb-halo-strong',emotionGlow(colors,.34));
- node.style.setProperty('--orb-mini-halo',emotionGlow(colors,.07));
+ node.style.removeProperty('--orb-halo');
+ node.style.removeProperty('--orb-halo-strong');
+ node.style.removeProperty('--orb-mini-halo');
 }
 function renderChoices(){
 const selected=new Set(selection);
@@ -169,7 +157,8 @@ const mine=[...SAMPLES,...db.custom];
 $('my-emotions').innerHTML=mine.map(e=>'<button type="button" class="emotion '+(selected.has(e.id)?'active':'')+'" data-select="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+escapeHTML(e.name||'이름 미정')+(selected.has(e.id)?'<span class="checkmark">✓</span>':'')+'</button>').join('');
 document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.select;if(selection.includes(id))selection=selection.filter(x=>x!==id);else if(selection.length<4)selection.push(id);else toast('최대 4개까지 선택할 수 있습니다.');renderChoices();renderPreview()}))
 }
-// V8 experiment is opt-in: ?renderer=webgl. Default remains the V7 material.
+// The luminous WebGL V8.2 experiment is preserved behind ?renderer=webgl.
+// Default is the flat, color-first V9 material.
 const WEBGL_EXPERIMENT=new URLSearchParams(window.location.search).get('renderer')==='webgl';
 let v8Shader=null,v8Failed=false;
 function syncOrbShader(){
@@ -319,8 +308,6 @@ function blendMix(){
  const color=blendColors(components.map(e=>byId(e.id).color),components.map(e=>e.n));
  mixed={color,components:components.map(e=>({id:e.id,ratio:e.n/sum}))};
  $('mixed-orb').style.background=orbStyleForColors([color]);
- $('mixed-orb').style.setProperty('--orb-halo',emotionGlow([color],.22));
- $('mixed-orb').style.setProperty('--orb-halo-strong',emotionGlow([color],.34));
  $('mix-stats').textContent=mixed.components.map(c=>byId(c.id).name+' '+Math.round(c.ratio*100)+'%').join(' · ');
  $('mix-stats').style.opacity='0';
  $('mix-button').disabled=true;mixBusy=true;mixStartedAt=performance.now();lastWaterFrame=0;
