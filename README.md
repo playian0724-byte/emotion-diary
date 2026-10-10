@@ -6,11 +6,11 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
-## V12 — V8 색상 원 UI + 자연스러운 잉크 응집
+## V13 — 누르는 속도는 차분하게, 색은 박스 끝까지
 
 - **오늘 기록:** 기본/개인 감정 1~4개 선택, 선택적 메모, 로컬 저장
 - **그라데이션:** 1개 단색, 2개 양방향, 3개 삼각형의 꼭짓점, 4개 사각형의 꼭짓점 기준. 선명한 원색과 부드러운 다색 연결만 유지. 광원, Shimmer, 후광, 유리광택, 그림자 없음. 기록에는 비율을 적용하지 않음.
-- **감정 만들기:** V8의 담백한 **색상 원 버튼**을 눌러 각 감정색 방울을 물 위에 퍼뜨리고, 하나의 Canvas 안에서 중앙으로 모여 원색 구슬로 응집. 완료 후 혼합 비율 공개
+- **감정 만들기:** V8의 담백한 **색상 원 버튼**은 그대로 유지. 길게 누르기는 첫 추가 방울까지 780ms, 이후 850ms마다 1개씩 미세 조정. 각 방울은 약 2.8초에 걸쳐 혼합 박스의 바깥쪽까지 더 넓고 천천히 번짐. 섞으면 기존 단일 Canvas에서 중앙으로 응집. 완료 후 혼합 비율 공개
 - **나의 사전:** 새로운 단색 감정에 이름과 정의를 선택적으로 붙여 개인 사전에 저장, 일기에 재사용
 - **달력 저장:** 구슬이 회전·축소하며 오늘 날짜로 이동하는 애니메이션
 - **접근성:** OS에서 Reduce Motion 설정 시 이동 애니메이션 축약
@@ -18,17 +18,17 @@
 [**V7 내부 조명과 동기화 명세**](./docs/V7_LIGHT_MOTION.md) · [V6 발광 구슬 명세](./docs/V6_GLOW_SYSTEM.md) · [V5 재질 명세](./docs/V5_ORB_MATERIAL.md) · [V4 미니멀 디자인 시스템](./docs/V4_DESIGN_SYSTEM.md) · [V3 색채·애니메이션 명세서](./docs/V3_VISUAL_SYSTEM.md) · [V2 기능 명세서](./docs/V2_SPEC.md)
 
 
-[**V12 기존 색상 원 UI 복원**](./docs/V12_CLASSIC_SWATCHES.md) · [V11 물감 확산 개선](./docs/V11_INK_DROPS.md) · [V10 단일 Canvas 응집 애니메이션](./docs/V10_UNIFIED_MIX.md) · [V9 원색 구슬 디자인 원칙](./docs/V9_COLOR_FIRST.md)
+[**V13 느린 확산과 길게 누르기 속도**](./docs/V13_DIFFUSION_TUNING.md) · [V12 기존 색상 원 UI 복원](./docs/V12_CLASSIC_SWATCHES.md) · [V11 물감 확산 개선](./docs/V11_INK_DROPS.md) · [V10 단일 Canvas 응집 애니메이션](./docs/V10_UNIFIED_MIX.md) · [V9 원색 구슬 디자인 원칙](./docs/V9_COLOR_FIRST.md)
 
 ## V8.2 광원 실험 아카이브
 
-**[현재 원색과 이전 V8.2 광원 나란히 비교하기](https://playian0724-byte.github.io/emotion-diary/compare.html)** · [이전 V8.2 실험 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=webgl&v=12) · [현재 V9 원색 앱](https://playian0724-byte.github.io/emotion-diary/?v=12)
+**[현재 원색과 이전 V8.2 광원 나란히 비교하기](https://playian0724-byte.github.io/emotion-diary/compare.html)** · [이전 V8.2 실험 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=webgl&v=13) · [현재 V9 원색 앱](https://playian0724-byte.github.io/emotion-diary/?v=13)
 
 [**V8.2 빛·후광 튜닝 (이전 실험)**](./docs/V8_2_LIGHT_BALANCE.md) · [V8.1 이전 튜닝](./docs/V8_1_TUNING.md) · [V8 실험 구현 및 QA](./docs/V8_EXPERIMENT.md)
 
 ## 보류한 V8 Shader 전환 설계
 
-[**V8 WebGL2 전환 설계안**](./docs/V8_SHADER_TRANSITION.md) — 단색 테두리 제거, 감정별 색상을 따르는 위치별 후광, 동일한 광원 이동, 정적 달력 렌더링 및 Safari fallback. ****V12 원색 디자인이 기본이고, 발광 WebGL2 V8.2는 비교·연구용으로만 유지**합니다. 실제 iPhone Safari 검증은 아직 진행 전입니다.**
+[**V8 WebGL2 전환 설계안**](./docs/V8_SHADER_TRANSITION.md) — 단색 테두리 제거, 감정별 색상을 따르는 위치별 후광, 동일한 광원 이동, 정적 달력 렌더링 및 Safari fallback. ****V13 원색 디자인이 기본이고, 발광 WebGL2 V8.2는 비교·연구용으로만 유지**합니다. 실제 iPhone Safari 검증은 아직 진행 전입니다.**
 
 ## 개발 구조
 
