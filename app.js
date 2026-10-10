@@ -1,14 +1,14 @@
 
 'use strict';
 const BASE=[
-{id:'joy',name:'기쁨',color:'#F9C83C'},
-{id:'calm',name:'평온',color:'#36BAA3'},
-{id:'sad',name:'슬픔',color:'#448CDE'},
-{id:'anxious',name:'불안',color:'#9865D9'},
-{id:'anger',name:'분노',color:'#E95D62'},
-{id:'surprise',name:'놀람',color:'#F59D36'},
-{id:'disgust',name:'혐오',color:'#70BA59'},
-{id:'expectation',name:'기대',color:'#EF76A0'}];
+{id:'joy',name:'기쁨',color:'#FFD02F'},
+{id:'calm',name:'평온',color:'#20C4AD'},
+{id:'sad',name:'슬픔',color:'#3389EF'},
+{id:'anxious',name:'불안',color:'#9557E6'},
+{id:'anger',name:'분노',color:'#F15C63'},
+{id:'surprise',name:'놀람',color:'#FB9B2D'},
+{id:'disgust',name:'혐오',color:'#62C44B'},
+{id:'expectation',name:'기대',color:'#F36E9D'}];
 const SAMPLES=[
 {id:'sample-a',name:'여운',color:'#B795DC',definition:'마음에 남아 오래 이어지는 느낌.',sample:true},
 {id:'sample-b',name:'후련함',color:'#65C9B5',definition:'무거운 마음이 풀린 느낌.',sample:true},
@@ -94,9 +94,9 @@ const selected=new Set(selection);
 $('base-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion '+(selected.has(e.id)?'active':'')+'" data-select="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+e.name+(selected.has(e.id)?'<span class="checkmark">✓</span>':'')+'</button>').join('');
 const mine=[...SAMPLES,...db.custom];
 $('my-emotions').innerHTML=mine.map(e=>'<button type="button" class="emotion '+(selected.has(e.id)?'active':'')+'" data-select="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+escapeHTML(e.name||'이름 미정')+(selected.has(e.id)?'<span class="checkmark">✓</span>':'')+'</button>').join('');
-document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.select;if(selection.includes(id))selection=selection.filter(x=>x!==id);else if(selection.length<4)selection.push(id);else toast('감정은 최대 4개까지 선택할 수 있어요.');renderChoices();renderPreview()}))
+document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.select;if(selection.includes(id))selection=selection.filter(x=>x!==id);else if(selection.length<4)selection.push(id);else toast('최대 4개까지 선택할 수 있습니다.');renderChoices();renderPreview()}))
 }
-function renderPreview(){paintOrb($('today-orb'),selection);$('today-orb').classList.toggle('empty',selection.length===0);$('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'하나만 선택해도 충분해요.';$('save-day').disabled=selection.length===0||saving}
+function renderPreview(){paintOrb($('today-orb'),selection);$('today-orb').classList.toggle('empty',selection.length===0);$('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'감정을 선택하세요.';$('save-day').disabled=selection.length===0||saving}
 function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='create')startWater();else stopWater();window.scrollTo(0,0)}
 function shiftMonth(delta){month=new Date(month.getFullYear(),month.getMonth()+delta,1);renderCalendar()}
 function renderCalendar(){
@@ -107,11 +107,11 @@ const key=[y,String(m+1).padStart(2,'0'),String(i+1).padStart(2,'0')].join('-'),
 return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'"><span class="daynum">'+(i+1)+'</span><span class="mini"></span></button>'}).join('')+'</div>';
 document.querySelectorAll('[data-date]').forEach(el=>{const entry=db.records[el.dataset.date];if(entry)paintOrb(el.querySelector('.mini'),entry.emotions);el.addEventListener('click',()=>showDate(el.dataset.date))});
 showDate(isoDay())}
-function showDate(day){const e=db.records[day];const detail=$('record-detail');detail.replaceChildren();const title=document.createElement('strong');title.textContent=day;detail.append(title);const p=document.createElement('p');p.textContent=e?(e.emotions.map(id=>byId(id)?.name||'이름 미정').join(' · ')+(e.note?'\n'+e.note:'')):'이 날짜에는 기록이 없어요.';detail.append(p)}
-function renderDictionary(){const data=[...db.custom];const host=$('dictionary-list');if(!data.length){host.innerHTML='<div class="empty-state">아직 직접 만든 감정이 없어요.<br>필요한 날, 나만의 색을 만들어보세요.</div>';return}
+function showDate(day){const e=db.records[day];const detail=$('record-detail');detail.replaceChildren();const title=document.createElement('strong');title.textContent=day;detail.append(title);const p=document.createElement('p');p.textContent=e?(e.emotions.map(id=>byId(id)?.name||'이름 미정').join(' · ')+(e.note?'\n'+e.note:'')):'기록 없음';detail.append(p)}
+function renderDictionary(){const data=[...db.custom];const host=$('dictionary-list');if(!data.length){host.innerHTML='<div class="empty-state">저장된 감정이 없습니다.</div>';return}
 host.innerHTML=data.slice().reverse().map(e=>'<div class="dictionary-item"><span class="swatch" style="background:'+e.color+'"></span><div class="copy"><strong>'+escapeHTML(e.name||'이름 미정')+'</strong><p>'+escapeHTML(e.definition||e.components.map(c=>byId(c.id)?.name+' '+Math.round(c.ratio*100)+'%').join(' · '))+'</p></div><span class="privacy">Private</span><button type="button" class="subtle-button" data-use="'+escapeHTML(e.id)+'">사용</button></div>').join('');
 host.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{useEmotion(b.dataset.use)})}
-function useEmotion(id){if(!selection.includes(id)){if(selection.length>=4){toast('감정 4개를 선택했어요. 하나를 해제해 주세요.');setScreen('today');return}selection.push(id)}renderChoices();renderPreview();setScreen('today');toast('오늘의 감정에 추가했어요.')}
+function useEmotion(id){if(!selection.includes(id)){if(selection.length>=4){toast('감정 하나를 해제하세요.');setScreen('today');return}selection.push(id)}renderChoices();renderPreview();setScreen('today');toast('오늘에 추가됨')}
 function positionFlightStart(rect){const w=168,h=168;return rect.top>=10&&rect.bottom<window.innerHeight-10?{left:rect.left,top:rect.top,width:rect.width,height:rect.height}:{left:(innerWidth-w)/2,top:Math.max(70,(innerHeight-h)/2-40),width:w,height:h}}
 async function saveDay(){
 if(saving||!selection.length)return;saving=true;$('save-day').disabled=true;
@@ -129,9 +129,9 @@ try{if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches&&ghost.ani
 ],{duration:1050,easing:'cubic-bezier(.22,.71,.19,1)',fill:'forwards'});await ani.finished}}
 catch(e){}
 dest.classList.remove('arriving');dest.classList.add('landed');setTimeout(()=>dest.classList.remove('landed'),450)}
-ghost.remove();saving=false;renderPreview();try{navigator.vibrate?.(12)}catch(e){}toast('오늘의 구슬을 남겼어요.')
+ghost.remove();saving=false;renderPreview();try{navigator.vibrate?.(12)}catch(e){}toast('저장됨')
 }
-function resetMix(){amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;$('water').style.opacity='1';$('mixed-orb').style.opacity='0';$('mixed-orb').style.transform='scale(.68)';$('mix-stats').style.opacity='0';$('blend-panel').hidden=true;$('mix-button').disabled=true;$('mix-undo').disabled=false;$('mix-name').value='';$('mix-definition').value='';$('mix-summary').textContent='감정을 탭하거나 길게 눌러 떨어뜨려 보세요.';renderMixButtons();drawWater();startWater()}
+function resetMix(){amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;$('water').style.opacity='1';$('mixed-orb').style.opacity='0';$('mixed-orb').style.transform='scale(.68)';$('mix-stats').style.opacity='0';$('blend-panel').hidden=true;$('mix-button').disabled=true;$('mix-undo').disabled=false;$('mix-name').value='';$('mix-definition').value='';$('mix-summary').textContent='감정을 떨어뜨려 보세요.';renderMixButtons();drawWater();startWater()}
 function renderMixButtons(){$('drop-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion" data-drop="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+e.name+(amounts[e.id]?'<span class="drop-count">×'+amounts[e.id]+'</span>':'')+'</button>').join('');
 document.querySelectorAll('[data-drop]').forEach(btn=>{
 const id=btn.dataset.drop;let pointerHandled=false;
@@ -141,14 +141,14 @@ btn.addEventListener('pointerup',finish);btn.addEventListener('pointercancel',fi
 btn.addEventListener('click',ev=>{if(ev.detail===0)addDrop(id);else if(!pointerHandled)addDrop(id);pointerHandled=false})});
 }
 function addDrop(id){
-if(mixed||mixBusy){toast('다시 만들기를 누른 뒤 추가할 수 있어요.');return}
-const num=Object.values(amounts).reduce((a,b)=>a+b,0);if(num>=36){toast('최대 36방울까지 추가할 수 있어요.');return}
+if(mixed||mixBusy){toast('다시 만들기를 선택하세요.');return}
+const num=Object.values(amounts).reduce((a,b)=>a+b,0);if(num>=36){toast('최대 36방울까지 가능합니다.');return}
 amounts[id]=(amounts[id]||0)+1;
 const e=byId(id),t=num+1,theta=t*2.3999632297;
 drops.push({id,x:.5+.24*Math.cos(theta),y:.5+.24*Math.sin(theta),time:performance.now(),color:e.color});
-$('mix-button').disabled=false;$('mix-summary').textContent='총 '+(num+1)+'방울 · 섞기 전에는 비율을 표시하지 않아요.';const btn=document.querySelector('[data-drop="'+id+'"]');if(btn){let badge=btn.querySelector('.drop-count');if(!badge){badge=document.createElement('span');badge.className='drop-count';btn.append(badge)}badge.textContent='×'+amounts[id]}startWater();
+$('mix-button').disabled=false;$('mix-summary').textContent='총 '+(num+1)+'방울';const btn=document.querySelector('[data-drop="'+id+'"]');if(btn){let badge=btn.querySelector('.drop-count');if(!badge){badge=document.createElement('span');badge.className='drop-count';btn.append(badge)}badge.textContent='×'+amounts[id]}startWater();
 }
-function undoDrop(){if(mixed)return;const d=drops.pop();if(d){amounts[d.id]--;if(!amounts[d.id])delete amounts[d.id]}$('mix-button').disabled=!drops.length;$('mix-summary').textContent=drops.length?'총 '+drops.length+'방울':'감정을 탭하거나 길게 눌러 떨어뜨려 보세요.';renderMixButtons();drawWater()}
+function undoDrop(){if(mixed)return;const d=drops.pop();if(d){amounts[d.id]--;if(!amounts[d.id])delete amounts[d.id]}$('mix-button').disabled=!drops.length;$('mix-summary').textContent=drops.length?'총 '+drops.length+'방울':'감정을 떨어뜨려 보세요.';renderMixButtons();drawWater()}
 function startWater(){
  if(raf)return;
  function frame(t){
@@ -213,7 +213,7 @@ function drawWater(now=performance.now()){
    if(p>=1){
      mixBusy=false;parent.style.opacity='0';sphere.style.opacity='1';sphere.style.transform='scale(1)';
      $('mix-stats').style.opacity='1';$('blend-panel').hidden=false;$('mix-undo').disabled=true;
-     $('mix-summary').textContent='완성된 색이야. 필요하다면 이름을 남겨봐.';
+     $('mix-summary').textContent='완성';
      try{navigator.vibrate?.(8)}catch(e){}
    }
  }
@@ -228,14 +228,14 @@ function blendMix(){
  $('mix-stats').textContent=mixed.components.map(c=>byId(c.id).name+' '+Math.round(c.ratio*100)+'%').join(' · ');
  $('mix-stats').style.opacity='0';
  $('mix-button').disabled=true;mixBusy=true;mixStartedAt=performance.now();lastWaterFrame=0;
- $('mix-summary').textContent='감정들이 하나의 색으로 모이는 중…';
+ $('mix-summary').textContent='섞는 중';
  startWater();
 }
 function createEmotion(addToDay){
 if(!mixed)return;const name=$('mix-name').value.trim(),definition=$('mix-definition').value.trim(),id='custom-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
 const e={id,name,color:mixed.color,definition,components:mixed.components,visibility:'private',createdAt:new Date().toISOString()};
 db.custom.push(e);saveDB();orbCache.clear();if(addToDay){if(selection.length>=4)selection.pop();selection.push(id)}
-renderChoices();renderPreview();resetMix();setScreen(addToDay?'today':'dictionary');toast(addToDay?'새 감정을 오늘에 추가했어요.':'내 감정 사전에 저장했어요.')}
+renderChoices();renderPreview();resetMix();setScreen(addToDay?'today':'dictionary');toast(addToDay?'오늘에 추가됨':'사전에 저장됨')}
 function init(){
 loadDB();const old=db.records[isoDay()];if(old){selection=old.emotions.filter(id=>byId(id)).slice(0,4);$('memo').value=old.note||''}
 $('today-date').textContent=new Intl.DateTimeFormat('ko-KR',{month:'long',day:'numeric',weekday:'long'}).format(new Date());
