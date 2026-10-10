@@ -403,3 +403,39 @@ nav button.active{font-weight:630;color:#232725}
     will-change:auto
   }
 }
+
+
+/* V8 opt-in WebGL2 orb. One transparent canvas includes the sphere and
+   spatial multicolor halo in a single render pass, without any CSS white rim. */
+.orb.shader-orb,
+.preview>.orb.shader-orb,
+.mixresult .orb.shader-orb{
+  overflow:visible!important;
+  background:none!important;
+  background-color:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  animation:none!important;
+  isolation:auto!important
+}
+.orb.shader-orb::before,.orb.shader-orb::after{
+  display:none!important;
+  content:none!important;
+  animation:none!important
+}
+.orb.shader-orb>.gyeol-shader{
+  position:absolute;
+  left:-35%;
+  top:-35%;
+  width:170%;
+  height:170%;
+  max-width:none;
+  aspect-ratio:1;
+  display:block;
+  pointer-events:none;
+  background:none;
+  border:0;
+  box-shadow:none
+}
