@@ -1,4 +1,4 @@
-/* 결. V8 — experimental, single-context WebGL2 luminous glass renderer.
+/* 결. V8.1 — experimental, single-context WebGL2 luminous glass renderer.
    One active large orb only; V7 Canvas remains the fallback.
    This script has no dependencies and does not alter stored records. */
 (function(global){
@@ -21,17 +21,17 @@ uniform float uAnimate;
 uniform float uAspect;
 
 float sat(float x){return clamp(x,0.,1.);}
-float gaussian(vec2 p,vec2 c,vec2 radius) {
+float gaussian(vec2 p, vec2 c, vec2 radius){
   vec2 d=(p-c)/radius;
   return exp(-dot(d,d)*1.45);
 }
 vec4 emotionWeights(vec2 p){
   if(uCount<=1) return vec4(1.,0.,0.,0.);
-  if(uCount==2) {
-    float t=smoothstep(-.55,.55,(p.x+p.y)*.7071);
+  if(uCount==2){
+    float t=smoothstep(-.52,.52,(p.x+p.y)*.7071);
     return vec4(1.-t,t,0.,0.);
   }
-  if(uCount==3) {
+  if(uCount==3){
     float top=(1.-p.y)/3.;
     vec4 w=max(vec4(top,(1.-top-p.x*.57735027)*.5,(1.-top+p.x*.57735027)*.5,0.),0.);
     w=pow(w,vec4(1.48));
@@ -41,52 +41,56 @@ vec4 emotionWeights(vec2 p){
   vec4 w=pow(max(vec4((1.-u)*(1.-v),u*(1.-v),u*v,(1.-u)*v),0.),vec4(1.48));
   return w/max(.00001,dot(w,vec4(1.)));
 }
-vec3 pigmentAt(vec2 p) {
+vec3 pigmentAt(vec2 p){
   vec4 w=emotionWeights(p);
-  vec3 c=uColors[0]*w.x+uColors[1]*w.y+uColors[2]*w.z+uColors[3]*w.w;
-  return c;
+  return uColors[0]*w.x+uColors[1]*w.y+uColors[2]*w.z+uColors[3]*w.w;
 }
 void main(){
-  // Full quad is 3.4 diameters; sphere is r=1, halo extends beyond it.
-  vec2 p=(vUv-.5)*3.40;
+  // The canvas extends to r=1.90. The sphere is r=1.0.
+  vec2 p=(vUv-.5)*3.80;
   p.x*=uAspect;
   float r=length(p);
-  if(r>1.62){fragColor=vec4(0.);return;}
+  if(r>1.85){fragColor=vec4(0.);return;}
+
+  // The light is stationary. Its intensity and reach pulse gently, in phase.
   float t=uTime*uAnimate;
-  vec2 L=vec2(.13*sin(t*.78)+.02,.12*cos(t*.78)-.045);
+  vec2 L=vec2(.018,-.038);
+  float wave=.5+.5*sin(t*1.13-.6);
+  float beat=smoothstep(.08,.92,wave);
   vec3 local=pigmentAt(p);
-  if(r<=1.008) {
-    float z=sqrt(max(0.,1.-r*r));
-    float core=gaussian(p,L,vec2(.225,.205));
-    float scatter=gaussian(p,L,vec2(.54,.53));
-    float shimmer=gaussian(p,L+vec2(.11,.06),vec2(.14,.115));
-    // A glass skin of the same tint; do NOT produce a white edge or ring.
-    float surface=.52+.18*z;
-    float innerShield=1.-smoothstep(.72,1.,r);
-    float light=.25*scatter+.50*core+.14*shimmer*innerShield;
-    vec3 stained=local*surface;
-    vec3 coreColor=mix(local,vec3(1.,.982,.945),.71);
-    vec3 illuminated=stained + coreColor*light;
-    illuminated += local*.11*scatter*innerShield;
-    // Small soft wandering glimmer is driven by exactly the same light position.
-    illuminated=mix(illuminated,vec3(1.,.982,.950),.22*shimmer*innerShield);
-    // Color stays saturated near the rim, no separate border stroke.
-    float edgeAlpha=1.-smoothstep(.993,1.008,r);
-    // The external halo is already under the sphere via the alpha blend.
-    fragColor=vec4(clamp(illuminated,0.,1.)*edgeAlpha,edgeAlpha);
-    return;
-  }
-  // Color each halo pixel using the pigment at its OWN compass position:
-  // yellow on yellow side, blue on blue side (not the average of all colors).
-  vec2 n=p/max(r,.0001);
+
+  // Interior: the edges remain bright stained glass rather than opaque shadow.
+  float z=sqrt(max(0.,1.-r*r));
+  float surface=.79+.07*pow(z,.85);
+  float core=gaussian(p,L,vec2(mix(.21,.29,beat),mix(.20,.28,beat)));
+  float scatter=gaussian(p,L,vec2(mix(.50,.67,beat),mix(.48,.63,beat)));
+  float shimmer=gaussian(p,L+vec2(.075,.04),vec2(mix(.11,.15,beat),mix(.10,.14,beat)));
+  float innerMask=1.-smoothstep(.67,.97,r);
+  vec3 litColor=mix(local,vec3(1.,.985,.95),.58);
+  float light=(.16+.045*beat)*scatter+(.27+.105*beat)*core;
+  vec3 sphere=local*surface + litColor*light;
+  sphere=mix(sphere,vec3(1.,.982,.956),(.075+.045*beat)*shimmer*innerMask);
+  sphere=clamp(sphere,0.,1.);
+
+  // Continuous transparent shell: no discontinuous halo/sphere transition
+  // and no white rim. A smooth slightly softened outer edge.
+  float sphereAlpha=1.-smoothstep(.973,1.045,r);
+
+  // Halo is a soft halo with a wider reach, separately colored by direction.
+  vec2 n=p/max(r,.00001);
   vec3 haloColor=pigmentAt(n*.94);
-  float radial=exp(-pow(max(0.,r-1.)/.265,1.6));
-  // The halo responds to the SAME moving internal light, rather than a CSS keyframe.
-  float directional=.66+.34*sat(dot(n,normalize(L+vec2(.002,.002)))*.55+.5);
-  float w=.27*radial*directional;
-  float outerMask=1.-smoothstep(1.47,1.62,r);
-  float alpha=w*outerMask;
-  fragColor=vec4(haloColor*alpha,alpha);
+  float reach=mix(.36,.44,beat);
+  float radial=exp(-pow(max(r-1.,0.)/reach,1.50));
+  float outerMask=1.-smoothstep(1.57,1.85,r);
+  float haloPulse=.84+.24*beat;
+  float haloAlpha=.23*radial*haloPulse*outerMask;
+
+  // Compose the shell ON TOP of its local-color halo, in premultiplied alpha.
+  // No hard handoff at r=1.0 and no outline of another hue.
+  float a=sphereAlpha+(1.-sphereAlpha)*haloAlpha;
+  vec3 premul=sphere*sphereAlpha+
+    haloColor*haloAlpha*(1.-sphereAlpha);
+  fragColor=vec4(premul,a);
 }`;
 const hex=code=>{
   if(typeof code!=='string'||!/^#[0-9a-fA-F]{6}$/.test(code))return [0.65,0.65,0.65];
@@ -126,7 +130,7 @@ function create(){
    if(!host)return;
    const diameter=host.getBoundingClientRect().width||180;
    const dpr=Math.min(window.devicePixelRatio||1,1.5);
-   const pixel=Math.round(Math.min(512,Math.max(180,diameter*1.7*dpr)));
+   const pixel=Math.round(Math.min(512,Math.max(180,diameter*1.9*dpr)));
    if(canvas.width!==pixel||canvas.height!==pixel){canvas.width=pixel;canvas.height=pixel;}
  };
  const paint=(now)=>{
