@@ -22,14 +22,14 @@ let demoRecords=null;
    quiet variations within each emotional hue family. DEMO ONLY: personal
    emotions and their saved original colors remain unchanged. */
 const DEMO_PIGMENTS={
- joy:['#F5CA68','#F8DC8F','#FCEAB5','#EDC24F','#F5E3A1','#EFD58B'],
- calm:['#8EC4B6','#78B9AE','#B3D4C1','#A3D0CD','#79AFAE','#C4DBCE'],
- sad:['#709EC9','#8CC3DB','#B4D5E5','#547BAA','#91B3D0','#5876A6'],
- anxious:['#B5A3CB','#D8B6D5','#A48CB7','#8F7CAA','#C3BDD7','#BCA1BC'],
- anger:['#E96767','#C66B6B','#D9505B','#B94B68','#EB8C84','#994C68'],
- surprise:['#EE9F5A','#F5B575','#F38D4A','#E67D4B','#FACB96','#D58054'],
+ joy:['#F5CA68','#F3D79E','#F9ECBB','#F1D3BE','#E9B883','#F0C94E'],
+ calm:['#8EC4B6','#7FAFA7','#B3D4C1','#A3D0CD','#79AFAE','#C4DBCE'],
+ sad:['#8EB5D1','#778EB8','#B5D4ED','#667997','#91B3D0','#525576'],
+ anxious:['#B5A3CB','#D8B6D5','#B89398','#9C747B','#C3BDD7','#8F7CAA'],
+ anger:['#DC716C','#D1604F','#AC5951','#7F464A','#E68A7C','#C18772'],
+ surprise:['#EAA76B','#E09058','#E5823F','#D69D7C','#E9B883','#F1D3BE'],
  disgust:['#A9C5A0','#C4D4AA','#81AF98','#B9C7A5','#7DAB7C','#D4D9BD'],
- expectation:['#EFA0AF','#E98FA5','#F6BDC2','#CC86A3','#E6B4BB','#C88BB3']
+ expectation:['#E6BFAA','#D3AE99','#B89398','#F1D3BE','#C18772','#E1A0AB']
 };
 const DEMO_EMOTION_POOL=[
  'joy','joy','joy','surprise','surprise','surprise',
