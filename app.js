@@ -354,8 +354,7 @@ function renderCalendar(){
   Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(yr,month.getMonth()+i,1),span)).join('')+'</div>';
  target.querySelectorAll('[data-date]').forEach(el=>{
    const rec=db.records[el.dataset.date];
-   if(rec)paintOrb(el.querySelector('.mini'),rec.emotions);
-   el.addEventListener('click',()=>showDate(el.dataset.date))
+   if(rec)paintOrb(el.querySelector('.mini'),rec.emotions)
  });
  showDate(calendarSelected,false)
 }
@@ -393,6 +392,11 @@ function setupCalendarGestures(){
    if(drawRaf){cancelAnimationFrame(drawRaf);drawRaf=0}
    nextFrame=null
  }
+ // One delegated listener instead of up to 365 handlers per redraw/commit.
+ el.addEventListener('click',event=>{
+   const day=event.target.closest?.('[data-date]');
+   if(day&&el.contains(day))showDate(day.dataset.date)
+ });
  function clearGeometry(){
    if(!stage)return;
    for(const item of stage.morphs)item.source.style.removeProperty('transform');
@@ -421,10 +425,10 @@ function setupCalendarGestures(){
    const layer=document.createElement('div');
    layer.className='calendar-archive zoom-'+span+' zoom-next-layer';
    layer.setAttribute('aria-hidden','true');
+   layer.inert=true;
    layer.innerHTML=sourceMarkup;
    const targetMap=new Map();
    layer.querySelectorAll('[data-date]').forEach(button=>{
-     button.tabIndex=-1;
      const rec=db.records[button.dataset.date];
      if(rec)paintOrb(button.querySelector('.mini'),rec.emotions);
      // Stage buttons are hidden by one CSS rule until adopted. Avoid up to
@@ -591,7 +595,6 @@ function setupCalendarGestures(){
    }));
    const incomingOpacity=new Map(data.incoming.map(button=>[button,button.style.opacity||'0']));
    const layer=data.layer,group=layer.querySelector('.poster-months');
-   const newButtons=[...layer.querySelectorAll('[data-date]')];
    // Release makes the NEXT view current immediately: allows another pinch
    // on the very next touchstart while small per-bead settles play.
    calendarZoom=data.next;
@@ -607,22 +610,16 @@ function setupCalendarGestures(){
    }
    for(const button of data.incoming)button.style.removeProperty('opacity');
    for(const label of data.newLabels)label.style.removeProperty('opacity');
+   // Cancel prior bead animations before starting the NEW title crossfade.
+   stopCalendarMotion();
    updatePeriodHeader(month,calendarZoom);
-   if(group){
-     for(const button of newButtons){
-       button.removeAttribute('tabindex');
-       button.addEventListener('click',()=>showDate(button.dataset.date))
-     }
-   }
    stage=null;
    calendarIgnoreClickUntil=performance.now()+230;
    $('record-detail').hidden=true;
    showDate(calendarSelected,false);
    if(reduced())return true;
-   // The visible bead at release becomes the FIRST frame of its next
-   // position animation. Moves run on the compositing layer via WAAPI.
-   stopCalendarMotion();
-   // StopCalendarMotion cancels old animations, so fade only after it.
+   // Visible beads continue their journey on the next screen via WAAPI.
+   // There is no extra release-to-screen delay.
    for(const {dest,from} of moving){
      if(!dest.animate||from.width<1)continue;
      const end=dest.getBoundingClientRect();
