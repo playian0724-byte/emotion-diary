@@ -372,71 +372,204 @@ function showDate(day,rerender=true){
  p.textContent=e?(e.emotions.map(id=>byId(id)?.name||'이름 미정').join(' · ')+(e.note?'\n'+e.note:'')):'기록 없음';
  detail.append(p)
 }
+/* V18 — stage the next bead field BEFORE the gesture completes.
+   The incoming dates are revealed continuously into the shrinking gaps, not
+   appended at release. Both fields are composite-only during touchmove. */
 function setupCalendarGestures(){
  const el=$('calendar'),reduced=calendarReducedMotion;
- let pinch=null,touchSingle=null,mouseDrag=null,wheelScale=1,wheelTimer=0;
  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
  const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
  const midpoint=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});
- function preview(scale,focus,dx=0,dy=0){
-   if(reduced())return;
-   const group=el.querySelector('.poster-months');if(!group)return;
-   const area=group.getBoundingClientRect();
-   if(!group.dataset.previewOrigin){
-     group.style.transformOrigin=(focus.x-area.left)+'px '+(focus.y-area.top)+'px';
-     group.dataset.previewOrigin='yes'
+ let pinch=null,touchSingle=null,mouseDrag=null,stage=null,settleRaf=0;
+ let wheelScale=1,wheelTimer=0;
+ function ease(v){v=clamp(v,0,1);return v*v*(3-2*v)}
+ function getOldGroup(){return [...el.children].find(child=>child.classList?.contains('poster-months'))||null}
+ function cleanupStage(){
+   if(settleRaf){cancelAnimationFrame(settleRaf);settleRaf=0}
+   if(stage){stage.layer.remove();stage=null}
+   const old=getOldGroup();
+   if(old){
+     old.style.removeProperty('transform');
+     old.style.removeProperty('transform-origin');
+     old.style.removeProperty('opacity');
+     old.classList.remove('calendar-previewing')
    }
-   group.style.transform='translate('+dx+'px,'+dy+'px) scale('+clamp(scale,.68,1.5)+')'
-   group.classList.add('calendar-previewing')
+   el.classList.remove('zoom-staging');
  }
- function resetPreview(){
-   const group=el.querySelector('.poster-months');
-   if(!group)return;
-   const from=group.style.transform;
-   group.style.removeProperty('transform');
-   group.style.removeProperty('transform-origin');
-   delete group.dataset.previewOrigin;
-   group.classList.remove('calendar-previewing');
-   if(from&&!reduced()&&group.animate){
-     calendarMotion.push(group.animate([{transform:from},{transform:'none'}],
-       {duration:270,easing:'cubic-bezier(.2,.85,.25,1)'}))
+ function stageLayout(delta,focus){
+   const next=clamp(calendarZoom+delta,0,CAL_SPANS.length-1);
+   if(next===calendarZoom)return null;
+   const before=snapshotCalendar(focus);
+   const nearest=before.nearest?new Date(before.nearest+'T12:00:00'):month;
+   const span=CAL_SPANS[next];
+   const first=new Date(nearest.getFullYear(),Math.floor(nearest.getMonth()/span)*span,1);
+   const sourceMarkup=span===12?calendarYearPoster(first.getFullYear()):
+     '<div class="poster-months" role="group" aria-label="감정 기록 미리보기">'+
+     Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(first.getFullYear(),first.getMonth()+i,1),span)).join('')+'</div>';
+   const layer=document.createElement('div');
+   layer.className='calendar-archive zoom-'+span+' zoom-next-layer';
+   layer.setAttribute('aria-hidden','true');
+   layer.innerHTML=sourceMarkup;
+   // Rendering here happens once. Future touchmove only touches opacity/transform.
+   layer.querySelectorAll('[data-date]').forEach(button=>{
+     button.tabIndex=-1;
+     const rec=db.records[button.dataset.date];
+     if(rec)paintOrb(button.querySelector('.mini'),rec.emotions)
+   });
+   el.appendChild(layer);
+   const anchor=before.nearest&&layer.querySelector('[data-date="'+before.nearest+'"] .mini');
+   const nextRect=anchor?.getBoundingClientRect();
+   const oldRect=before.nearest&&before.rects.get(before.nearest);
+   const alignX=oldRect&&nextRect?oldRect.x-(nextRect.left+nextRect.width/2):0;
+   const alignY=oldRect&&nextRect?oldRect.y-(nextRect.top+nextRect.height/2):0;
+   el.classList.add('zoom-staging');
+   return {layer,next,first,before,alignX,alignY,progress:0,scale:1,focus};
+ }
+ function updateStage(currentScale,point){
+   if(reduced())return;
+   const delta=currentScale<.992?1:currentScale>1.008?-1:0;
+   if(!delta){
+     if(stage)drawStage(0,1,point);
+     return
    }
+   if(!stage||stage.next!==clamp(calendarZoom+delta,0,3)){
+     cleanupStage();
+     stage=stageLayout(delta,point)
+   }
+   if(!stage)return;
+   const amount=Math.abs(Math.log(currentScale));
+   const raw=clamp(amount/Math.log(1.55),0,1);
+   const t=ease(raw);
+   drawStage(t,currentScale,point)
+ }
+ function drawStage(t,scale,point){
+   if(!stage)return;
+   const old=getOldGroup();if(!old)return;
+   stage.progress=t;stage.scale=scale;
+   const area=el.getBoundingClientRect();
+   const focus=stage.focus;
+   old.style.transformOrigin=(focus.x-area.left)+'px '+(focus.y-area.top)+'px';
+   old.style.transform='translate3d('+(point.x-focus.x)+'px,'+(point.y-focus.y)+'px,0) scale('+clamp(scale,.64,1.56)+')';
+   old.style.opacity=String(1-.94*t);
+   old.classList.add('calendar-previewing');
+   // The NEW dates fill space from the beginning, not after touch release.
+   // Align shared dates initially, then fan them into their true layout.
+   const incoming=stage.layer;
+   const factor=1-t;
+   const incomingScale=1+(scale<1?.12:-.12)*factor;
+   const tx=stage.alignX*factor+(point.x-focus.x)*.2*factor;
+   const ty=stage.alignY*factor+(point.y-focus.y)*.2*factor;
+   incoming.style.transform='translate3d('+tx+'px,'+ty+'px,0) scale('+incomingScale+')';
+   incoming.style.opacity=String(t);
+ }
+ function rollback(){
+   if(!stage)return;
+   const old=getOldGroup();
+   const incoming=stage.layer;
+   const start=stage.progress;
+   const startScale=stage.scale;
+   const focus=stage.focus;
+   const startAt=performance.now(),duration=220;
+   function frame(now){
+     const t=ease((now-startAt)/duration),p=start*(1-t);
+     drawStage(p,1+(startScale-1)*(1-t),focus);
+     if(t<1)settleRaf=requestAnimationFrame(frame);
+     else {settleRaf=0;cleanupStage()}
+   }
+   settleRaf=requestAnimationFrame(frame)
+ }
+ function commitStaged(delta,point){
+   if(!stage)return false;
+   const data=stage;
+   const current=data.progress,scale=data.scale;
+   const startAt=performance.now(),duration=310;
+   const anchorDate=data.before.nearest;
+   const oldAnchor=anchorDate&&data.before.rects.get(anchorDate);
+   // Match the scroll as part of the animation, rather than teleporting
+   // the focal month when the new grid takes over.
+   let scrollDistance=0;
+   if(anchorDate){
+     const b=data.layer.querySelector('[data-date="'+anchorDate+'"] .mini')?.getBoundingClientRect();
+     if(b&&oldAnchor)scrollDistance=(b.top+b.height/2)-oldAnchor.y;
+   }
+   let scrolled=0;
+   function frame(now){
+     const t=ease((now-startAt)/duration),p=current+(1-current)*t;
+     drawStage(p,scale+(delta>0?.70:1.30-scale)*t,point);
+     // Anchor scroll is eased in gradually, so it never jumps at commit.
+     const wanted=scrollDistance*t;
+     const d=wanted-scrolled;
+     if(Math.abs(d)>.02){window.scrollBy(0,d);scrolled+=d}
+     if(t<1){settleRaf=requestAnimationFrame(frame);return}
+     settleRaf=0;
+     // Incoming stage is already full opacity and at its final geometry.
+     // Reuse its nodes instead of destroying/recreating them during commit.
+     const layer=data.layer;
+     const incomingGroup=layer.querySelector('.poster-months');
+     if(incomingGroup){
+       layer.remove();
+       el.replaceChildren(incomingGroup);
+     }else el.innerHTML=layer.innerHTML;
+     calendarZoom=data.next;
+     month=data.first;
+     const span=CAL_SPANS[calendarZoom],last=new Date(month.getFullYear(),month.getMonth()+span-1,1);
+     const headerYear='<span class="period-year">'+month.getFullYear()+'</span>';
+     const headerMonth='<span class="period-month">'+numericMonth(month)+(span===1?'':'–'+numericMonth(last))+'</span>';
+     $('month-label').innerHTML=span===12?headerYear:headerYear+headerMonth;
+     $('month-label').setAttribute('aria-label',month.getFullYear()+'년 감정 기록');
+     $('archive').classList.toggle('poster-year',span===12);
+     $('archive').classList.toggle('poster-month-view',span!==12);
+     el.className='calendar-archive zoom-'+span;
+     incomingGroup?.querySelectorAll('[data-date]').forEach(button=>{
+       button.removeAttribute('tabindex');
+       button.addEventListener('click',()=>showDate(button.dataset.date))
+     });
+     stage=null;
+     el.classList.remove('zoom-staging');
+     calendarIgnoreClickUntil=performance.now()+350;
+     showDate(calendarSelected,false)
+   }
+   settleRaf=requestAnimationFrame(frame);
+   return true
  }
  function finishPinch(scale,point){
-   const magnitude=Math.abs(Math.log(Math.max(.1,scale)));
-   const threshold=Math.log(1.16);
-   if(magnitude<threshold){resetPreview();return}
-   const delta=scale>1?-1:1;
-   const changed=changeCalendarZoom(delta,point);
-   if(!changed)resetPreview()
+   const threshold=Math.log(1.12);
+   if(Math.abs(Math.log(Math.max(.1,scale)))<threshold){
+     rollback();return
+   }
+   const delta=scale<1?1:-1;
+   if(!stage||stage.next!==clamp(calendarZoom+delta,0,3)){
+     cleanupStage();
+     changeCalendarZoom(delta,point);
+     return
+   }
+   commitStaged(delta,point)
  }
- // Use Safari touch events for the pinch. Do not rerender on every move.
  el.addEventListener('touchstart',e=>{
    if(e.touches.length===2){
+     if(settleRaf)cleanupStage();
      const a=e.touches[0],b=e.touches[1];
      const point=midpoint(a,b);
      pinch={distance:dist(a,b),point,lastPoint:point,scale:1};
      touchSingle=null
    }else if(e.touches.length===1&&!pinch){
-     const t=e.touches[0];
-     touchSingle={x:t.clientX,y:t.clientY}
+     touchSingle={x:e.touches[0].clientX,y:e.touches[0].clientY}
    }
  },{passive:true});
  el.addEventListener('touchmove',e=>{
    if(!pinch||e.touches.length!==2)return;
    if(e.cancelable)e.preventDefault();
-   const a=e.touches[0],b=e.touches[1],p=midpoint(a,b);
-   pinch.scale=clamp(dist(a,b)/Math.max(1,pinch.distance),.66,1.55);
-   pinch.lastPoint=p;
-   preview(pinch.scale,p,p.x-pinch.point.x,p.y-pinch.point.y)
+   const a=e.touches[0],b=e.touches[1],point=midpoint(a,b);
+   pinch.scale=clamp(dist(a,b)/Math.max(1,pinch.distance),.64,1.56);
+   pinch.lastPoint=point;
+   updateStage(pinch.scale,point)
  },{passive:false});
  el.addEventListener('touchend',e=>{
    if(pinch){
      if(e.touches.length<2){
-       const data=pinch;pinch=null;
-       touchSingle=null;
-       calendarIgnoreClickUntil=performance.now()+500;
-       finishPinch(data.scale,data.lastPoint);
+       const done=pinch;pinch=null;touchSingle=null;
+       calendarIgnoreClickUntil=performance.now()+550;
+       finishPinch(done.scale,done.lastPoint)
      }
      return
    }
@@ -453,18 +586,14 @@ function setupCalendarGestures(){
      }
    }
  },{passive:true});
- el.addEventListener('touchcancel',()=>{
-   pinch=null;touchSingle=null;resetPreview()
- },{passive:true});
- // Mouse users can drag dates left/right or up/down; touch is handled above.
+ el.addEventListener('touchcancel',()=>{pinch=null;touchSingle=null;rollback()},{passive:true});
  el.addEventListener('pointerdown',e=>{
    if(e.pointerType==='touch'||e.button!==0)return;
-   mouseDrag={x:e.clientX,y:e.clientY,id:e.pointerId};
+   mouseDrag={x:e.clientX,y:e.clientY,id:e.pointerId}
  });
  el.addEventListener('pointerup',e=>{
    if(!mouseDrag||e.pointerId!==mouseDrag.id)return;
-   const dx=e.clientX-mouseDrag.x,dy=e.clientY-mouseDrag.y;
-   mouseDrag=null;
+   const dx=e.clientX-mouseDrag.x,dy=e.clientY-mouseDrag.y;mouseDrag=null;
    if(Math.abs(dy)>85&&Math.abs(dy)>Math.abs(dx)*1.2){
      calendarIgnoreClickUntil=performance.now()+350;
      changeCalendarZoom(dy>0?-1:1,{x:e.clientX,y:e.clientY})
@@ -474,19 +603,16 @@ function setupCalendarGestures(){
    }
  });
  el.addEventListener('pointercancel',()=>{mouseDrag=null});
- // Trackpad pinch on desktop is Ctrl+wheel. Preview follows the movement,
- // then settles to the next density when the gesture goes idle.
  el.addEventListener('wheel',e=>{
    if(!e.ctrlKey)return;
    if(e.cancelable)e.preventDefault();
-   wheelScale=clamp(wheelScale*Math.exp(-e.deltaY*.012),.65,1.55);
-   const point={x:e.clientX,y:e.clientY};
-   preview(wheelScale,point);
+   wheelScale=clamp(wheelScale*Math.exp(-e.deltaY*.012),.64,1.56);
+   updateStage(wheelScale,{x:e.clientX,y:e.clientY});
    clearTimeout(wheelTimer);
    wheelTimer=setTimeout(()=>{
-     finishPinch(wheelScale,point);
+     finishPinch(wheelScale,{x:e.clientX,y:e.clientY});
      wheelScale=1
-   },140)
+   },165)
  },{passive:false});
  el.addEventListener('click',e=>{
    if(performance.now()<calendarIgnoreClickUntil){
