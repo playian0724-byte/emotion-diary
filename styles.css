@@ -396,3 +396,160 @@ nav button.active{font-weight:630;color:#232725}
  .calendar-archive.zoom-6 .cal-day .daynum,.calendar-archive.zoom-12 .cal-day .daynum{font-size:8px}
  .calendar-archive.zoom-6 .calendar-week span,.calendar-archive.zoom-12 .calendar-week span{font-size:9px}
 }
+
+
+/* V15 — annual emotion poster, inspired by vertical date columns and stacked
+   beads. No framed months, no Korean year/month captions, no zoom controls. */
+#archive .calendar-controls{
+ align-items:flex-end;
+ justify-content:space-between;
+ margin:16px 0 24px;
+}
+#archive .calendar-controls strong{
+ display:block;
+ font-size:clamp(31px,9vw,43px);
+ font-weight:430;
+ line-height:1.06;
+ letter-spacing:-.07em;
+ color:#1e2220;
+ font-variant-numeric:tabular-nums
+}
+#archive .calendar-controls .arrow-buttons{gap:2px}
+#archive .calendar-controls .arrow-buttons button{
+ background:transparent;
+ color:#737973;
+ font-size:21px;
+ font-weight:300;
+ width:32px;
+ height:35px;
+ border-radius:0
+}
+#archive .calendar-month-title{
+ margin:0 0 11px;
+ font-size:25px;
+ font-weight:750;
+ line-height:1;
+ letter-spacing:-.06em;
+ color:#1e2220
+}
+#archive .calendar-archive.zoom-3 .calendar-month-title{font-size:23px}
+#archive .calendar-archive.zoom-6 .calendar-month-title{font-size:19px}
+#archive .calendar-archive.zoom-6 .calendar-month{border:0}
+#archive.poster-year .calendar-controls{
+ margin:3px 0 23px;
+ align-items:flex-end
+}
+#archive.poster-year .calendar-controls strong{
+ font-size:clamp(65px,18vw,92px);
+ font-weight:330;
+ line-height:.94;
+ letter-spacing:-.092em;
+ font-variant-numeric:proportional-nums
+}
+#archive.poster-year .calendar-controls .arrow-buttons{padding-bottom:6px}
+#archive .calendar-archive.zoom-12{
+ display:block;
+ width:100%;
+ touch-action:pan-y
+}
+#archive .poster-months{
+ display:grid;
+ grid-template-columns:repeat(12,minmax(0,1fr));
+ gap:3px;
+ align-items:start;
+ width:100%
+}
+#archive .poster-month{
+ min-width:0;
+ display:flex;
+ flex-direction:column;
+ gap:5px
+}
+#archive .poster-month:nth-child(even){padding-top:13px}
+#archive .poster-month-label{
+ margin:0;
+ height:24px;
+ display:flex;
+ justify-content:center;
+ align-items:flex-end;
+ color:#242824;
+ font-size:clamp(10px,2.5vw,14px);
+ line-height:1;
+ letter-spacing:-.05em;
+ font-weight:800;
+ font-variant-numeric:tabular-nums
+}
+#archive .poster-days{
+ min-width:0;
+ display:flex;
+ flex-direction:column;
+ gap:4px
+}
+#archive .poster-days .cal-day{
+ min-width:0;
+ width:100%;
+ height:auto;
+ min-height:0;
+ aspect-ratio:1;
+ padding:0;
+ border:0;
+ background:transparent;
+ display:grid;
+ place-items:center
+}
+#archive .poster-days .cal-day .mini{
+ display:grid;
+ place-items:center;
+ width:100%;
+ height:100%;
+ max-width:none;
+ aspect-ratio:1;
+ border-radius:50%;
+ border:0;
+ background:#f0efeb;
+ box-shadow:inset 0 0 0 .65px #e7e6e0!important;
+ overflow:hidden
+}
+#archive .poster-days .cal-day.recorded .mini{
+ background-color:transparent;
+ box-shadow:none!important
+}
+#archive .poster-days .cal-day .daynum{
+ display:grid;
+ place-items:center;
+ font-size:clamp(8px,2.1vw,10px);
+ line-height:1;
+ font-weight:450;
+ font-variant-numeric:tabular-nums;
+ letter-spacing:-.045em
+}
+#archive .poster-days .cal-day.today .mini{
+ outline:1px solid #676e68;
+ outline-offset:1px
+}
+#archive .poster-days .cal-day.selected .mini{
+ outline:1.5px solid #202824;
+ outline-offset:1px
+}
+#archive.poster-year .entry-card{
+ background:none;
+ border:0;
+ border-top:1px solid #e6e7df;
+ border-radius:0;
+ margin-top:32px;
+ padding:16px 0 10px
+}
+@media(max-width:380px){
+ #archive .poster-months{gap:2px}
+ #archive .poster-month{gap:4px}
+ #archive .poster-days{gap:3px}
+ #archive .poster-month:nth-child(even){padding-top:12px}
+ #archive .poster-month-label{font-size:10px}
+ #archive .poster-days .cal-day .daynum{font-size:8px}
+}
+@media(min-width:460px){
+ #archive .poster-months{gap:5px}
+ #archive .poster-days{gap:5px}
+ #archive .poster-month:nth-child(even){padding-top:16px}
+ #archive .poster-days .cal-day .daynum{font-size:10px}
+}
