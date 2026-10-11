@@ -190,13 +190,95 @@ function shiftMonth(delta){
  if(calendarZoom===3)month=new Date(month.getFullYear(),0,1);
  renderCalendar()
 }
-function changeCalendarZoom(delta){
+/* V17 — interactive scale follows the fingers; after release, each visible
+   date keeps its identity and travels into its new grid position (FLIP). */
+let calendarMotion=[],calendarIgnoreClickUntil=0;
+const calendarReducedMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+function stopCalendarMotion(){
+ calendarMotion.forEach(animation=>{try{animation.cancel()}catch(e){}});
+ calendarMotion=[];
+}
+function calendarFocusPoint(point){
+ const rect=$('calendar').getBoundingClientRect();
+ return point||{x:rect.left+rect.width/2,y:Math.max(rect.top+55,Math.min(rect.bottom-50,window.innerHeight*.49))}
+}
+function snapshotCalendar(point){
+ const rects=new Map(),focal=calendarFocusPoint(point);
+ const height=window.innerHeight||document.documentElement.clientHeight;
+ let nearest=null,best=Infinity;
+ const nodes=$('calendar').querySelectorAll('[data-date]');
+ for(const button of nodes){
+   const circle=button.querySelector('.mini');if(!circle)continue;
+   const b=circle.getBoundingClientRect();
+   if(b.bottom< -140||b.top>height+140||b.right<0||b.left>window.innerWidth)continue;
+   const centerX=b.left+b.width/2,centerY=b.top+b.height/2;
+   const d=Math.hypot((centerX-focal.x)*.8,centerY-focal.y);
+   if(d<best){best=d;nearest=button.dataset.date}
+   if(rects.size<125)rects.set(button.dataset.date,{x:centerX,y:centerY,w:b.width,h:b.height})
+ }
+ return {rects,nearest,focus:focal}
+}
+function animateCalendarLayout(before,next,zoomDelta){
+ const target=$('calendar');
+ const active=target.querySelectorAll('[data-date]');
+ const height=window.innerHeight||document.documentElement.clientHeight;
+ // Keep the bead nearest the midpoint of the gesture at the same screen spot.
+ const oldAnchor=before.nearest&&before.rects.get(before.nearest);
+ const newButton=before.nearest&&target.querySelector('[data-date="'+before.nearest+'"]');
+ if(oldAnchor&&newButton){
+   const dest=newButton.querySelector('.mini')?.getBoundingClientRect();
+   if(dest){
+     const dy=dest.top+dest.height/2-oldAnchor.y;
+     if(Math.abs(dy)>3&&Number.isFinite(dy))window.scrollBy(0,dy);
+   }
+ }
+ if(calendarReducedMotion())return;
+ stopCalendarMotion();
+ let animated=0;
+ for(const button of active){
+   const circle=button.querySelector('.mini');if(!circle||!circle.animate)continue;
+   const end=circle.getBoundingClientRect();
+   if(end.bottom< -130||end.top>height+130)continue;
+   const old=before.rects.get(button.dataset.date);
+   if(old&&animated<85){
+     const dx=old.x-(end.left+end.width/2),dy=old.y-(end.top+end.height/2);
+     const scaleX=Math.max(.14,Math.min(7,old.w/end.width));
+     const scaleY=Math.max(.14,Math.min(7,old.h/end.height));
+     const animation=circle.animate([
+       {transform:'translate('+dx+'px,'+dy+'px) scale('+scaleX+','+scaleY+')',opacity:1},
+       {transform:'translate(0px,0px) scale(1,1)',opacity:1}
+     ],{duration:480,easing:'cubic-bezier(.19,1,.26,1)'});
+     calendarMotion.push(animation);animated++;
+   }else if(animated<85){
+     const animation=circle.animate([
+       {opacity:0,transform:'scale('+(zoomDelta<0?'.85':'1.15')+')'},
+       {opacity:1,transform:'scale(1)'}
+     ],{duration:290,delay:65,easing:'cubic-bezier(.22,1,.36,1)'});
+     calendarMotion.push(animation);animated++
+   }
+ }
+ const heading=$('month-label');
+ if(heading.animate){
+   calendarMotion.push(heading.animate([
+     {opacity:.6,transform:'translateY('+(zoomDelta<0?'9':'-9')+'px)'},
+     {opacity:1,transform:'translateY(0px)'}
+   ],{duration:380,easing:'cubic-bezier(.22,1,.36,1)'}))
+ }
+}
+function changeCalendarZoom(delta,point){
  const next=Math.max(0,Math.min(CAL_SPANS.length-1,calendarZoom+delta));
- if(next===calendarZoom)return;
+ if(next===calendarZoom)return false;
+ const before=snapshotCalendar(point);
+ stopCalendarMotion();
  calendarZoom=next;
  const size=CAL_SPANS[next];
- if(size>1)month=new Date(month.getFullYear(),Math.floor(month.getMonth()/size)*size,1);
- renderCalendar()
+ // A zoom stays anchored to the month underneath the user's fingers.
+ const focusMonth=before.nearest?new Date(before.nearest+'T12:00:00'):month;
+ month=new Date(focusMonth.getFullYear(),Math.floor(focusMonth.getMonth()/size)*size,1);
+ renderCalendar();
+ animateCalendarLayout(before,next,delta);
+ calendarIgnoreClickUntil=performance.now()+620;
+ return true
 }
 function numericMonth(date){return String(date.getMonth()+1).padStart(2,'0')}
 function dateInk(rec){
@@ -280,71 +362,126 @@ function showDate(day,rerender=true){
  detail.append(p)
 }
 function setupCalendarGestures(){
- const el=$('calendar');
- const pointers=new Map();
- let initialDistance=0,initialSingle=null,gestureConsumed=false;
- const distance=()=>{const p=[...pointers.values()];return Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)};
- el.addEventListener('pointerdown',e=>{
-  if(e.pointerType==='mouse'&&e.button!==0)return;
-  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(pointers.size===1){initialSingle={x:e.clientX,y:e.clientY};gestureConsumed=false}
-  else if(pointers.size===2){initialDistance=distance();gestureConsumed=false;initialSingle=null}
- });
- el.addEventListener('pointermove',e=>{
-  if(!pointers.has(e.pointerId))return;
-  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(pointers.size===2&&initialDistance){
-   const current=distance(),ratio=current/initialDistance;
-   if(ratio>1.22){changeCalendarZoom(-1);initialDistance=current;gestureConsumed=true}
-   else if(ratio<.82){changeCalendarZoom(1);initialDistance=current;gestureConsumed=true}
-  }
- });
- const finish=e=>{
-  if(!pointers.has(e.pointerId))return;
-  const p=pointers.get(e.pointerId),single=pointers.size===1;
-  pointers.delete(e.pointerId);
-  if(single&&initialSingle&&!gestureConsumed){
-   const dx=p.x-initialSingle.x,dy=p.y-initialSingle.y;
-   if(Math.abs(dy)>85&&Math.abs(dy)>Math.abs(dx)*1.25){
-    changeCalendarZoom(dy>0?-1:1);gestureConsumed=true
-   }else if(Math.abs(dx)>90&&Math.abs(dx)>Math.abs(dy)*1.25){
-    shiftMonth(dx>0?-1:1);gestureConsumed=true
+ const el=$('calendar'),reduced=calendarReducedMotion;
+ let pinch=null,touchSingle=null,mouseDrag=null,wheelScale=1,wheelTimer=0;
+ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+ const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+ const midpoint=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});
+ function preview(scale,focus,dx=0,dy=0){
+   if(reduced())return;
+   const group=el.querySelector('.poster-months');if(!group)return;
+   const area=group.getBoundingClientRect();
+   if(!group.dataset.previewOrigin){
+     group.style.transformOrigin=(focus.x-area.left)+'px '+(focus.y-area.top)+'px';
+     group.dataset.previewOrigin='yes'
    }
-  }
-  if(pointers.size===0){initialDistance=0;initialSingle=null}
- };
- el.addEventListener('pointerup',finish);
- el.addEventListener('pointercancel',finish);
- // Safari and other touch browsers: handle two-finger pinch explicitly while
- // letting one-finger page scrolling behave naturally.
- let touchGap=0;
+   group.style.transform='translate('+dx+'px,'+dy+'px) scale('+clamp(scale,.68,1.5)+')'
+   group.classList.add('calendar-previewing')
+ }
+ function resetPreview(){
+   const group=el.querySelector('.poster-months');
+   if(!group)return;
+   const from=group.style.transform;
+   group.style.removeProperty('transform');
+   group.style.removeProperty('transform-origin');
+   delete group.dataset.previewOrigin;
+   group.classList.remove('calendar-previewing');
+   if(from&&!reduced()&&group.animate){
+     calendarMotion.push(group.animate([{transform:from},{transform:'none'}],
+       {duration:270,easing:'cubic-bezier(.2,.85,.25,1)'}))
+   }
+ }
+ function finishPinch(scale,point){
+   const magnitude=Math.abs(Math.log(Math.max(.1,scale)));
+   const threshold=Math.log(1.16);
+   if(magnitude<threshold){resetPreview();return}
+   const delta=scale>1?-1:1;
+   const changed=changeCalendarZoom(delta,point);
+   if(!changed)resetPreview()
+ }
+ // Use Safari touch events for the pinch. Do not rerender on every move.
  el.addEventListener('touchstart',e=>{
-  if(e.touches.length===2){
-   const a=e.touches[0],b=e.touches[1];
-   touchGap=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
-  }
+   if(e.touches.length===2){
+     const a=e.touches[0],b=e.touches[1];
+     const point=midpoint(a,b);
+     pinch={distance:dist(a,b),point,lastPoint:point,scale:1};
+     touchSingle=null
+   }else if(e.touches.length===1&&!pinch){
+     const t=e.touches[0];
+     touchSingle={x:t.clientX,y:t.clientY}
+   }
  },{passive:true});
  el.addEventListener('touchmove',e=>{
-  if(e.touches.length!==2||!touchGap)return;
-  if(e.cancelable)e.preventDefault();
-  const a=e.touches[0],b=e.touches[1];
-  const gap=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
-  if(gap>touchGap*1.24){changeCalendarZoom(-1);touchGap=gap}
-  else if(gap<touchGap*.81){changeCalendarZoom(1);touchGap=gap}
+   if(!pinch||e.touches.length!==2)return;
+   if(e.cancelable)e.preventDefault();
+   const a=e.touches[0],b=e.touches[1],p=midpoint(a,b);
+   pinch.scale=clamp(dist(a,b)/Math.max(1,pinch.distance),.66,1.55);
+   pinch.lastPoint=p;
+   preview(pinch.scale,p,p.x-pinch.point.x,p.y-pinch.point.y)
  },{passive:false});
- el.addEventListener('touchend',e=>{if(e.touches.length<2)touchGap=0},{passive:true});
-
- // On desktop, Ctrl + wheel/trackpad pinch moves through the same four scales.
- let lastWheelAt=0;
+ el.addEventListener('touchend',e=>{
+   if(pinch){
+     if(e.touches.length<2){
+       const data=pinch;pinch=null;
+       touchSingle=null;
+       calendarIgnoreClickUntil=performance.now()+500;
+       finishPinch(data.scale,data.lastPoint);
+     }
+     return
+   }
+   if(touchSingle&&e.touches.length===0){
+     const a=touchSingle,b=e.changedTouches[0];touchSingle=null;
+     if(!b)return;
+     const dx=b.clientX-a.x,dy=b.clientY-a.y;
+     if(Math.abs(dy)>105&&Math.abs(dy)>Math.abs(dx)*1.3){
+       calendarIgnoreClickUntil=performance.now()+350;
+       changeCalendarZoom(dy>0?-1:1,{x:b.clientX,y:b.clientY})
+     }else if(Math.abs(dx)>95&&Math.abs(dx)>Math.abs(dy)*1.3){
+       calendarIgnoreClickUntil=performance.now()+350;
+       shiftMonth(dx>0?-1:1)
+     }
+   }
+ },{passive:true});
+ el.addEventListener('touchcancel',()=>{
+   pinch=null;touchSingle=null;resetPreview()
+ },{passive:true});
+ // Mouse users can drag dates left/right or up/down; touch is handled above.
+ el.addEventListener('pointerdown',e=>{
+   if(e.pointerType==='touch'||e.button!==0)return;
+   mouseDrag={x:e.clientX,y:e.clientY,id:e.pointerId};
+ });
+ el.addEventListener('pointerup',e=>{
+   if(!mouseDrag||e.pointerId!==mouseDrag.id)return;
+   const dx=e.clientX-mouseDrag.x,dy=e.clientY-mouseDrag.y;
+   mouseDrag=null;
+   if(Math.abs(dy)>85&&Math.abs(dy)>Math.abs(dx)*1.2){
+     calendarIgnoreClickUntil=performance.now()+350;
+     changeCalendarZoom(dy>0?-1:1,{x:e.clientX,y:e.clientY})
+   }else if(Math.abs(dx)>95&&Math.abs(dx)>Math.abs(dy)*1.2){
+     calendarIgnoreClickUntil=performance.now()+350;
+     shiftMonth(dx>0?-1:1)
+   }
+ });
+ el.addEventListener('pointercancel',()=>{mouseDrag=null});
+ // Trackpad pinch on desktop is Ctrl+wheel. Preview follows the movement,
+ // then settles to the next density when the gesture goes idle.
  el.addEventListener('wheel',e=>{
-  if(!e.ctrlKey)return;
-  if(e.cancelable)e.preventDefault();
-  const now=performance.now();
-  if(now-lastWheelAt<260)return;
-  lastWheelAt=now;
-  changeCalendarZoom(e.deltaY<0?-1:1)
+   if(!e.ctrlKey)return;
+   if(e.cancelable)e.preventDefault();
+   wheelScale=clamp(wheelScale*Math.exp(-e.deltaY*.012),.65,1.55);
+   const point={x:e.clientX,y:e.clientY};
+   preview(wheelScale,point);
+   clearTimeout(wheelTimer);
+   wheelTimer=setTimeout(()=>{
+     finishPinch(wheelScale,point);
+     wheelScale=1
+   },140)
  },{passive:false});
-
+ el.addEventListener('click',e=>{
+   if(performance.now()<calendarIgnoreClickUntil){
+     e.preventDefault();e.stopImmediatePropagation()
+   }
+ },true)
 }
 function renderDictionary(){const data=[...db.custom];const host=$('dictionary-list');if(!data.length){host.innerHTML='<div class="empty-state">저장된 감정이 없습니다.</div>';return}
 host.innerHTML=data.slice().reverse().map(e=>'<div class="dictionary-item"><span class="swatch" style="background:'+e.color+'"></span><div class="copy"><strong>'+escapeHTML(e.name||'이름 미정')+'</strong><p>'+escapeHTML(e.definition||e.components.map(c=>byId(c.id)?.name+' '+Math.round(c.ratio*100)+'%').join(' · '))+'</p></div><span class="privacy">Private</span><button type="button" class="subtle-button" data-use="'+escapeHTML(e.id)+'">사용</button></div>').join('');
