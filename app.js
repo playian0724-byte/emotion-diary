@@ -181,61 +181,76 @@ function syncOrbShader(){
 }
 function renderPreview(){paintOrb($('today-orb'),selection);$('today-orb').classList.toggle('empty',selection.length===0);$('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'감정을 선택하세요.';$('save-day').disabled=selection.length===0||saving;syncOrbShader()}
 function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='create')startWater();else stopWater();syncOrbShader();window.scrollTo(0,0)}
-/* V14 — Nordic date-on-color archive, 1 / 3 / 6 / 12 months.
-   Anchored to a calendar month; changing granularity keeps the focused month. */
+/* V15 — quiet archival typography, honeycomb-like annual field.
+   The annual view is one poster, not twelve boxed mini-calendars. */
 const CAL_SPANS=[1,3,6,12];
 let calendarZoom=0,calendarSelected=isoDay();
 function shiftMonth(delta){
  month=new Date(month.getFullYear(),month.getMonth()+delta*CAL_SPANS[calendarZoom],1);
+ if(calendarZoom===3)month=new Date(month.getFullYear(),0,1);
  renderCalendar()
 }
 function changeCalendarZoom(delta){
  const next=Math.max(0,Math.min(CAL_SPANS.length-1,calendarZoom+delta));
  if(next===calendarZoom)return;
  calendarZoom=next;
- // Quarter/half-year/year views follow calendar-year boundaries.
- const group=CAL_SPANS[next];
- if(group>1){const aligned=Math.floor(month.getMonth()/group)*group;month=new Date(month.getFullYear(),aligned,1)}
+ const size=CAL_SPANS[next];
+ if(size>1)month=new Date(month.getFullYear(),Math.floor(month.getMonth()/size)*size,1);
  renderCalendar()
 }
-function labelMonth(d){return d.getFullYear()+'년 '+(d.getMonth()+1)+'월'}
+function numericMonth(date){return String(date.getMonth()+1).padStart(2,'0')}
 function dateInk(rec){
- if(!rec)return '#8D908A';
+ if(!rec)return '#969A93';
  const colors=(rec.emotions||[]).map(id=>byId(id)?.color).filter(Boolean);
  if(!colors.length)return '#343A36';
  let mean=0;
  for(const color of colors){
    const rgb=hexRgb(color).map(x=>x<=.04045?x/12.92:Math.pow((x+.055)/1.055,2.4));
-   mean+=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;
+   mean+=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722
  }
  return mean/colors.length>.39?'#232925':'#FFFFFF'
+}
+function calendarDayMarkup(y,m,day){
+ const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+ const rec=db.records[key];
+ const cls=(rec?' recorded':'')+(key===isoDay()?' today':'')+(key===calendarSelected?' selected':'');
+ return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'" aria-label="'+key+(rec?' 감정 기록':' 기록 없음')+'"><span class="mini"><span class="daynum" style="color:'+dateInk(rec)+'">'+day+'</span></span></button>'
 }
 function calendarMonthMarkup(date,zoom){
  const y=date.getFullYear(),m=date.getMonth(),n=new Date(y,m+1,0).getDate(),leading=new Date(y,m,1).getDay();
  const weekdays='<div class="calendar-week">'+['일','월','화','수','목','금','토'].map(d=>'<span>'+d+'</span>').join('')+'</div>';
  const days=Array.from({length:leading},()=>'<span class="calendar-pad"></span>').join('')+
- Array.from({length:n},(_,i)=>{
-  const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(i+1).padStart(2,'0');
-  const rec=db.records[key],cls=(rec?' recorded':'')+(key===isoDay()?' today':'')+(key===calendarSelected?' selected':'');
-  return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'" aria-label="'+key+(rec?' 감정 기록':' 기록 없음')+'"><span class="mini"><span class="daynum" style="color:'+dateInk(rec)+'">'+(i+1)+'</span></span></button>'
+  Array.from({length:n},(_,i)=>calendarDayMarkup(y,m,i+1)).join('');
+ return '<section class="calendar-month" aria-label="'+y+' / '+numericMonth(date)+'">'+
+  (zoom?'<h3 class="calendar-month-title">'+numericMonth(date)+'</h3>':'')+
+  weekdays+'<div class="calendar-grid">'+days+'</div></section>'
+}
+function calendarYearPoster(year){
+ const columns=Array.from({length:12},(_,m)=>{
+  const n=new Date(year,m+1,0).getDate();
+  const dates=Array.from({length:n},(_,i)=>calendarDayMarkup(year,m,i+1)).join('');
+  return '<section class="poster-month" aria-label="'+year+' / '+String(m+1).padStart(2,'0')+'">'+
+   '<h3 class="poster-month-label">'+String(m+1).padStart(2,'0')+'</h3>'+
+   '<div class="poster-days">'+dates+'</div></section>'
  }).join('');
- return '<section class="calendar-month" aria-label="'+labelMonth(date)+'">'+
- (zoom?'<h3 class="calendar-month-title">'+labelMonth(date)+'</h3>':'')+
- weekdays+'<div class="calendar-grid">'+days+'</div></section>'
+ return '<div class="poster-months" role="group" aria-label="'+year+' 감정 연감">'+columns+'</div>'
 }
 function renderCalendar(){
  const span=CAL_SPANS[calendarZoom];
+ if(span===12)month=new Date(month.getFullYear(),0,1);
  const last=new Date(month.getFullYear(),month.getMonth()+span-1,1);
- $('month-label').textContent=span===1?labelMonth(month):
-  (month.getFullYear()===last.getFullYear()?
-    (month.getFullYear()+'년 '+(month.getMonth()+1)+'–'+(last.getMonth()+1)+'월'):
-    (labelMonth(month)+' – '+labelMonth(last)));
- $('zoom-label').textContent=span===12?'1년':span+'개월';
- $('zoom-in').disabled=calendarZoom===0;
- $('zoom-out').disabled=calendarZoom===CAL_SPANS.length-1;
+ const yr=month.getFullYear();
+ const startNumber=numericMonth(month),endNumber=numericMonth(last);
+ $('month-label').textContent=span===12?String(yr):
+  (span===1?yr+' / '+startNumber:
+   (last.getFullYear()===yr?yr+' / '+startNumber+'–'+endNumber:
+    yr+' / '+startNumber+' – '+last.getFullYear()+' / '+endNumber));
+ const archive=$('archive');
+ archive.classList.toggle('poster-year',span===12);
  const target=$('calendar');
  target.className='calendar-archive zoom-'+span;
- target.innerHTML=Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(month.getFullYear(),month.getMonth()+i,1),calendarZoom)).join('');
+ target.innerHTML=span===12?calendarYearPoster(yr):
+  Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(yr,month.getMonth()+i,1),calendarZoom)).join('');
  target.querySelectorAll('[data-date]').forEach(el=>{
    const rec=db.records[el.dataset.date];
    if(rec)paintOrb(el.querySelector('.mini'),rec.emotions);
@@ -311,29 +326,18 @@ function setupCalendarGestures(){
   else if(gap<touchGap*.81){changeCalendarZoom(1);touchGap=gap}
  },{passive:false});
  el.addEventListener('touchend',e=>{if(e.touches.length<2)touchGap=0},{passive:true});
- // One-finger vertical dragging on the zoom control selects density without
- // interfering with scrolling through a year of recorded days.
- const zoomControl=document.querySelector('.calendar-zoom');
- let zoomDrag=null;
- zoomControl.addEventListener('pointerdown',e=>{
-  if(e.target.closest('button')||e.pointerType==='mouse'&&e.button!==0)return;
-  zoomDrag={y:e.clientY,id:e.pointerId};
-  zoomControl.setPointerCapture?.(e.pointerId)
- });
- zoomControl.addEventListener('pointermove',e=>{
-  if(!zoomDrag||zoomDrag.id!==e.pointerId)return;
-  const delta=e.clientY-zoomDrag.y;
-  if(Math.abs(delta)>28){
-   changeCalendarZoom(delta>0?-1:1);
-   zoomDrag.y=e.clientY
-  }
- });
- const endZoom=e=>{if(zoomDrag?.id===e.pointerId)zoomDrag=null};
- zoomControl.addEventListener('pointerup',endZoom);
- zoomControl.addEventListener('pointercancel',endZoom);
- // Click/keyboard dates and native page scroll stay available; controls are a fallback.
- $('zoom-in').onclick=()=>changeCalendarZoom(-1);
- $('zoom-out').onclick=()=>changeCalendarZoom(1);
+
+ // On desktop, Ctrl + wheel/trackpad pinch moves through the same four scales.
+ let lastWheelAt=0;
+ el.addEventListener('wheel',e=>{
+  if(!e.ctrlKey)return;
+  if(e.cancelable)e.preventDefault();
+  const now=performance.now();
+  if(now-lastWheelAt<260)return;
+  lastWheelAt=now;
+  changeCalendarZoom(e.deltaY<0?-1:1)
+ },{passive:false});
+
 }
 function renderDictionary(){const data=[...db.custom];const host=$('dictionary-list');if(!data.length){host.innerHTML='<div class="empty-state">저장된 감정이 없습니다.</div>';return}
 host.innerHTML=data.slice().reverse().map(e=>'<div class="dictionary-item"><span class="swatch" style="background:'+e.color+'"></span><div class="copy"><strong>'+escapeHTML(e.name||'이름 미정')+'</strong><p>'+escapeHTML(e.definition||e.components.map(c=>byId(c.id)?.name+' '+Math.round(c.ratio*100)+'%').join(' · '))+'</p></div><span class="privacy">Private</span><button type="button" class="subtle-button" data-use="'+escapeHTML(e.id)+'">사용</button></div>').join('');
@@ -342,7 +346,7 @@ function useEmotion(id){if(!selection.includes(id)){if(selection.length>=4){toas
 function positionFlightStart(rect){const w=168,h=168;return rect.top>=10&&rect.bottom<window.innerHeight-10?{left:rect.left,top:rect.top,width:rect.width,height:rect.height}:{left:(innerWidth-w)/2,top:Math.max(70,(innerHeight-h)/2-40),width:w,height:h}}
 async function saveDay(){
 if(saving||!selection.length)return;saving=true;$('save-day').disabled=true;
-const keys=[...selection],note=$('memo').value;db.records[isoDay()]={emotions:keys,note,createdAt:new Date().toISOString()};saveDB();month=new Date(new Date().getFullYear(),new Date().getMonth(),1);calendarSelected=isoDay();
+const keys=[...selection],note=$('memo').value;db.records[isoDay()]={emotions:keys,note,createdAt:new Date().toISOString()};saveDB();month=new Date(new Date().getFullYear(),calendarZoom===3?0:new Date().getMonth(),1);calendarSelected=isoDay();
 const start=positionFlightStart($('today-orb').getBoundingClientRect()),ghost=document.createElement('div');ghost.className='flying-orb';ghost.style.cssText='left:'+start.left+'px;top:'+start.top+'px;width:'+start.width+'px;height:'+start.height+'px;';
 const inner=document.createElement('div');inner.className='orb';paintOrb(inner,keys);ghost.append(inner);document.body.append(ghost);
 setScreen('archive');await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
