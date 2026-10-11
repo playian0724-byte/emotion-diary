@@ -446,7 +446,8 @@ function setupCalendarGestures(){
    if(!stage)return;
    const amount=Math.abs(Math.log(currentScale));
    const raw=clamp(amount/Math.log(1.55),0,1);
-   const t=ease(raw);
+   // Reveal incoming dates early so shrinking never exposes a blank field.
+   const t=1-Math.pow(1-raw,1.55);
    drawStage(t,currentScale,point)
  }
  function drawStage(t,scale,point){
