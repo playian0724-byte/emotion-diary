@@ -781,3 +781,24 @@ nav button.active{font-weight:630;color:#232725}
 #archive > .zoom-next-layer{
   backface-visibility:hidden
 }
+
+
+/* V20 — true date-by-date morph.
+   A bead's own transform interpolates from its first position to its exact
+   next-grid position. The whole calendar MUST NOT scale or crossfade. */
+#archive .calendar-archive.zoom-staging > .poster-months{
+  transform:none!important;
+  opacity:1!important
+}
+#archive > .zoom-next-layer{
+  transform:none!important;
+  opacity:1!important
+}
+#archive .calendar-archive.zoom-staging .cal-day .mini{
+  transform-origin:50% 50%;
+  backface-visibility:hidden
+}
+#archive .calendar-archive.zoom-staging .poster-month-label,
+#archive > .zoom-next-layer .poster-month-label{
+  transition:none
+}
