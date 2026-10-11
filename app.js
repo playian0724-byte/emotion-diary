@@ -416,7 +416,14 @@ function setupCalendarGestures(){
      const rec=db.records[button.dataset.date];
      if(rec)paintOrb(button.querySelector('.mini'),rec.emotions)
    });
-   el.appendChild(layer);
+   // Staging as a SIBLING prevents the current zoom CSS from leaking
+   // into the next zoom's bead geometry (especially 1 → 12 columns).
+   const host=el.parentElement;
+   const hostRect=host.getBoundingClientRect(),gridRect=el.getBoundingClientRect();
+   layer.style.top=(gridRect.top-hostRect.top)+'px';
+   layer.style.left=(gridRect.left-hostRect.left)+'px';
+   layer.style.width=gridRect.width+'px';
+   host.appendChild(layer);
    const anchor=before.nearest&&layer.querySelector('[data-date="'+before.nearest+'"] .mini');
    const nextRect=anchor?.getBoundingClientRect();
    const oldRect=before.nearest&&before.rects.get(before.nearest);
