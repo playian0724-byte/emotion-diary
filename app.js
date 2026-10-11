@@ -489,13 +489,16 @@ function setupCalendarGestures(){
    // the focal month when the new grid takes over.
    let scrollDistance=0;
    if(anchorDate){
+     const previousTransform=data.layer.style.transform;
+     data.layer.style.transform='none';
      const b=data.layer.querySelector('[data-date="'+anchorDate+'"] .mini')?.getBoundingClientRect();
+     data.layer.style.transform=previousTransform;
      if(b&&oldAnchor)scrollDistance=(b.top+b.height/2)-oldAnchor.y;
    }
    let scrolled=0;
    function frame(now){
      const t=ease((now-startAt)/duration),p=current+(1-current)*t;
-     drawStage(p,scale+(delta>0?.70:1.30-scale)*t,point);
+     drawStage(p,scale+((delta>0?.70:1.30)-scale)*t,point);
      // Anchor scroll is eased in gradually, so it never jumps at commit.
      const wanted=scrollDistance*t;
      const d=wanted-scrolled;
