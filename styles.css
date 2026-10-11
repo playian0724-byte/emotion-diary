@@ -369,17 +369,24 @@ nav button.active{font-weight:630;color:#232725}
 .calendar-archive.zoom-3 .calendar-grid{row-gap:6px}
 .calendar-archive.zoom-3 .cal-day .mini{max-width:39px}
 .calendar-archive.zoom-3 .cal-day .daynum{font-size:10px}
-.calendar-archive.zoom-6{gap:18px}
+.calendar-archive.zoom-6{
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:22px 13px
+}
 .calendar-archive.zoom-6 .calendar-week{margin-bottom:5px}
+.calendar-archive.zoom-6 .calendar-week span{font-size:9px}
 .calendar-archive.zoom-6 .calendar-grid{row-gap:4px}
-.calendar-archive.zoom-6 .cal-day .mini{max-width:34px}
-.calendar-archive.zoom-6 .cal-day .daynum{font-size:9px}
-.calendar-archive.zoom-12{gap:14px}
+.calendar-archive.zoom-6 .cal-day .mini{max-width:25px}
+.calendar-archive.zoom-6 .cal-day .daynum{font-size:8px}
+.calendar-archive.zoom-12{
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:18px 13px
+}
 .calendar-archive.zoom-12 .calendar-month-title{font-size:12px;margin-bottom:8px}
 .calendar-archive.zoom-12 .calendar-week{margin-bottom:4px}
-.calendar-archive.zoom-12 .calendar-week span{font-size:9px}
+.calendar-archive.zoom-12 .calendar-week span{font-size:8px}
 .calendar-archive.zoom-12 .calendar-grid{row-gap:2px}
-.calendar-archive.zoom-12 .cal-day .mini{max-width:29px}
+.calendar-archive.zoom-12 .cal-day .mini{max-width:25px}
 .calendar-archive.zoom-12 .cal-day .daynum{font-size:8px}
 @media(min-width:460px){
  .calendar-archive.zoom-6,.calendar-archive.zoom-12{
