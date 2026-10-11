@@ -193,6 +193,9 @@ function changeCalendarZoom(delta){
  const next=Math.max(0,Math.min(CAL_SPANS.length-1,calendarZoom+delta));
  if(next===calendarZoom)return;
  calendarZoom=next;
+ // Quarter/half-year/year views follow calendar-year boundaries.
+ const group=CAL_SPANS[next];
+ if(group>1){const aligned=Math.floor(month.getMonth()/group)*group;month=new Date(month.getFullYear(),aligned,1)}
  renderCalendar()
 }
 function labelMonth(d){return d.getFullYear()+'년 '+(d.getMonth()+1)+'월'}
