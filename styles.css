@@ -322,3 +322,70 @@ nav button.active{font-weight:630;color:#232725}
   line-height:1.45;
   overflow-wrap:anywhere;
 }
+
+
+/* V14 — Nordic editorial calendar: dates live inside unadorned pigment dots.
+   Four density levels retain the same 7-column weekday structure. */
+.calendar-controls{margin-bottom:7px}
+.calendar-controls strong{font-size:18px;font-weight:550;letter-spacing:-.045em}
+.calendar-zoom{display:flex;align-items:center;justify-content:center;gap:18px;margin:12px 0 5px}
+.calendar-zoom button{
+ width:30px;height:30px;border:1px solid #e1e4de;border-radius:50%;
+ background:transparent;color:#50564f;font-size:18px;font-weight:350;line-height:1
+}
+.calendar-zoom button:disabled{opacity:.25}
+.calendar-zoom span{font-size:11px;letter-spacing:.04em;color:#777e76;min-width:36px;text-align:center}
+.calendar-gesture-hint{text-align:center;color:#a0a59d;font-size:10px;margin:0 0 23px;letter-spacing:.005em}
+.calendar-archive{display:grid;grid-template-columns:minmax(0,1fr);gap:30px;touch-action:pan-y}
+.calendar-month{min-width:0}
+.calendar-week,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));column-gap:5px}
+.calendar-week{margin-bottom:9px}
+.calendar-week span{color:#949b93;font-weight:500;font-size:11px;letter-spacing:0}
+.calendar-grid{row-gap:9px}
+.calendar-month-title{font-size:13px;font-weight:540;color:#3e4740;letter-spacing:-.03em;margin:0 0 13px}
+.cal-day{
+ position:relative;display:grid;place-items:center;min-height:0;
+ aspect-ratio:1;cursor:pointer;padding:0;gap:0;
+}
+.cal-day .mini{
+ position:relative;display:grid;place-items:center;
+ width:100%;max-width:45px;aspect-ratio:1;
+ border:0;border-radius:50%;background:#edf0eb;background-size:100% 100%;
+ background-position:center;box-shadow:none!important;overflow:hidden;
+}
+.cal-day .daynum{
+ position:relative;z-index:1;display:grid;place-items:center;
+ line-height:1;font-size:12px;font-weight:530;letter-spacing:-.03em;
+ color:#8d908a;font-variant-numeric:tabular-nums;
+}
+.cal-day.recorded .mini{background-color:transparent}
+.cal-day.today .mini{outline:1px solid #656f65;outline-offset:3px}
+.cal-day.selected .mini{outline:1.5px solid #252d27;outline-offset:3px}
+.cal-day.today.selected .mini{outline-width:1.5px}
+.cal-day .mini.arriving{opacity:.05}
+.cal-day .mini.landed{animation:landing .4s cubic-bezier(.2,.8,.2,1)}
+.calendar-pad{pointer-events:none}
+.calendar-archive.zoom-3{gap:24px}
+.calendar-archive.zoom-3 .calendar-grid{row-gap:6px}
+.calendar-archive.zoom-3 .cal-day .mini{max-width:39px}
+.calendar-archive.zoom-3 .cal-day .daynum{font-size:10px}
+.calendar-archive.zoom-6{gap:18px}
+.calendar-archive.zoom-6 .calendar-week{margin-bottom:5px}
+.calendar-archive.zoom-6 .calendar-grid{row-gap:4px}
+.calendar-archive.zoom-6 .cal-day .mini{max-width:34px}
+.calendar-archive.zoom-6 .cal-day .daynum{font-size:9px}
+.calendar-archive.zoom-12{gap:14px}
+.calendar-archive.zoom-12 .calendar-month-title{font-size:12px;margin-bottom:8px}
+.calendar-archive.zoom-12 .calendar-week{margin-bottom:4px}
+.calendar-archive.zoom-12 .calendar-week span{font-size:9px}
+.calendar-archive.zoom-12 .calendar-grid{row-gap:2px}
+.calendar-archive.zoom-12 .cal-day .mini{max-width:29px}
+.calendar-archive.zoom-12 .cal-day .daynum{font-size:8px}
+@media(min-width:460px){
+ .calendar-archive.zoom-6,.calendar-archive.zoom-12{
+  grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px;row-gap:25px
+ }
+ .calendar-archive.zoom-6 .cal-day .mini,.calendar-archive.zoom-12 .cal-day .mini{max-width:26px}
+ .calendar-archive.zoom-6 .cal-day .daynum,.calendar-archive.zoom-12 .cal-day .daynum{font-size:8px}
+ .calendar-archive.zoom-6 .calendar-week span,.calendar-archive.zoom-12 .calendar-week span{font-size:9px}
+}
