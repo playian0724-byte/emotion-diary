@@ -882,3 +882,79 @@ nav button.active{font-weight:630;color:#232725}
  text-underline-offset:3px;
  white-space:nowrap
 }
+
+
+/* V24 — bead field as a pigment mosaic (isolated to demo previews).
+   Reference: colored circular pieces almost touching, warm-tinted but
+   varied, tactile outlines rather than shiny 3D balls or neon gradients. */
+#archive .calendar-archive.mosaic-demo.zoom-12 .poster-months,
+#archive > .zoom-next-layer.mosaic-demo.zoom-12 .poster-months{
+ gap:1px;
+}
+#archive .calendar-archive.mosaic-demo.zoom-12 .poster-month,
+#archive > .zoom-next-layer.mosaic-demo.zoom-12 .poster-month{
+ gap:5px;
+}
+#archive .calendar-archive.mosaic-demo.zoom-12 .poster-days,
+#archive > .zoom-next-layer.mosaic-demo.zoom-12 .poster-days{
+ gap:1px;
+}
+#archive .calendar-archive.mosaic-demo.zoom-12 .poster-month:nth-child(even),
+#archive > .zoom-next-layer.mosaic-demo.zoom-12 .poster-month:nth-child(even){
+ padding-top:11px;
+}
+/* Zoomed views keep their structure but lose the widely separated
+   "button grid" feeling in favor of a softly packed bead collection. */
+#archive .calendar-archive.mosaic-demo.zoom-6 .poster-months,
+#archive > .zoom-next-layer.mosaic-demo.zoom-6 .poster-months{
+ gap:3px;
+}
+#archive .calendar-archive.mosaic-demo.zoom-6 .poster-days,
+#archive > .zoom-next-layer.mosaic-demo.zoom-6 .poster-days{
+ gap:3px 2px;
+}
+#archive .calendar-archive.mosaic-demo.zoom-3 .poster-months,
+#archive > .zoom-next-layer.mosaic-demo.zoom-3 .poster-months{
+ gap:7px;
+}
+#archive .calendar-archive.mosaic-demo.zoom-3 .poster-days,
+#archive > .zoom-next-layer.mosaic-demo.zoom-3 .poster-days{
+ gap:5px 3px;
+}
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day.recorded .mini,
+#archive > .zoom-next-layer.mosaic-demo .poster-days .cal-day.recorded .mini{
+ /* A delicate printed edge, NOT a glossy drop shadow. */
+ box-shadow:inset 0 0 0 .8px rgba(54,47,45,.24)!important;
+ border:0;
+}
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day:not(.recorded) .mini,
+#archive > .zoom-next-layer.mosaic-demo .poster-days .cal-day:not(.recorded) .mini{
+ background:#F1EEE6;
+ box-shadow:inset 0 0 0 .6px #E5E0D6!important;
+}
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day .daynum,
+#archive > .zoom-next-layer.mosaic-demo .poster-days .cal-day .daynum{
+ /* Date remains discoverable, but pigment leads visually. */
+ opacity:.48;
+ font-weight:410;
+}
+#archive .calendar-archive.mosaic-demo.zoom-12 .poster-days .cal-day .daynum,
+#archive > .zoom-next-layer.mosaic-demo.zoom-12 .poster-days .cal-day .daynum{
+ opacity:.22;
+ font-size:clamp(7px,1.9vw,9px)
+}
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day.selected .daynum,
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day.today .daynum{
+ opacity:.86
+}
+#archive .calendar-archive.mosaic-demo.zoom-12 .poster-month-label,
+#archive > .zoom-next-layer.mosaic-demo.zoom-12 .poster-month-label{
+ font-size:clamp(10px,2.5vw,13px);
+ color:#403F3A
+}
+@media(max-width:380px){
+ #archive .calendar-archive.mosaic-demo.zoom-12 .poster-months,
+ #archive > .zoom-next-layer.mosaic-demo.zoom-12 .poster-months{gap:1px}
+ #archive .calendar-archive.mosaic-demo.zoom-12 .poster-days,
+ #archive > .zoom-next-layer.mosaic-demo.zoom-12 .poster-days{gap:1px}
+}
