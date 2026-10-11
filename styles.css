@@ -811,3 +811,21 @@ nav button.active{font-weight:630;color:#232725}
 @media(prefers-reduced-motion:reduce){
  #archive .calendar-archive.zoom-staging .cal-day .mini{will-change:auto}
 }
+
+
+/* V21 — commit the view at touch release, not after the bead settle.
+   Existing / next dates animate on their own composite transforms. */
+#archive .calendar-controls{position:relative}
+#archive .calendar-heading-ghost{
+ position:absolute;
+ left:0;
+ top:0;
+ pointer-events:none;
+ white-space:nowrap;
+ z-index:3
+}
+#archive .calendar-archive.zoom-staging > .poster-months,
+#archive > .zoom-next-layer,
+#archive .calendar-archive.zoom-staging .cal-day .mini{
+ will-change:auto
+}
