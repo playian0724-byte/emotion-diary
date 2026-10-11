@@ -554,7 +554,12 @@ $('month-prev').onclick=()=>shiftMonth(-1);$('month-next').onclick=()=>shiftMont
 $('mix-button').onclick=blendMix;$('mix-undo').onclick=undoDrop;$('mix-reset').onclick=resetMix;
 $('save-word').onclick=()=>createEmotion(false);$('use-word').onclick=()=>createEmotion(true);
 window.addEventListener('resize',()=>drawWater());
-renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixButtons()
+renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixButtons();
+if(new URLSearchParams(window.location.search).get('view')==='year'){
+ calendarZoom=3;
+ month=new Date(new Date().getFullYear(),0,1);
+ setScreen('archive')
+}
 }
 window.GyeolPreview={orbStyleForColors,emotionGlow,hue};
 if(document.body.dataset.page!=='compare'){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();}
