@@ -536,49 +536,114 @@ function setupCalendarGestures(){
    }
    settleRaf=requestAnimationFrame(frame)
  }
+ let titleGhost=null;
+ function updatePeriodHeader(first,next){
+   const span=CAL_SPANS[next],last=new Date(first.getFullYear(),first.getMonth()+span-1,1);
+   const heading=$('month-label');
+   // Start the title transition on release, not 410ms after it.
+   if(titleGhost){titleGhost.remove();titleGhost=null}
+   const ghost=heading.cloneNode(true);
+   ghost.removeAttribute('id');
+   ghost.classList.add('calendar-heading-ghost');
+   if(!reduced()&&heading.animate){
+     // Preserve old title's font hierarchy while .poster-year changes.
+     const oldParts=[...heading.children],copyParts=[...ghost.children];
+     copyParts.forEach((part,i)=>{
+       const old=oldParts[i];
+       if(!old)return;
+       const computed=window.getComputedStyle?.(old);
+       if(computed){part.style.fontSize=computed.fontSize;part.style.fontWeight=computed.fontWeight}
+     });
+     heading.parentElement.appendChild(ghost);
+     titleGhost=ghost
+   }
+   const year='<span class="period-year">'+first.getFullYear()+'</span>';
+   const range='<span class="period-month">'+numericMonth(first)+(span===1?'':'–'+numericMonth(last))+'</span>';
+   heading.innerHTML=span===12?year:year+range;
+   heading.setAttribute('aria-label',first.getFullYear()+'년 감정 기록');
+   $('archive').classList.toggle('poster-year',span===12);
+   $('archive').classList.toggle('poster-month-view',span!==12);
+   if(titleGhost){
+     const previous=titleGhost;
+     const oldFade=previous.animate([
+       {opacity:1,transform:'translateY(0px)'},
+       {opacity:0,transform:'translateY(-5px)'}
+     ],{duration:215,easing:'ease-out'});
+     oldFade.onfinish=()=>{previous.remove();if(titleGhost===previous)titleGhost=null};
+     const newFade=heading.animate([
+       {opacity:0,transform:'translateY(6px)'},
+       {opacity:1,transform:'translateY(0px)'}
+     ],{duration:215,easing:'cubic-bezier(.22,1,.36,1)'});
+     calendarMotion.push(oldFade,newFade)
+   }else ghost.remove()
+ }
  function commitStaged(){
    if(!stage)return false;
-   cancelDraw();
-   const data=stage,initial=data.progress,start=performance.now();
-   function frame(now){
-     const t=ease((now-start)/410);
-     drawStage(initial+(1-initial)*t);
-     if(t<1){settleRaf=requestAnimationFrame(frame);return}
-     settleRaf=0;
-     // At progress=1 original beads are already at each destination. Reveal
-     // same-date target beads, THEN atomically adopt the staged DOM.
-     const layer=data.layer;
-     for(const button of layer.querySelectorAll('[data-date]'))button.style.removeProperty('opacity');
-     for(const label of data.newLabels)label.style.removeProperty('opacity');
-     const incomingGroup=layer.querySelector('.poster-months');
-     calendarZoom=data.next;
-     month=data.first;
-     const span=CAL_SPANS[calendarZoom],last=new Date(month.getFullYear(),month.getMonth()+span-1,1);
-     const headerYear='<span class="period-year">'+month.getFullYear()+'</span>';
-     const headerMonth='<span class="period-month">'+numericMonth(month)+(span===1?'':'–'+numericMonth(last))+'</span>';
-     $('month-label').innerHTML=span===12?headerYear:headerYear+headerMonth;
-     $('month-label').setAttribute('aria-label',month.getFullYear()+'년 감정 기록');
-     $('archive').classList.toggle('poster-year',span===12);
-     $('archive').classList.toggle('poster-month-view',span!==12);
-     el.className='calendar-archive zoom-'+span;
-     // Finish the handoff without a second render of any date/color.
-     if(incomingGroup){
-       layer.remove();
-       el.replaceChildren(incomingGroup);
-       incomingGroup.querySelectorAll('[data-date]').forEach(button=>{
-         button.removeAttribute('tabindex');
-         button.addEventListener('click',()=>showDate(button.dataset.date))
-       })
-     }else{
-       layer.remove();
-       renderCalendar()
-     }
-     stage=null;
-     calendarIgnoreClickUntil=performance.now()+380;
-     $('record-detail').hidden=true;
-     showDate(calendarSelected,false)
+   // Settle the most recent finger position, even when touchend arrives
+   // before the next scheduled animation frame.
+   if(nextFrame!==null){
+     const p=nextFrame;cancelDraw();drawStage(p)
+   }else cancelDraw();
+   const data=stage;
+   // Geometry of individual beads at release. No extra 410ms wait.
+   const moving=data.morphs.map(({source,key,dest})=>({
+     key,dest,from:source.getBoundingClientRect()
+   }));
+   const incomingOpacity=new Map(data.incoming.map(button=>[button,button.style.opacity||'0']));
+   const layer=data.layer,group=layer.querySelector('.poster-months');
+   const newButtons=[...layer.querySelectorAll('[data-date]')];
+   // Release makes the NEXT view current immediately: allows another pinch
+   // on the very next touchstart while small per-bead settles play.
+   calendarZoom=data.next;
+   month=data.first;
+   const span=CAL_SPANS[calendarZoom];
+   el.className='calendar-archive zoom-'+span;
+   if(group){
+     layer.remove();
+     el.replaceChildren(group);
+   }else{
+     layer.remove();
+     renderCalendar()
    }
-   settleRaf=requestAnimationFrame(frame);
+   for(const button of data.incoming)button.style.removeProperty('opacity');
+   for(const label of data.newLabels)label.style.removeProperty('opacity');
+   updatePeriodHeader(month,calendarZoom);
+   if(group){
+     for(const button of newButtons){
+       button.removeAttribute('tabindex');
+       button.addEventListener('click',()=>showDate(button.dataset.date))
+     }
+   }
+   stage=null;
+   calendarIgnoreClickUntil=performance.now()+230;
+   $('record-detail').hidden=true;
+   showDate(calendarSelected,false);
+   if(reduced())return true;
+   // The visible bead at release becomes the FIRST frame of its next
+   // position animation. Moves run on the compositing layer via WAAPI.
+   stopCalendarMotion();
+   // StopCalendarMotion cancels old animations, so fade only after it.
+   for(const {dest,from} of moving){
+     if(!dest.animate||from.width<1)continue;
+     const end=dest.getBoundingClientRect();
+     if(end.width<1)continue;
+     const dx=from.left+from.width/2-end.left-end.width/2;
+     const dy=from.top+from.height/2-end.top-end.height/2;
+     const scale=clamp(from.width/end.width,.12,8);
+     if(!Number.isFinite(dx+dy+scale))continue;
+     calendarMotion.push(dest.animate([
+       {transform:'translate3d('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px,0) scale('+scale.toFixed(3)+')'},
+       {transform:'translate3d(0px,0px,0) scale(1)'}
+     ],{duration:245,easing:'cubic-bezier(.16,1,.3,1)'}))
+   }
+   for(const [button,opacity] of incomingOpacity){
+     if(!button.animate)continue;
+     const from=clamp(Number(opacity),0,1);
+     if(from>=.99)continue;
+     calendarMotion.push(button.animate([
+       {opacity:from},{opacity:1}
+     ],{duration:190,easing:'ease-out'}))
+   }
    return true
  }
  function finishPinch(scale,point){
