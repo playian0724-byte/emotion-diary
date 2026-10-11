@@ -214,13 +214,12 @@ function snapshotCalendar(point){
    const centerX=b.left+b.width/2,centerY=b.top+b.height/2;
    const d=Math.hypot((centerX-focal.x)*.8,centerY-focal.y);
    if(d<best){best=d;nearest=button.dataset.date}
-   if(rects.size<125)rects.set(button.dataset.date,{x:centerX,y:centerY,w:b.width,h:b.height})
+   rects.set(button.dataset.date,{x:centerX,y:centerY,w:b.width,h:b.height})
  }
  return {rects,nearest,focus:focal}
 }
 function animateCalendarLayout(before,next,zoomDelta){
  const target=$('calendar');
- const active=target.querySelectorAll('[data-date]');
  const height=window.innerHeight||document.documentElement.clientHeight;
  // Keep the bead nearest the midpoint of the gesture at the same screen spot.
  const oldAnchor=before.nearest&&before.rects.get(before.nearest);
@@ -234,13 +233,25 @@ function animateCalendarLayout(before,next,zoomDelta){
  }
  if(calendarReducedMotion())return;
  stopCalendarMotion();
+ const active=[...target.querySelectorAll('[data-date]')].map(button=>({button,
+   circle:button.querySelector('.mini')})).filter(item=>{
+     if(!item.circle)return false;
+     const rect=item.circle.getBoundingClientRect();
+     return rect.bottom>=-130&&rect.top<=height+130
+   });
+ // In a year poster, months are DOM-ordered by column: animate the cells
+ // closest to the pinch FIRST, not only January through April.
+ active.sort((a,b)=>{
+   const ra=a.circle.getBoundingClientRect(),rb=b.circle.getBoundingClientRect();
+   const score=r=>Math.hypot((r.left+r.width/2-before.focus.x)*.8,r.top+r.height/2-before.focus.y);
+   return score(ra)-score(rb)
+ });
  let animated=0;
- for(const button of active){
-   const circle=button.querySelector('.mini');if(!circle||!circle.animate)continue;
+ for(const {button,circle} of active){
+   if(!circle.animate)continue;
    const end=circle.getBoundingClientRect();
-   if(end.bottom< -130||end.top>height+130)continue;
    const old=before.rects.get(button.dataset.date);
-   if(old&&animated<85){
+   if(old&&animated<105){
      const dx=old.x-(end.left+end.width/2),dy=old.y-(end.top+end.height/2);
      const scaleX=Math.max(.14,Math.min(7,old.w/end.width));
      const scaleY=Math.max(.14,Math.min(7,old.h/end.height));
@@ -249,7 +260,7 @@ function animateCalendarLayout(before,next,zoomDelta){
        {transform:'translate(0px,0px) scale(1,1)',opacity:1}
      ],{duration:480,easing:'cubic-bezier(.19,1,.26,1)'});
      calendarMotion.push(animation);animated++;
-   }else if(animated<85){
+   }else if(animated<105){
      const animation=circle.animate([
        {opacity:0,transform:'scale('+(zoomDelta<0?'.85':'1.15')+')'},
        {opacity:1,transform:'scale(1)'}
