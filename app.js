@@ -427,7 +427,8 @@ function setupCalendarGestures(){
      button.tabIndex=-1;
      const rec=db.records[button.dataset.date];
      if(rec)paintOrb(button.querySelector('.mini'),rec.emotions);
-     button.style.opacity='0';
+     // Stage buttons are hidden by one CSS rule until adopted. Avoid up to
+     // 365 inline opacity writes during the initial pinch.
      targetMap.set(button.dataset.date,button)
    });
    const host=el.parentElement;
@@ -437,38 +438,53 @@ function setupCalendarGestures(){
    layer.style.width=gridRect.width+'px';
    layer.style.opacity='1';
    host.appendChild(layer);
-   // Reading these coordinates ONCE per gesture avoids layout reads on touchmove.
+   // V21: only animate beads near the viewport. On a year grid hundreds
+   // of off-screen transforms were needlessly updated on every animation frame.
    const morphs=[],oldOnly=[],incoming=[],shared=new Set();
-   const bottom=window.innerHeight||document.documentElement.clientHeight;
-   const viewport=rect=>rect.bottom>=-210&&rect.top<=bottom+210&&
-     rect.right>=-100&&rect.left<=(window.innerWidth||400)+100;
-   el.querySelectorAll('[data-date]').forEach(button=>{
+   const screenH=window.innerHeight||document.documentElement.clientHeight;
+   const screenW=window.innerWidth||document.documentElement.clientWidth||400;
+   const visible=rect=>rect.bottom>=-65&&rect.top<=screenH+65&&
+     rect.right>=-45&&rect.left<=screenW+45;
+   const middle=point||{x:screenW/2,y:screenH*.5};
+   const distance=rect=>Math.hypot((rect.left+rect.width/2-middle.x)*.7,
+     rect.top+rect.height/2-middle.y);
+   const oldButtons=el.querySelectorAll('[data-date]');
+   for(const button of oldButtons){
      const key=button.dataset.date,to=targetMap.get(key);
      const source=button.querySelector('.mini');
-     const dest=to?.querySelector('.mini');
-     if(!source)return;
-     if(!dest){
-       oldOnly.push(button);
-       return
+     if(!source)continue;
+     if(!to){
+       if(visible(button.getBoundingClientRect()))oldOnly.push(button);
+       continue
      }
      shared.add(key);
-     const from=source.getBoundingClientRect(),end=dest.getBoundingClientRect();
-     // Even out-of-screen dates keep their identity; animate visible ones.
-     if(!viewport(from)&&!viewport(end))return;
-     if(from.width<1||end.width<1)return;
+     const dest=to.querySelector('.mini');
+     if(!dest)continue;
+     const from=source.getBoundingClientRect(),toRect=dest.getBoundingClientRect();
+     if(!visible(from)&&!visible(toRect))continue;
+     if(from.width<1||toRect.width<1)continue;
      morphs.push({
-       source,
-       dx:(end.left+end.width/2)-(from.left+from.width/2),
-       dy:(end.top+end.height/2)-(from.top+from.height/2),
-       ratio:clamp(end.width/from.width,.1,8)
+       source,key,dest,
+       dx:toRect.left+toRect.width/2-from.left-from.width/2,
+       dy:toRect.top+toRect.height/2-from.top-from.height/2,
+       ratio:clamp(toRect.width/from.width,.1,8),
+       distance:Math.min(distance(from),distance(toRect))
      })
-   });
-   for(const [key,button] of targetMap)if(!shared.has(key))incoming.push(button);
+   }
+   morphs.sort((a,b)=>a.distance-b.distance);
+   morphs.length=Math.min(morphs.length,76);
+   for(const [key,button] of targetMap){
+     if(shared.has(key))continue;
+     const rect=button.getBoundingClientRect();
+     if(visible(rect))incoming.push({button,distance:distance(rect)})
+   }
+   incoming.sort((a,b)=>a.distance-b.distance);
+   const visibleIncoming=incoming.slice(0,70).map(item=>item.button);
    const oldLabels=[...el.querySelectorAll('.poster-month-label')];
    const newLabels=[...layer.querySelectorAll('.poster-month-label')];
    for(const label of newLabels)label.style.opacity='0';
    el.classList.add('zoom-staging');
-   return {next,first,layer,morphs,oldOnly,incoming,oldLabels,newLabels,progress:0,point};
+   return {next,first,layer,morphs,oldOnly,incoming:visibleIncoming,oldLabels,newLabels,progress:0,point};
  }
  function drawStage(p){
    if(!stage)return;
