@@ -14,6 +14,47 @@ const SAMPLES=[
 {id:'sample-b',name:'후련함',color:'#65C9B5',definition:'무거운 마음이 풀린 느낌.',sample:true},
 {id:'sample-c',name:'아련함',color:'#AC91D2',definition:'지나간 것을 조용히 떠올리는 마음.',sample:true}];
 const KEY='gyeol-v2';const $=id=>document.getElementById(id);
+const DEMO_MODE=new URLSearchParams(window.location.search).get('demo')==='1';
+// Keep all preview dates in memory only. The real localStorage diary stays
+// completely untouched even if someone explores the rest of the app in demo.
+let demoRecords=null;
+const DEMO_GRADIENTS=[
+ ['joy','sad'],['anger','calm'],['surprise','anxious'],
+ ['disgust','expectation'],['calm','sad'],['joy','anger'],
+ ['surprise','disgust'],['expectation','sad'],
+ ['joy','calm'],['anxious','anger'],['sad','surprise'],
+ ['joy','sad','anger'],['calm','surprise','anxious'],
+ ['disgust','expectation','sad'],['joy','calm','expectation']
+];
+function buildDemoRecords(today=new Date()){
+ const year=today.getFullYear(),dates=[];
+ for(let day=new Date(year,0,1);day<=today;day.setDate(day.getDate()+1))dates.push(isoDay(day));
+ let seed=(Math.imul(year,2654435761)^0x137A2B49)>>>0;
+ const random=()=>{
+   seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+   return seed/4294967296
+ };
+ // Choose exactly 30% gradient dates, randomly scattered across the year.
+ const shuffled=dates.map((_,i)=>i);
+ for(let i=shuffled.length-1;i>0;i--){
+   const j=Math.floor(random()*(i+1));
+   [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]]
+ }
+ const gradientDays=new Set(shuffled.slice(0,Math.round(dates.length*.30)));
+ const samples={};
+ for(let i=0;i<dates.length;i++){
+   const isGradient=gradientDays.has(i);
+   const choices=isGradient?DEMO_GRADIENTS[Math.floor(random()*DEMO_GRADIENTS.length)]:
+     [BASE[Math.floor(random()*BASE.length)].id];
+   samples[dates[i]]={emotions:[...choices],note:'',demo:true}
+ }
+ return samples
+}
+function previewRecord(day){
+ if(!DEMO_MODE)return db.records[day];
+ if(!demoRecords)demoRecords=buildDemoRecords();
+ return demoRecords[day]
+}
 let db={records:{},custom:[]},selection=[],month=new Date(new Date().getFullYear(),new Date().getMonth(),1),saving=false;
 let drops=[],amounts={},mixed=null,droppingTimer=null,repeatTimer=null,raf=0,mixBusy=false,toastTimer=0;
 let nextUnnamed=1,mixStartedAt=0,mixDuration=1900,lastWaterFrame=0;
@@ -25,7 +66,7 @@ const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>'
 const isoDay=(d=new Date())=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 const allEmotions=()=>[...BASE,...SAMPLES,...db.custom];
 const byId=id=>allEmotions().find(e=>e.id===id);
-function saveDB(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){console.warn('Storage unavailable',e)}}
+function saveDB(){if(DEMO_MODE)return;try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){console.warn('Storage unavailable',e)}}
 function loadDB(){
 try{const raw=localStorage.getItem(KEY);if(raw){const v=JSON.parse(raw);if(v&&typeof v==='object'){db={records:v.records||{},custom:Array.isArray(v.custom)?v.custom:[]};return}}}
 catch(e){console.warn(e)}
@@ -317,7 +358,7 @@ function dateInk(rec){
 }
 function calendarDayMarkup(y,m,day){
  const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
- const rec=db.records[key];
+ const rec=previewRecord(key);
  const cls=(rec?' recorded':'')+(key===isoDay()?' today':'')+(key===calendarSelected?' selected':'');
  return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'" aria-label="'+key+(rec?' 감정 기록':' 기록 없음')+'"><span class="mini"><span class="daynum" style="color:'+dateInk(rec)+'">'+day+'</span></span></button>'
 }
@@ -358,7 +399,7 @@ function renderCalendar(){
   '<div class="poster-months" role="group" aria-label="'+yr+'년 '+span+'개월 감정 기록">'+
   Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(yr,month.getMonth()+i,1),span)).join('')+'</div>';
  target.querySelectorAll('[data-date]').forEach(el=>{
-   const rec=db.records[el.dataset.date];
+   const rec=previewRecord(el.dataset.date);
    if(rec)paintOrb(el.querySelector('.mini'),rec.emotions)
  });
  showDate(calendarSelected,false)
@@ -372,7 +413,7 @@ function showDate(day,rerender=true){
   const selected=$('calendar').querySelector('[data-date="'+day+'"]');
   if(selected)selected.classList.add('selected')
  }
- const e=db.records[day],detail=$('record-detail');
+ const e=previewRecord(day),detail=$('record-detail');
  detail.replaceChildren();
  const title=document.createElement('strong');title.textContent=day;detail.append(title);
  const p=document.createElement('p');
@@ -436,7 +477,7 @@ function setupCalendarGestures(){
    layer.innerHTML=sourceMarkup;
    const targetMap=new Map();
    layer.querySelectorAll('[data-date]').forEach(button=>{
-     const rec=db.records[button.dataset.date];
+     const rec=previewRecord(button.dataset.date);
      if(rec)paintOrb(button.querySelector('.mini'),rec.emotions);
      // Stage buttons are hidden by one CSS rule until adopted. Avoid up to
      // 365 inline opacity writes during the initial pinch.
@@ -979,7 +1020,12 @@ const e={id,name,color:mixed.color,definition,components:mixed.components,visibi
 db.custom.push(e);saveDB();orbCache.clear();if(addToDay){if(selection.length>=4)selection.pop();selection.push(id)}
 renderChoices();renderPreview();resetMix();setScreen(addToDay?'today':'dictionary');toast(addToDay?'오늘에 추가됨':'사전에 저장됨')}
 function init(){
-loadDB();const old=db.records[isoDay()];if(old){selection=old.emotions.filter(id=>byId(id)).slice(0,4);$('memo').value=old.note||''}
+loadDB();
+if(DEMO_MODE){
+ demoRecords=buildDemoRecords();
+ const banner=$('demo-note');
+ if(banner)banner.hidden=false
+}const old=db.records[isoDay()];if(old){selection=old.emotions.filter(id=>byId(id)).slice(0,4);$('memo').value=old.note||''}
 $('today-date').textContent=new Intl.DateTimeFormat('ko-KR',{month:'long',day:'numeric',weekday:'long'}).format(new Date());
 document.querySelectorAll('[data-open]').forEach(btn=>btn.onclick=()=>setScreen(btn.dataset.open));
 $('reset-select').onclick=()=>{selection=[];renderChoices();renderPreview()};
