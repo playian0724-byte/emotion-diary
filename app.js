@@ -293,6 +293,17 @@ function changeCalendarZoom(delta,point){
  return true
 }
 function numericMonth(date){return String(date.getMonth()+1).padStart(2,'0')}
+function periodHeaderMarkup(date,span){
+ const year='<span class="period-year">'+date.getFullYear()+'</span>';
+ // Month range belongs only to the single-month archive. Multi-month poster
+ // views use their own bold month labels, like the 12-month year view.
+ return span===1?year+'<span class="period-month">'+numericMonth(date)+'</span>':year
+}
+function periodHeaderLabel(date,span){
+ const last=new Date(date.getFullYear(),date.getMonth()+span-1,1);
+ return span===1?date.getFullYear()+'년 '+(date.getMonth()+1)+'월':
+   date.getFullYear()+'년 '+(date.getMonth()+1)+'월부터 '+(last.getMonth()+1)+'월까지'
+}
 function dateInk(rec){
  if(!rec)return '#969A93';
  const colors=(rec.emotions||[]).map(id=>byId(id)?.color).filter(Boolean);
@@ -335,17 +346,11 @@ function calendarYearPoster(year){
 function renderCalendar(){
  const span=CAL_SPANS[calendarZoom];
  if(span===12)month=new Date(month.getFullYear(),0,1);
- const last=new Date(month.getFullYear(),month.getMonth()+span-1,1);
  const yr=month.getFullYear();
- const startNumber=numericMonth(month),endNumber=numericMonth(last);
- // Typography replaces slash punctuation with clear size and weight hierarchy.
- const headerYear='<span class="period-year">'+yr+'</span>';
- const headerMonth='<span class="period-month">'+startNumber+(span===1?'':'–'+endNumber)+'</span>';
- $('month-label').innerHTML=span===12?headerYear:headerYear+headerMonth;
- $('month-label').setAttribute('aria-label',span===12?yr+'년':
-  (yr+'년 '+(month.getMonth()+1)+'월'+(span>1?'부터 '+(last.getMonth()+1)+'월까지':'')));
+ $('month-label').innerHTML=periodHeaderMarkup(month,span);
+ $('month-label').setAttribute('aria-label',periodHeaderLabel(month,span));
  const archive=$('archive');
- archive.classList.toggle('poster-year',span===12);
+ archive.classList.toggle('poster-year',span>1);
  archive.classList.toggle('poster-month-view',span!==12);
  const target=$('calendar');
  target.className='calendar-archive zoom-'+span;
