@@ -699,3 +699,28 @@ nav button.active{font-weight:630;color:#232725}
  #archive .calendar-archive.zoom-6 .poster-days{gap:5px 2px}
  #archive .calendar-archive.zoom-6 .poster-month-label{font-size:16px}
 }
+
+
+/* V17 — Photos-style zoom interaction. The grid scales continuously while
+   fingers move. After release, individual dated beads animate to their new
+   locations with WAAPI, keeping their exact original emotional colors. */
+#archive .calendar-archive .poster-months{
+  transform-origin:50% 50%;
+  backface-visibility:hidden
+}
+#archive .calendar-archive .poster-months.calendar-previewing{
+  will-change:transform;
+  transform-style:flat
+}
+#archive .calendar-archive .cal-day .mini{
+  transform-origin:50% 50%;
+  backface-visibility:hidden
+}
+#archive .calendar-archive .poster-month-label{
+  backface-visibility:hidden
+}
+@media(prefers-reduced-motion:reduce){
+ #archive .calendar-archive .poster-months.calendar-previewing{
+  will-change:auto
+ }
+}
