@@ -864,3 +864,21 @@ nav button.active{font-weight:630;color:#232725}
 @media(prefers-reduced-motion:reduce){
  #archive .calendar-heading-next{will-change:auto}
 }
+
+
+/* V23 — demo-only archive preview. The user's real diary is never edited. */
+#archive .demo-note{
+ margin:-8px 0 17px;
+ color:#777c75;
+ font-size:11px;
+ line-height:1.6;
+ letter-spacing:-.015em
+}
+#archive .demo-note[hidden]{display:none!important}
+#archive .demo-note a{
+ color:#3b5146;
+ text-decoration:underline;
+ text-decoration-thickness:1px;
+ text-underline-offset:3px;
+ white-space:nowrap
+}
