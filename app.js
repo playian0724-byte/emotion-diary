@@ -562,45 +562,57 @@ function setupCalendarGestures(){
    settleRaf=requestAnimationFrame(frame)
  }
  let titleGhost=null;
- function updatePeriodHeader(first,next){
-   const span=CAL_SPANS[next],last=new Date(first.getFullYear(),first.getMonth()+span-1,1);
-   const heading=$('month-label');
-   // Start the title transition on release, not 410ms after it.
+ function updatePeriodHeader(first,next,staged){
+   const span=CAL_SPANS[next],heading=$('month-label');
+   const p=staged?clamp(staged.progress,0,1):0;
    if(titleGhost){titleGhost.remove();titleGhost=null}
+   // The old title already faded to 1-p DURING the pinch. Preserve the
+   // exact visual state across the DOM handoff; never restart at opacity 1.
    const ghost=heading.cloneNode(true);
    ghost.removeAttribute('id');
    ghost.classList.add('calendar-heading-ghost');
-   if(!reduced()&&heading.animate){
-     // Preserve old title's font hierarchy while .poster-year changes.
-     const oldParts=[...heading.children],copyParts=[...ghost.children];
-     copyParts.forEach((part,i)=>{
-       const old=oldParts[i];
-       if(!old)return;
-       const computed=window.getComputedStyle?.(old);
-       if(computed){part.style.fontSize=computed.fontSize;part.style.fontWeight=computed.fontWeight}
-     });
+   ghost.style.opacity=String(1-p);
+   const oldParts=[...heading.children],copyParts=[...ghost.children];
+   copyParts.forEach((part,i)=>{
+     const old=oldParts[i],computed=old&&window.getComputedStyle?.(old);
+     if(computed){
+       part.style.fontSize=computed.fontSize;
+       part.style.fontWeight=computed.fontWeight
+     }
+   });
+   const animateTitle=!reduced()&&heading.animate&&p<.995;
+   if(animateTitle){
      heading.parentElement.appendChild(ghost);
      titleGhost=ghost
    }
-   const year='<span class="period-year">'+first.getFullYear()+'</span>';
-   const range='<span class="period-month">'+numericMonth(first)+(span===1?'':'–'+numericMonth(last))+'</span>';
-   heading.innerHTML=span===12?year:year+range;
-   heading.setAttribute('aria-label',first.getFullYear()+'년 감정 기록');
-   $('archive').classList.toggle('poster-year',span===12);
+   heading.innerHTML=periodHeaderMarkup(first,span);
+   heading.setAttribute('aria-label',periodHeaderLabel(first,span));
+   $('archive').classList.toggle('poster-year',span>1);
    $('archive').classList.toggle('poster-month-view',span!==12);
-   if(titleGhost){
-     const previous=titleGhost;
+   staged?.nextHeading?.remove();
+   heading.style.opacity=String(animateTitle?p:1);
+   if(animateTitle){
+     const previous=ghost;
+     const duration=Math.max(70,Math.round(205*(1-p)));
      const oldFade=previous.animate([
-       {opacity:1,transform:'translateY(0px)'},
-       {opacity:0,transform:'translateY(-5px)'}
-     ],{duration:215,easing:'ease-out'});
-     oldFade.onfinish=()=>{previous.remove();if(titleGhost===previous)titleGhost=null};
+       {opacity:1-p},{opacity:0}
+     ],{duration,easing:'ease-out',fill:'forwards'});
+     oldFade.onfinish=()=>{
+       previous.remove();
+       if(titleGhost===previous)titleGhost=null
+     };
      const newFade=heading.animate([
-       {opacity:0,transform:'translateY(6px)'},
-       {opacity:1,transform:'translateY(0px)'}
-     ],{duration:215,easing:'cubic-bezier(.22,1,.36,1)'});
+       {opacity:p},{opacity:1}
+     ],{duration,easing:'ease-out',fill:'forwards'});
+     newFade.onfinish=()=>{
+       heading.style.removeProperty('opacity');
+       newFade.cancel()
+     };
      calendarMotion.push(oldFade,newFade)
-   }else ghost.remove()
+   }else{
+     ghost.remove();
+     heading.style.removeProperty('opacity')
+   }
  }
  function commitStaged(){
    if(!stage)return false;
@@ -633,7 +645,7 @@ function setupCalendarGestures(){
    for(const label of data.newLabels)label.style.removeProperty('opacity');
    // Cancel prior bead animations before starting the NEW title crossfade.
    stopCalendarMotion();
-   updatePeriodHeader(month,calendarZoom);
+   updatePeriodHeader(month,calendarZoom,data);
    stage=null;
    calendarIgnoreClickUntil=performance.now()+230;
    $('record-detail').hidden=true;
@@ -679,6 +691,7 @@ function setupCalendarGestures(){
      if(settleRaf)cleanupStage();
      if(titleGhost){titleGhost.remove();titleGhost=null}
      stopCalendarMotion();
+     $('month-label').style.removeProperty('opacity');
      detailWasVisible=!$('record-detail').hidden;
      $('record-detail').hidden=true;
      const a=e.touches[0],b=e.touches[1],point=midpoint(a,b);
@@ -744,6 +757,7 @@ function setupCalendarGestures(){
    if(!stage&&wheelScale===1){
      if(titleGhost){titleGhost.remove();titleGhost=null}
      stopCalendarMotion();
+     $('month-label').style.removeProperty('opacity');
      detailWasVisible=!$('record-detail').hidden;
      $('record-detail').hidden=true
    }
