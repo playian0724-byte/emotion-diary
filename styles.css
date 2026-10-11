@@ -829,3 +829,38 @@ nav button.active{font-weight:630;color:#232725}
 #archive .calendar-archive.zoom-staging .cal-day .mini{
  will-change:auto
 }
+
+
+/* V22 — one typographic grammar for all multi-month posters.
+   Incoming heading crossfades in real time with every bead's pinch progress. */
+#archive .calendar-controls,
+#archive.poster-year .calendar-controls{
+ margin:3px 0 23px;
+}
+#archive .calendar-heading-next{
+ position:absolute;
+ top:0;
+ left:0;
+ z-index:3;
+ pointer-events:none;
+ white-space:nowrap;
+ will-change:opacity
+}
+/* Preview heading must match its DESTINATION zoom typography before commit. */
+#archive .calendar-controls .calendar-heading-next.heading-year-view .period-year{
+ font-size:clamp(65px,18vw,92px)!important;
+ font-weight:330;
+ line-height:.94;
+ letter-spacing:-.092em
+}
+#archive .calendar-controls .calendar-heading-next.heading-single-view .period-year{
+ font-size:clamp(45px,12vw,60px)!important;
+ line-height:1;
+ letter-spacing:-.09em
+}
+#archive .calendar-controls .calendar-heading-next.heading-single-view .period-month{
+ font-size:clamp(25px,7vw,34px)!important
+}
+@media(prefers-reduced-motion:reduce){
+ #archive .calendar-heading-next{will-change:auto}
+}
