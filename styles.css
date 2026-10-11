@@ -769,3 +769,15 @@ nav button.active{font-weight:630;color:#232725}
   will-change:auto
  }
 }
+
+
+/* V19 — a single stable top-center zoom axis. Date details are not part
+   of the scaling field and disappear immediately during gesture navigation. */
+#archive #record-detail[hidden]{display:none!important}
+#archive .calendar-archive.zoom-staging > .poster-months,
+#archive > .zoom-next-layer{
+  transform-origin:50% 0%!important
+}
+#archive > .zoom-next-layer{
+  backface-visibility:hidden
+}
