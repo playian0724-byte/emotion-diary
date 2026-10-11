@@ -729,8 +729,10 @@ nav button.active{font-weight:630;color:#232725}
 /* V18 — the next bead field is already present underneath while fingers move.
    Both grids only change composite transforms and opacity during the gesture:
    no new DOM, image load or layout work at the moment of release. */
+#archive{position:relative}
 #archive .calendar-archive.zoom-staging{
   position:relative;
+  z-index:2;
   isolation:isolate;
   overflow:visible
 }
@@ -740,7 +742,7 @@ nav button.active{font-weight:630;color:#232725}
   backface-visibility:hidden;
   will-change:transform,opacity
 }
-#archive .calendar-archive .zoom-next-layer{
+#archive > .zoom-next-layer{
   position:absolute;
   inset:0 auto auto 0;
   z-index:1;
@@ -754,16 +756,16 @@ nav button.active{font-weight:630;color:#232725}
   will-change:transform,opacity;
   overflow:visible;
 }
-#archive .calendar-archive .zoom-next-layer .poster-months{
+#archive > .zoom-next-layer .poster-months{
   width:100%;
   pointer-events:none;
 }
-#archive .calendar-archive .zoom-next-layer .cal-day{
+#archive > .zoom-next-layer .cal-day{
   pointer-events:none
 }
 @media(prefers-reduced-motion:reduce){
  #archive .calendar-archive.zoom-staging > .poster-months,
- #archive .calendar-archive .zoom-next-layer{
+ #archive > .zoom-next-layer{
   will-change:auto
  }
 }
