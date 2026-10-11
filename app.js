@@ -181,8 +181,8 @@ function syncOrbShader(){
 }
 function renderPreview(){paintOrb($('today-orb'),selection);$('today-orb').classList.toggle('empty',selection.length===0);$('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'감정을 선택하세요.';$('save-day').disabled=selection.length===0||saving;syncOrbShader()}
 function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='create')startWater();else stopWater();syncOrbShader();window.scrollTo(0,0)}
-/* V15 — quiet archival typography, honeycomb-like annual field.
-   The annual view is one poster, not twelve boxed mini-calendars. */
+/* V16 — one staggered bead-poster grammar at every timescale.
+   Zoom uses 7/3/2/1 bead-columns PER month for 1/3/6/12 month views. */
 const CAL_SPANS=[1,3,6,12];
 let calendarZoom=0,calendarSelected=isoDay();
 function shiftMonth(delta){
@@ -216,14 +216,17 @@ function calendarDayMarkup(y,m,day){
  const cls=(rec?' recorded':'')+(key===isoDay()?' today':'')+(key===calendarSelected?' selected':'');
  return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'" aria-label="'+key+(rec?' 감정 기록':' 기록 없음')+'"><span class="mini"><span class="daynum" style="color:'+dateInk(rec)+'">'+day+'</span></span></button>'
 }
-function calendarMonthMarkup(date,zoom){
- const y=date.getFullYear(),m=date.getMonth(),n=new Date(y,m+1,0).getDate(),leading=new Date(y,m,1).getDay();
- const weekdays='<div class="calendar-week">'+['일','월','화','수','목','금','토'].map(d=>'<span>'+d+'</span>').join('')+'</div>';
- const days=Array.from({length:leading},()=>'<span class="calendar-pad"></span>').join('')+
-  Array.from({length:n},(_,i)=>calendarDayMarkup(y,m,i+1)).join('');
- return '<section class="calendar-month" aria-label="'+y+' / '+numericMonth(date)+'">'+
-  (zoom?'<h3 class="calendar-month-title">'+numericMonth(date)+'</h3>':'')+
-  weekdays+'<div class="calendar-grid">'+days+'</div></section>'
+function calendarMonthMarkup(date,span){
+ const y=date.getFullYear(),m=date.getMonth(),n=new Date(y,m+1,0).getDate();
+ // Each zoom step divides a month's dates into more/fewer adjacent bead stacks.
+ const cols=span===1?7:span===3?3:span===6?2:1;
+ const dates=Array.from({length:n},(_,i)=>{
+  const col=i%cols;
+  return calendarDayMarkup(y,m,i+1).replace('class="cal-day','class="cal-day'+(col%2?' bead-offset':''))
+ }).join('');
+ return '<section class="poster-month" aria-label="'+y+' '+numericMonth(date)+'">'+
+  (span===1?'':'<h3 class="poster-month-label">'+numericMonth(date)+'</h3>')+
+  '<div class="poster-days" style="--bead-cols:'+cols+'">'+dates+'</div></section>'
 }
 function calendarYearPoster(year){
  const columns=Array.from({length:12},(_,m)=>{
@@ -241,16 +244,20 @@ function renderCalendar(){
  const last=new Date(month.getFullYear(),month.getMonth()+span-1,1);
  const yr=month.getFullYear();
  const startNumber=numericMonth(month),endNumber=numericMonth(last);
- $('month-label').textContent=span===12?String(yr):
-  (span===1?yr+' / '+startNumber:
-   (last.getFullYear()===yr?yr+' / '+startNumber+'–'+endNumber:
-    yr+' / '+startNumber+' – '+last.getFullYear()+' / '+endNumber));
+ // Typography replaces slash punctuation with clear size and weight hierarchy.
+ const headerYear='<span class="period-year">'+yr+'</span>';
+ const headerMonth='<span class="period-month">'+startNumber+(span===1?'':'–'+endNumber)+'</span>';
+ $('month-label').innerHTML=span===12?headerYear:headerYear+headerMonth;
+ $('month-label').setAttribute('aria-label',span===12?yr+'년':
+  (yr+'년 '+(month.getMonth()+1)+'월'+(span>1?'부터 '+(last.getMonth()+1)+'월까지':'')));
  const archive=$('archive');
  archive.classList.toggle('poster-year',span===12);
+ archive.classList.toggle('poster-month-view',span!==12);
  const target=$('calendar');
  target.className='calendar-archive zoom-'+span;
  target.innerHTML=span===12?calendarYearPoster(yr):
-  Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(yr,month.getMonth()+i,1),calendarZoom)).join('');
+  '<div class="poster-months" role="group" aria-label="'+yr+'년 '+span+'개월 감정 기록">'+
+  Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(yr,month.getMonth()+i,1),span)).join('')+'</div>';
  target.querySelectorAll('[data-date]').forEach(el=>{
    const rec=db.records[el.dataset.date];
    if(rec)paintOrb(el.querySelector('.mini'),rec.emotions);
