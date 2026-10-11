@@ -562,9 +562,12 @@ $('mix-button').onclick=blendMix;$('mix-undo').onclick=undoDrop;$('mix-reset').o
 $('save-word').onclick=()=>createEmotion(false);$('use-word').onclick=()=>createEmotion(true);
 window.addEventListener('resize',()=>drawWater());
 renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixButtons();
-if(new URLSearchParams(window.location.search).get('view')==='year'){
- calendarZoom=3;
- month=new Date(new Date().getFullYear(),0,1);
+const viewName=new URLSearchParams(window.location.search).get('view');
+const zoomForView={month:0,quarter:1,half:2,year:3};
+if(Object.prototype.hasOwnProperty.call(zoomForView,viewName)){
+ calendarZoom=zoomForView[viewName];
+ const now=new Date(),step=CAL_SPANS[calendarZoom];
+ month=new Date(now.getFullYear(),Math.floor(now.getMonth()/step)*step,1);
  setScreen('archive')
 }
 }
