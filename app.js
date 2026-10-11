@@ -656,6 +656,7 @@ function setupCalendarGestures(){
  el.addEventListener('touchstart',e=>{
    if(e.touches.length===2){
      if(settleRaf)cleanupStage();
+     if(titleGhost){titleGhost.remove();titleGhost=null}
      stopCalendarMotion();
      detailWasVisible=!$('record-detail').hidden;
      $('record-detail').hidden=true;
@@ -720,6 +721,7 @@ function setupCalendarGestures(){
    if(!e.ctrlKey)return;
    if(e.cancelable)e.preventDefault();
    if(!stage&&wheelScale===1){
+     if(titleGhost){titleGhost.remove();titleGhost=null}
      stopCalendarMotion();
      detailWasVisible=!$('record-detail').hidden;
      $('record-detail').hidden=true
