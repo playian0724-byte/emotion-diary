@@ -293,6 +293,44 @@ function setupCalendarGestures(){
  };
  el.addEventListener('pointerup',finish);
  el.addEventListener('pointercancel',finish);
+ // Safari and other touch browsers: handle two-finger pinch explicitly while
+ // letting one-finger page scrolling behave naturally.
+ let touchGap=0;
+ el.addEventListener('touchstart',e=>{
+  if(e.touches.length===2){
+   const a=e.touches[0],b=e.touches[1];
+   touchGap=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+  }
+ },{passive:true});
+ el.addEventListener('touchmove',e=>{
+  if(e.touches.length!==2||!touchGap)return;
+  if(e.cancelable)e.preventDefault();
+  const a=e.touches[0],b=e.touches[1];
+  const gap=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+  if(gap>touchGap*1.24){changeCalendarZoom(-1);touchGap=gap}
+  else if(gap<touchGap*.81){changeCalendarZoom(1);touchGap=gap}
+ },{passive:false});
+ el.addEventListener('touchend',e=>{if(e.touches.length<2)touchGap=0},{passive:true});
+ // One-finger vertical dragging on the zoom control selects density without
+ // interfering with scrolling through a year of recorded days.
+ const zoomControl=document.querySelector('.calendar-zoom');
+ let zoomDrag=null;
+ zoomControl.addEventListener('pointerdown',e=>{
+  if(e.target.closest('button')||e.pointerType==='mouse'&&e.button!==0)return;
+  zoomDrag={y:e.clientY,id:e.pointerId};
+  zoomControl.setPointerCapture?.(e.pointerId)
+ });
+ zoomControl.addEventListener('pointermove',e=>{
+  if(!zoomDrag||zoomDrag.id!==e.pointerId)return;
+  const delta=e.clientY-zoomDrag.y;
+  if(Math.abs(delta)>28){
+   changeCalendarZoom(delta>0?-1:1);
+   zoomDrag.y=e.clientY
+  }
+ });
+ const endZoom=e=>{if(zoomDrag?.id===e.pointerId)zoomDrag=null};
+ zoomControl.addEventListener('pointerup',endZoom);
+ zoomControl.addEventListener('pointercancel',endZoom);
  // Click/keyboard dates and native page scroll stay available; controls are a fallback.
  $('zoom-in').onclick=()=>changeCalendarZoom(-1);
  $('zoom-out').onclick=()=>changeCalendarZoom(1);
