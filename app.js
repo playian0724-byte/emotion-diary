@@ -378,32 +378,40 @@ function showDate(day,rerender=true){
 /* V18 — stage the next bead field BEFORE the gesture completes.
    The incoming dates are revealed continuously into the shrinking gaps, not
    appended at release. Both fields are composite-only during touchmove. */
+/* V20 — date-identity morph. Each shared day BEAD travels from its own
+   measured position to the next layout's measured position. Incoming days
+   fade in separately; no crossfade or scale on the entire calendar. */
 function setupCalendarGestures(){
  const el=$('calendar'),reduced=calendarReducedMotion;
- const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
  const midpoint=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});
- let pinch=null,touchSingle=null,mouseDrag=null,stage=null,settleRaf=0;
- let detailWasVisible=false;
- let wheelScale=1,wheelTimer=0;
- function ease(v){v=clamp(v,0,1);return v*v*(3-2*v)}
- function getOldGroup(){return [...el.children].find(child=>child.classList?.contains('poster-months'))||null}
- function cleanupStage(){
-   if(settleRaf){cancelAnimationFrame(settleRaf);settleRaf=0}
-   if(stage){stage.layer.remove();stage=null}
-   const old=getOldGroup();
-   if(old){
-     old.style.removeProperty('transform');
-     old.style.removeProperty('transform-origin');
-     old.style.removeProperty('opacity');
-     old.classList.remove('calendar-previewing')
-   }
-   el.classList.remove('zoom-staging');
+ const ease=v=>{v=clamp(v,0,1);return v*v*(3-2*v)};
+ let pinch=null,touchSingle=null,mouseDrag=null,stage=null,settleRaf=0,drawRaf=0;
+ let nextFrame=null,detailWasVisible=false,wheelScale=1,wheelTimer=0;
+ function cancelDraw(){
+   if(drawRaf){cancelAnimationFrame(drawRaf);drawRaf=0}
+   nextFrame=null
  }
- function stageLayout(delta,focus){
+ function clearGeometry(){
+   if(!stage)return;
+   for(const item of stage.morphs)item.source.style.removeProperty('transform');
+   for(const button of stage.oldOnly)button.style.removeProperty('opacity');
+   for(const button of stage.incoming)button.style.removeProperty('opacity');
+   for(const item of stage.oldLabels)item.style.removeProperty('opacity');
+   for(const item of stage.newLabels)item.style.removeProperty('opacity');
+ }
+ function cleanupStage(){
+   cancelDraw();
+   if(settleRaf){cancelAnimationFrame(settleRaf);settleRaf=0}
+   clearGeometry();
+   if(stage){stage.layer.remove();stage=null}
+   el.classList.remove('zoom-staging')
+ }
+ function stageLayout(delta,point){
    const next=clamp(calendarZoom+delta,0,CAL_SPANS.length-1);
    if(next===calendarZoom)return null;
-   const before=snapshotCalendar(focus);
+   const before=snapshotCalendar(point);
    const nearest=before.nearest?new Date(before.nearest+'T12:00:00'):month;
    const span=CAL_SPANS[next];
    const first=new Date(nearest.getFullYear(),Math.floor(nearest.getMonth()/span)*span,1);
@@ -414,100 +422,119 @@ function setupCalendarGestures(){
    layer.className='calendar-archive zoom-'+span+' zoom-next-layer';
    layer.setAttribute('aria-hidden','true');
    layer.innerHTML=sourceMarkup;
-   // Rendering here happens once. Future touchmove only touches opacity/transform.
+   const targetMap=new Map();
    layer.querySelectorAll('[data-date]').forEach(button=>{
      button.tabIndex=-1;
      const rec=db.records[button.dataset.date];
-     if(rec)paintOrb(button.querySelector('.mini'),rec.emotions)
+     if(rec)paintOrb(button.querySelector('.mini'),rec.emotions);
+     button.style.opacity='0';
+     targetMap.set(button.dataset.date,button)
    });
-   // Staging as a SIBLING prevents the current zoom CSS from leaking
-   // into the next zoom's bead geometry (especially 1 → 12 columns).
    const host=el.parentElement;
    const hostRect=host.getBoundingClientRect(),gridRect=el.getBoundingClientRect();
    layer.style.top=(gridRect.top-hostRect.top)+'px';
    layer.style.left=(gridRect.left-hostRect.left)+'px';
    layer.style.width=gridRect.width+'px';
+   layer.style.opacity='1';
    host.appendChild(layer);
-   // Both the outgoing and incoming fields use ONE pivot: calendar top-center.
-   // This avoids the top-right/bottom-right competing anchors during zoom.
-   layer.style.transformOrigin='50% 0%';
+   // Reading these coordinates ONCE per gesture avoids layout reads on touchmove.
+   const morphs=[],oldOnly=[],incoming=[],shared=new Set();
+   const bottom=window.innerHeight||document.documentElement.clientHeight;
+   const viewport=rect=>rect.bottom>=-210&&rect.top<=bottom+210&&
+     rect.right>=-100&&rect.left<=(window.innerWidth||400)+100;
+   el.querySelectorAll('[data-date]').forEach(button=>{
+     const key=button.dataset.date,to=targetMap.get(key);
+     const source=button.querySelector('.mini');
+     const dest=to?.querySelector('.mini');
+     if(!source)return;
+     if(!dest){
+       oldOnly.push(button);
+       return
+     }
+     shared.add(key);
+     const from=source.getBoundingClientRect(),end=dest.getBoundingClientRect();
+     // Even out-of-screen dates keep their identity; animate visible ones.
+     if(!viewport(from)&&!viewport(end))return;
+     if(from.width<1||end.width<1)return;
+     morphs.push({
+       source,
+       dx:(end.left+end.width/2)-(from.left+from.width/2),
+       dy:(end.top+end.height/2)-(from.top+from.height/2),
+       ratio:clamp(end.width/from.width,.1,8)
+     })
+   });
+   for(const [key,button] of targetMap)if(!shared.has(key))incoming.push(button);
+   const oldLabels=[...el.querySelectorAll('.poster-month-label')];
+   const newLabels=[...layer.querySelectorAll('.poster-month-label')];
+   for(const label of newLabels)label.style.opacity='0';
    el.classList.add('zoom-staging');
-   return {layer,next,first,before,progress:0,scale:1,focus};
+   return {next,first,layer,morphs,oldOnly,incoming,oldLabels,newLabels,progress:0,point};
+ }
+ function drawStage(p){
+   if(!stage)return;
+   p=clamp(p,0,1);stage.progress=p;
+   const inv=1-p;
+   // Identical dates move continuously, keeping the SAME real DOM bead.
+   // No opacity crossfade for these; this is a geometric position/size morph.
+   for(const {source,dx,dy,ratio} of stage.morphs){
+     const x=dx*p,y=dy*p,scale=1+(ratio-1)*p;
+     source.style.transform='translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0) scale('+scale.toFixed(4)+')'
+   }
+   for(const button of stage.oldOnly)button.style.opacity=String(inv);
+   for(const button of stage.incoming)button.style.opacity=String(p);
+   for(const label of stage.oldLabels)label.style.opacity=String(inv);
+   for(const label of stage.newLabels)label.style.opacity=String(p)
+ }
+ function scheduleStage(p){
+   nextFrame=p;
+   if(drawRaf)return;
+   drawRaf=requestAnimationFrame(()=>{
+     drawRaf=0;
+     if(nextFrame===null)return;
+     const value=nextFrame;nextFrame=null;
+     drawStage(value)
+   })
  }
  function updateStage(currentScale,point){
    if(reduced())return;
    const delta=currentScale<.992?1:currentScale>1.008?-1:0;
-   if(!delta){
-     if(stage)drawStage(0,1,point);
-     return
-   }
+   if(!delta){if(stage)scheduleStage(0);return}
    if(!stage||stage.next!==clamp(calendarZoom+delta,0,3)){
-     cleanupStage();
-     stage=stageLayout(delta,point)
+     cleanupStage();stage=stageLayout(delta,point)
    }
    if(!stage)return;
-   const amount=Math.abs(Math.log(currentScale));
-   const raw=clamp(amount/Math.log(1.55),0,1);
-   // Reveal incoming dates early so shrinking never exposes a blank field.
-   const t=1-Math.pow(1-raw,1.55);
-   drawStage(t,currentScale,point)
- }
- function drawStage(t,scale,point){
-   if(!stage)return;
-   const old=getOldGroup();if(!old)return;
-   stage.progress=t;stage.scale=scale;
-   // Stable origin for the entire interaction: exactly the same top-center
-   // in both staged fields. Moving fingers change scale, never pan the pivot.
-   old.style.transformOrigin='50% 0%';
-   old.style.transform='scale('+clamp(scale,.64,1.56)+')';
-   old.style.opacity=String(1-.94*t);
-   old.classList.add('calendar-previewing');
-   // The incoming rows are already aligned at the same top-center origin;
-   // their bead density grows visible underneath without a second trajectory.
-   const incoming=stage.layer;
-   const factor=1-t;
-   const incomingScale=1+(scale<1?.12:-.12)*factor;
-   incoming.style.transformOrigin='50% 0%';
-   incoming.style.transform='scale('+incomingScale+')';
-   incoming.style.opacity=String(t);
+   const fraction=clamp(Math.abs(Math.log(currentScale))/Math.log(1.55),0,1);
+   // An almost linear response keeps the bead directly under the fingers.
+   scheduleStage(Math.pow(fraction,.88))
  }
  function rollback(){
-   if(!stage)return;
-   const old=getOldGroup();
-   const incoming=stage.layer;
-   const start=stage.progress;
-   const startScale=stage.scale;
-   const focus=stage.focus;
-   const startAt=performance.now(),duration=220;
+   if(!stage){$('record-detail').hidden=!detailWasVisible;return}
+   cancelDraw();
+   const start=stage.progress,t0=performance.now();
    function frame(now){
-     const t=ease((now-startAt)/duration),p=start*(1-t);
-     drawStage(p,1+(startScale-1)*(1-t),focus);
-     if(t<1)settleRaf=requestAnimationFrame(frame);
-     else {settleRaf=0;cleanupStage();$('record-detail').hidden=!detailWasVisible}
+     const t=ease((now-t0)/235);
+     drawStage(start*(1-t));
+     if(t<1){settleRaf=requestAnimationFrame(frame);return}
+     settleRaf=0;cleanupStage();
+     $('record-detail').hidden=!detailWasVisible
    }
    settleRaf=requestAnimationFrame(frame)
  }
- function commitStaged(delta,point){
+ function commitStaged(){
    if(!stage)return false;
-   const data=stage;
-   const current=data.progress,scale=data.scale;
-   const startAt=performance.now(),duration=310;
-   // NO scroll correction here: it created a second competing anchor.
-   // The top-center pivot stays fixed throughout both fields' transition.
+   cancelDraw();
+   const data=stage,initial=data.progress,start=performance.now();
    function frame(now){
-     const t=ease((now-startAt)/duration),p=current+(1-current)*t;
-     drawStage(p,scale+((delta>0?.70:1.30)-scale)*t,point);
-     // Both fields remain aligned to the same stationary pivot.
+     const t=ease((now-start)/410);
+     drawStage(initial+(1-initial)*t);
      if(t<1){settleRaf=requestAnimationFrame(frame);return}
      settleRaf=0;
-     // Incoming stage is already full opacity and at its final geometry.
-     // Reuse its nodes instead of destroying/recreating them during commit.
+     // At progress=1 original beads are already at each destination. Reveal
+     // same-date target beads, THEN atomically adopt the staged DOM.
      const layer=data.layer;
+     for(const button of layer.querySelectorAll('[data-date]'))button.style.removeProperty('opacity');
+     for(const label of data.newLabels)label.style.removeProperty('opacity');
      const incomingGroup=layer.querySelector('.poster-months');
-     if(incomingGroup){
-       layer.remove();
-       el.replaceChildren(incomingGroup);
-     }else el.innerHTML=layer.innerHTML;
      calendarZoom=data.next;
      month=data.first;
      const span=CAL_SPANS[calendarZoom],last=new Date(month.getFullYear(),month.getMonth()+span-1,1);
@@ -518,13 +545,20 @@ function setupCalendarGestures(){
      $('archive').classList.toggle('poster-year',span===12);
      $('archive').classList.toggle('poster-month-view',span!==12);
      el.className='calendar-archive zoom-'+span;
-     incomingGroup?.querySelectorAll('[data-date]').forEach(button=>{
-       button.removeAttribute('tabindex');
-       button.addEventListener('click',()=>showDate(button.dataset.date))
-     });
+     // Finish the handoff without a second render of any date/color.
+     if(incomingGroup){
+       layer.remove();
+       el.replaceChildren(incomingGroup);
+       incomingGroup.querySelectorAll('[data-date]').forEach(button=>{
+         button.removeAttribute('tabindex');
+         button.addEventListener('click',()=>showDate(button.dataset.date))
+       })
+     }else{
+       layer.remove();
+       renderCalendar()
+     }
      stage=null;
-     el.classList.remove('zoom-staging');
-     calendarIgnoreClickUntil=performance.now()+350;
+     calendarIgnoreClickUntil=performance.now()+380;
      $('record-detail').hidden=true;
      showDate(calendarSelected,false)
    }
@@ -532,27 +566,22 @@ function setupCalendarGestures(){
    return true
  }
  function finishPinch(scale,point){
-   const threshold=Math.log(1.12);
-   if(Math.abs(Math.log(Math.max(.1,scale)))<threshold){
-     if(stage)rollback();else $('record-detail').hidden=!detailWasVisible;
-     return
-   }
+   if(Math.abs(Math.log(Math.max(.1,scale)))<Math.log(1.12)){rollback();return}
    const delta=scale<1?1:-1;
    if(!stage||stage.next!==clamp(calendarZoom+delta,0,3)){
      cleanupStage();
      if(!changeCalendarZoom(delta,point))$('record-detail').hidden=!detailWasVisible;
      return
    }
-   commitStaged(delta,point)
+   commitStaged()
  }
  el.addEventListener('touchstart',e=>{
    if(e.touches.length===2){
      if(settleRaf)cleanupStage();
-     const detail=$('record-detail');
-     detailWasVisible=!detail.hidden;
-     detail.hidden=true;
-     const a=e.touches[0],b=e.touches[1];
-     const point=midpoint(a,b);
+     stopCalendarMotion();
+     detailWasVisible=!$('record-detail').hidden;
+     $('record-detail').hidden=true;
+     const a=e.touches[0],b=e.touches[1],point=midpoint(a,b);
      pinch={distance:dist(a,b),point,lastPoint:point,scale:1};
      touchSingle=null
    }else if(e.touches.length===1&&!pinch){
@@ -562,17 +591,17 @@ function setupCalendarGestures(){
  el.addEventListener('touchmove',e=>{
    if(!pinch||e.touches.length!==2)return;
    if(e.cancelable)e.preventDefault();
-   const a=e.touches[0],b=e.touches[1],point=midpoint(a,b);
+   const a=e.touches[0],b=e.touches[1];
    pinch.scale=clamp(dist(a,b)/Math.max(1,pinch.distance),.64,1.56);
-   pinch.lastPoint=point;
-   updateStage(pinch.scale,point)
+   pinch.lastPoint=midpoint(a,b);
+   updateStage(pinch.scale,pinch.lastPoint)
  },{passive:false});
  el.addEventListener('touchend',e=>{
    if(pinch){
      if(e.touches.length<2){
-       const done=pinch;pinch=null;touchSingle=null;
+       const finished=pinch;pinch=null;touchSingle=null;
        calendarIgnoreClickUntil=performance.now()+550;
-       finishPinch(done.scale,done.lastPoint)
+       finishPinch(finished.scale,finished.lastPoint)
      }
      return
    }
@@ -589,14 +618,17 @@ function setupCalendarGestures(){
      }
    }
  },{passive:true});
- el.addEventListener('touchcancel',()=>{pinch=null;touchSingle=null;if(stage)rollback();else $('record-detail').hidden=!detailWasVisible},{passive:true});
+ el.addEventListener('touchcancel',()=>{
+   pinch=null;touchSingle=null;rollback()
+ },{passive:true});
  el.addEventListener('pointerdown',e=>{
    if(e.pointerType==='touch'||e.button!==0)return;
    mouseDrag={x:e.clientX,y:e.clientY,id:e.pointerId}
  });
  el.addEventListener('pointerup',e=>{
    if(!mouseDrag||e.pointerId!==mouseDrag.id)return;
-   const dx=e.clientX-mouseDrag.x,dy=e.clientY-mouseDrag.y;mouseDrag=null;
+   const dx=e.clientX-mouseDrag.x,dy=e.clientY-mouseDrag.y;
+   mouseDrag=null;
    if(Math.abs(dy)>85&&Math.abs(dy)>Math.abs(dx)*1.2){
      calendarIgnoreClickUntil=performance.now()+350;
      changeCalendarZoom(dy>0?-1:1,{x:e.clientX,y:e.clientY})
@@ -609,7 +641,11 @@ function setupCalendarGestures(){
  el.addEventListener('wheel',e=>{
    if(!e.ctrlKey)return;
    if(e.cancelable)e.preventDefault();
-   if(!stage&&wheelScale===1){detailWasVisible=!$('record-detail').hidden;$('record-detail').hidden=true}
+   if(!stage&&wheelScale===1){
+     stopCalendarMotion();
+     detailWasVisible=!$('record-detail').hidden;
+     $('record-detail').hidden=true
+   }
    wheelScale=clamp(wheelScale*Math.exp(-e.deltaY*.012),.64,1.56);
    updateStage(wheelScale,{x:e.clientX,y:e.clientY});
    clearTimeout(wheelTimer);
