@@ -6,7 +6,7 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
-## V16 — 모든 기간이 구슬 포스터
+## V17 — 사진 갤러리처럼 이어지는 핀치 확대·축소
 
 - **오늘 기록:** 기본/개인 감정 1~4개 선택, 선택적 메모, 로컬 저장
 - **그라데이션:** 1개 단색, 2개 양방향, 3개 삼각형의 꼭짓점, 4개 사각형의 꼭짓점 기준. 선명한 원색과 부드러운 다색 연결만 유지. 광원, Shimmer, 후광, 유리광택, 그림자 없음. 기록에는 비율을 적용하지 않음.
@@ -20,18 +20,18 @@
 
 [**V13 느린 확산과 길게 누르기 속도**](./docs/V13_DIFFUSION_TUNING.md) · [V12 기존 색상 원 UI 복원](./docs/V12_CLASSIC_SWATCHES.md) · [V11 물감 확산 개선](./docs/V11_INK_DROPS.md) · [V10 단일 Canvas 응집 애니메이션](./docs/V10_UNIFIED_MIX.md) · [V9 원색 구슬 디자인 원칙](./docs/V9_COLOR_FIRST.md)
 
-### V16 달력
+### V17 달력
 - **숫자를 색 위에:** 날짜를 원색 감정 구슬 위에 직접 표시하고, 요일(일–토)을 맨 윗줄에 둠
 - **기간 확대·축소:** 1개월 → 3개월 → 6개월 → 1년. 전 기간을 동일한 감정 구슬 포스터 레이아웃으로 통일하며, 각 월의 날짜를 7/3/2/1열로 펼쳐 담음
-- **조작:** 핀치와 달력 드래그로 축척 전환, 좌우 스와이프로 기간 이동. +/- 버튼과 드래그 안내 제거
+- **조작:** 핀치하는 동안 현재 구슬 필드가 손가락을 따라 연속으로 확대·축소. 손을 놓으면 손가락 근처 날짜를 기준으로 새로운 구슬 배열에 부드럽게 이동(FLIP 전환). 좌우 스와이프와 터치패드 핀치 지원, +/- 버튼 없음
 - **시각 언어:** 아이보리 바탕, 절제된 타이포그래피와 여백. 전 기간에서 지그재그 배열과 숫자 날짜 구슬. 연도는 크고 가볍게, 월은 굵게, 연월 사이 슬래시 없이 여백으로 구분
 - **유지:** 날짜 탭 시 기록 상세 보기, 저장 시 날짜 구슬까지 이동, 기존 데이터 구조
-- **V16 연간 모음 바로 열기:** https://playian0724-byte.github.io/emotion-diary/?v=16&view=year
-- [V16 모든 기간 포스터 통일](./docs/V16_UNIFIED_ARCHIVE.md) · [V15 연감 포스터](./docs/V15_YEAR_POSTER.md) · [V14 확대형 달력](./docs/V14_NORDIC_CALENDAR.md)
+- **V17 연간 모음 바로 열기:** https://playian0724-byte.github.io/emotion-diary/?v=17&view=year
+- [V17 연속 핀치·구슬 이동 모션](./docs/V17_CONTINUOUS_ZOOM.md) · [V16 모든 기간 포스터 통일](./docs/V16_UNIFIED_ARCHIVE.md) · [V15 연감 포스터](./docs/V15_YEAR_POSTER.md) · [V14 확대형 달력](./docs/V14_NORDIC_CALENDAR.md)
 
 ## V8.2 광원 실험 아카이브
 
-**[현재 원색과 이전 V8.2 광원 나란히 비교하기](https://playian0724-byte.github.io/emotion-diary/compare.html)** · [이전 V8.2 실험 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=webgl&v=15) · [현재 V9 원색 앱](https://playian0724-byte.github.io/emotion-diary/?v=16)
+**[현재 원색과 이전 V8.2 광원 나란히 비교하기](https://playian0724-byte.github.io/emotion-diary/compare.html)** · [이전 V8.2 실험 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=webgl&v=15) · [현재 V9 원색 앱](https://playian0724-byte.github.io/emotion-diary/?v=17)
 
 [**V8.2 빛·후광 튜닝 (이전 실험)**](./docs/V8_2_LIGHT_BALANCE.md) · [V8.1 이전 튜닝](./docs/V8_1_TUNING.md) · [V8 실험 구현 및 QA](./docs/V8_EXPERIMENT.md)
 
