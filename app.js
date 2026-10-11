@@ -409,6 +409,8 @@ function setupCalendarGestures(){
    for(const button of stage.incoming)button.style.removeProperty('opacity');
    for(const item of stage.oldLabels)item.style.removeProperty('opacity');
    for(const item of stage.newLabels)item.style.removeProperty('opacity');
+   $('month-label').style.removeProperty('opacity');
+   stage.nextHeading?.remove();
  }
  function cleanupStage(){
    cancelDraw();
@@ -492,8 +494,19 @@ function setupCalendarGestures(){
    const oldLabels=[...el.querySelectorAll('.poster-month-label')];
    const newLabels=[...layer.querySelectorAll('.poster-month-label')];
    for(const label of newLabels)label.style.opacity='0';
+   // Prepare the NEXT period heading at the same time as the next bead field.
+   // Its opacity will follow exactly the same progress as each moving bead.
+   const currentHeading=$('month-label');
+   const nextHeading=currentHeading.cloneNode(false);
+   nextHeading.removeAttribute('id');
+   nextHeading.classList.add('calendar-heading-next');
+   nextHeading.classList.add(span===1?'heading-single-view':'heading-year-view');
+   nextHeading.setAttribute('aria-hidden','true');
+   nextHeading.innerHTML=periodHeaderMarkup(first,span);
+   nextHeading.style.opacity='0';
+   currentHeading.parentElement.appendChild(nextHeading);
    el.classList.add('zoom-staging');
-   return {next,first,layer,morphs,oldOnly,incoming:visibleIncoming,oldLabels,newLabels,progress:0,point};
+   return {next,first,layer,nextHeading,morphs,oldOnly,incoming:visibleIncoming,oldLabels,newLabels,progress:0,point};
  }
  function drawStage(p){
    if(!stage)return;
@@ -508,7 +521,10 @@ function setupCalendarGestures(){
    for(const button of stage.oldOnly)button.style.opacity=String(inv);
    for(const button of stage.incoming)button.style.opacity=String(p);
    for(const label of stage.oldLabels)label.style.opacity=String(inv);
-   for(const label of stage.newLabels)label.style.opacity=String(p)
+   for(const label of stage.newLabels)label.style.opacity=String(p);
+   // V22: title dissolves DURING pinch, not only after touchend.
+   $('month-label').style.opacity=String(inv);
+   stage.nextHeading.style.opacity=String(p)
  }
  function scheduleStage(p){
    nextFrame=p;
