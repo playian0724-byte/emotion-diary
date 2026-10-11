@@ -280,6 +280,7 @@ function changeCalendarZoom(delta,point){
  const next=Math.max(0,Math.min(CAL_SPANS.length-1,calendarZoom+delta));
  if(next===calendarZoom)return false;
  const before=snapshotCalendar(point);
+ $('record-detail').hidden=true;
  stopCalendarMotion();
  calendarZoom=next;
  const size=CAL_SPANS[next];
@@ -539,7 +540,7 @@ function setupCalendarGestures(){
    const delta=scale<1?1:-1;
    if(!stage||stage.next!==clamp(calendarZoom+delta,0,3)){
      cleanupStage();
-     changeCalendarZoom(delta,point);
+     if(!changeCalendarZoom(delta,point))$('record-detail').hidden=!detailWasVisible;
      return
    }
    commitStaged(delta,point)
