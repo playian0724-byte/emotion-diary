@@ -360,6 +360,8 @@ function renderCalendar(){
 }
 function showDate(day,rerender=true){
  calendarSelected=day;
+ // Details belong to a selected date, not the zooming bead surface.
+ if(rerender)$('record-detail').hidden=false;
  if(rerender){
   $('calendar').querySelectorAll('.cal-day.selected').forEach(el=>el.classList.remove('selected'));
   const selected=$('calendar').querySelector('[data-date="'+day+'"]');
@@ -381,6 +383,7 @@ function setupCalendarGestures(){
  const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
  const midpoint=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});
  let pinch=null,touchSingle=null,mouseDrag=null,stage=null,settleRaf=0;
+ let detailWasVisible=false;
  let wheelScale=1,wheelTimer=0;
  function ease(v){v=clamp(v,0,1);return v*v*(3-2*v)}
  function getOldGroup(){return [...el.children].find(child=>child.classList?.contains('poster-months'))||null}
@@ -424,13 +427,11 @@ function setupCalendarGestures(){
    layer.style.left=(gridRect.left-hostRect.left)+'px';
    layer.style.width=gridRect.width+'px';
    host.appendChild(layer);
-   const anchor=before.nearest&&layer.querySelector('[data-date="'+before.nearest+'"] .mini');
-   const nextRect=anchor?.getBoundingClientRect();
-   const oldRect=before.nearest&&before.rects.get(before.nearest);
-   const alignX=oldRect&&nextRect?oldRect.x-(nextRect.left+nextRect.width/2):0;
-   const alignY=oldRect&&nextRect?oldRect.y-(nextRect.top+nextRect.height/2):0;
+   // Both the outgoing and incoming fields use ONE pivot: calendar top-center.
+   // This avoids the top-right/bottom-right competing anchors during zoom.
+   layer.style.transformOrigin='50% 0%';
    el.classList.add('zoom-staging');
-   return {layer,next,first,before,alignX,alignY,progress:0,scale:1,focus};
+   return {layer,next,first,before,progress:0,scale:1,focus};
  }
  function updateStage(currentScale,point){
    if(reduced())return;
@@ -454,20 +455,19 @@ function setupCalendarGestures(){
    if(!stage)return;
    const old=getOldGroup();if(!old)return;
    stage.progress=t;stage.scale=scale;
-   const area=el.getBoundingClientRect();
-   const focus=stage.focus;
-   old.style.transformOrigin=(focus.x-area.left)+'px '+(focus.y-area.top)+'px';
-   old.style.transform='translate3d('+(point.x-focus.x)+'px,'+(point.y-focus.y)+'px,0) scale('+clamp(scale,.64,1.56)+')';
+   // Stable origin for the entire interaction: exactly the same top-center
+   // in both staged fields. Moving fingers change scale, never pan the pivot.
+   old.style.transformOrigin='50% 0%';
+   old.style.transform='scale('+clamp(scale,.64,1.56)+')';
    old.style.opacity=String(1-.94*t);
    old.classList.add('calendar-previewing');
-   // The NEW dates fill space from the beginning, not after touch release.
-   // Align shared dates initially, then fan them into their true layout.
+   // The incoming rows are already aligned at the same top-center origin;
+   // their bead density grows visible underneath without a second trajectory.
    const incoming=stage.layer;
    const factor=1-t;
    const incomingScale=1+(scale<1?.12:-.12)*factor;
-   const tx=stage.alignX*factor+(point.x-focus.x)*.2*factor;
-   const ty=stage.alignY*factor+(point.y-focus.y)*.2*factor;
-   incoming.style.transform='translate3d('+tx+'px,'+ty+'px,0) scale('+incomingScale+')';
+   incoming.style.transformOrigin='50% 0%';
+   incoming.style.transform='scale('+incomingScale+')';
    incoming.style.opacity=String(t);
  }
  function rollback(){
@@ -482,7 +482,7 @@ function setupCalendarGestures(){
      const t=ease((now-startAt)/duration),p=start*(1-t);
      drawStage(p,1+(startScale-1)*(1-t),focus);
      if(t<1)settleRaf=requestAnimationFrame(frame);
-     else {settleRaf=0;cleanupStage()}
+     else {settleRaf=0;cleanupStage();$('record-detail').hidden=!detailWasVisible}
    }
    settleRaf=requestAnimationFrame(frame)
  }
@@ -491,26 +491,12 @@ function setupCalendarGestures(){
    const data=stage;
    const current=data.progress,scale=data.scale;
    const startAt=performance.now(),duration=310;
-   const anchorDate=data.before.nearest;
-   const oldAnchor=anchorDate&&data.before.rects.get(anchorDate);
-   // Match the scroll as part of the animation, rather than teleporting
-   // the focal month when the new grid takes over.
-   let scrollDistance=0;
-   if(anchorDate){
-     const previousTransform=data.layer.style.transform;
-     data.layer.style.transform='none';
-     const b=data.layer.querySelector('[data-date="'+anchorDate+'"] .mini')?.getBoundingClientRect();
-     data.layer.style.transform=previousTransform;
-     if(b&&oldAnchor)scrollDistance=(b.top+b.height/2)-oldAnchor.y;
-   }
-   let scrolled=0;
+   // NO scroll correction here: it created a second competing anchor.
+   // The top-center pivot stays fixed throughout both fields' transition.
    function frame(now){
      const t=ease((now-startAt)/duration),p=current+(1-current)*t;
      drawStage(p,scale+((delta>0?.70:1.30)-scale)*t,point);
-     // Anchor scroll is eased in gradually, so it never jumps at commit.
-     const wanted=scrollDistance*t;
-     const d=wanted-scrolled;
-     if(Math.abs(d)>.02){window.scrollBy(0,d);scrolled+=d}
+     // Both fields remain aligned to the same stationary pivot.
      if(t<1){settleRaf=requestAnimationFrame(frame);return}
      settleRaf=0;
      // Incoming stage is already full opacity and at its final geometry.
@@ -538,6 +524,7 @@ function setupCalendarGestures(){
      stage=null;
      el.classList.remove('zoom-staging');
      calendarIgnoreClickUntil=performance.now()+350;
+     $('record-detail').hidden=true;
      showDate(calendarSelected,false)
    }
    settleRaf=requestAnimationFrame(frame);
@@ -546,7 +533,8 @@ function setupCalendarGestures(){
  function finishPinch(scale,point){
    const threshold=Math.log(1.12);
    if(Math.abs(Math.log(Math.max(.1,scale)))<threshold){
-     rollback();return
+     if(stage)rollback();else $('record-detail').hidden=!detailWasVisible;
+     return
    }
    const delta=scale<1?1:-1;
    if(!stage||stage.next!==clamp(calendarZoom+delta,0,3)){
@@ -559,6 +547,9 @@ function setupCalendarGestures(){
  el.addEventListener('touchstart',e=>{
    if(e.touches.length===2){
      if(settleRaf)cleanupStage();
+     const detail=$('record-detail');
+     detailWasVisible=!detail.hidden;
+     detail.hidden=true;
      const a=e.touches[0],b=e.touches[1];
      const point=midpoint(a,b);
      pinch={distance:dist(a,b),point,lastPoint:point,scale:1};
@@ -597,7 +588,7 @@ function setupCalendarGestures(){
      }
    }
  },{passive:true});
- el.addEventListener('touchcancel',()=>{pinch=null;touchSingle=null;rollback()},{passive:true});
+ el.addEventListener('touchcancel',()=>{pinch=null;touchSingle=null;if(stage)rollback();else $('record-detail').hidden=!detailWasVisible},{passive:true});
  el.addEventListener('pointerdown',e=>{
    if(e.pointerType==='touch'||e.button!==0)return;
    mouseDrag={x:e.clientX,y:e.clientY,id:e.pointerId}
@@ -617,6 +608,7 @@ function setupCalendarGestures(){
  el.addEventListener('wheel',e=>{
    if(!e.ctrlKey)return;
    if(e.cancelable)e.preventDefault();
+   if(!stage&&wheelScale===1){detailWasVisible=!$('record-detail').hidden;$('record-detail').hidden=true}
    wheelScale=clamp(wheelScale*Math.exp(-e.deltaY*.012),.64,1.56);
    updateStage(wheelScale,{x:e.clientX,y:e.clientY});
    clearTimeout(wheelTimer);
