@@ -553,3 +553,149 @@ nav button.active{font-weight:630;color:#232725}
  #archive .poster-month:nth-child(even){padding-top:16px}
  #archive .poster-days .cal-day .daynum{font-size:10px}
 }
+
+
+/* V16 — the same bead-stack poster at EVERY zoom level.
+   1 / 3 / 6 / 12 months use 7 / 3 / 2 / 1 bead columns per month. */
+#archive .calendar-controls strong{
+ display:flex;
+ align-items:baseline;
+ flex-wrap:wrap;
+ gap:clamp(12px,3.5vw,21px);
+ font-weight:400;
+ letter-spacing:normal;
+ font-variant-numeric:tabular-nums
+}
+#archive .calendar-controls .period-year{
+ display:inline-block;
+ font-size:clamp(45px,12vw,60px);
+ line-height:1;
+ letter-spacing:-.09em;
+ font-weight:330;
+ color:#1b1e1b
+}
+#archive .calendar-controls .period-month{
+ display:inline-block;
+ font-size:clamp(25px,7vw,34px);
+ line-height:1.05;
+ letter-spacing:-.065em;
+ font-weight:790;
+ color:#2a302a
+}
+#archive.poster-year .calendar-controls .period-year{
+ font-size:clamp(65px,18vw,92px);
+ line-height:.94;
+ letter-spacing:-.092em
+}
+#archive .calendar-archive.zoom-1,
+#archive .calendar-archive.zoom-3,
+#archive .calendar-archive.zoom-6{
+ display:block;
+ width:100%;
+ touch-action:pan-y
+}
+#archive .calendar-archive.zoom-1 .poster-months{
+ grid-template-columns:minmax(0,1fr);
+ gap:0
+}
+#archive .calendar-archive.zoom-3 .poster-months{
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:clamp(8px,2.5vw,15px)
+}
+#archive .calendar-archive.zoom-6 .poster-months{
+ grid-template-columns:repeat(6,minmax(0,1fr));
+ gap:clamp(3px,.9vw,7px)
+}
+#archive .calendar-archive:not(.zoom-12) .poster-month{
+ min-width:0;
+ gap:12px
+}
+#archive .calendar-archive.zoom-1 .poster-month{padding-top:0}
+#archive .calendar-archive.zoom-3 .poster-month:nth-child(even){padding-top:17px}
+#archive .calendar-archive.zoom-6 .poster-month:nth-child(even){padding-top:11px}
+#archive .calendar-archive:not(.zoom-12) .poster-days{
+ display:grid;
+ grid-template-columns:repeat(var(--bead-cols),minmax(0,1fr));
+ align-content:start;
+ grid-auto-rows:min-content;
+ gap:10px 6px;
+ min-width:0
+}
+#archive .calendar-archive:not(.zoom-12) .poster-days .cal-day{
+ width:100%;
+ min-width:0;
+ aspect-ratio:1;
+ transform:none
+}
+#archive .calendar-archive:not(.zoom-12) .poster-days .cal-day.bead-offset{
+ transform:translateY(var(--bead-shift,7px))
+}
+#archive .calendar-archive:not(.zoom-12) .poster-days .cal-day .mini{
+ display:grid;
+ place-items:center;
+ width:100%;
+ height:100%;
+ max-width:none;
+ border-radius:50%;
+ box-shadow:inset 0 0 0 .65px #e7e6e0!important;
+ background-color:#f0efeb
+}
+#archive .calendar-archive:not(.zoom-12) .poster-days .cal-day.recorded .mini{
+ background-color:transparent;
+ box-shadow:none!important
+}
+#archive .calendar-archive:not(.zoom-12) .poster-month-label{
+ height:auto;
+ min-height:24px;
+ justify-content:flex-start;
+ align-items:flex-end;
+ font-weight:800;
+ letter-spacing:-.08em;
+ line-height:1
+}
+#archive .calendar-archive.zoom-1 .poster-days{
+ --bead-shift:9px;
+ gap:12px 8px
+}
+#archive .calendar-archive.zoom-1 .poster-days .cal-day .mini{
+ max-width:none
+}
+#archive .calendar-archive.zoom-1 .poster-days .cal-day .daynum{
+ font-size:clamp(13px,3.4vw,17px);
+ font-weight:480
+}
+#archive .calendar-archive.zoom-3 .poster-month-label{
+ font-size:clamp(24px,7vw,33px)
+}
+#archive .calendar-archive.zoom-3 .poster-days{
+ --bead-shift:7px;
+ gap:9px 5px
+}
+#archive .calendar-archive.zoom-3 .poster-days .cal-day .mini{
+ max-width:none
+}
+#archive .calendar-archive.zoom-3 .poster-days .cal-day .daynum{
+ font-size:clamp(10px,2.8vw,13px);
+ font-weight:490
+}
+#archive .calendar-archive.zoom-6 .poster-month-label{
+ font-size:clamp(17px,4.3vw,21px);
+ min-height:21px
+}
+#archive .calendar-archive.zoom-6 .poster-days{
+ --bead-shift:4px;
+ gap:6px 3px
+}
+#archive .calendar-archive.zoom-6 .poster-days .cal-day .mini{
+ max-width:none
+}
+#archive .calendar-archive.zoom-6 .poster-days .cal-day .daynum{
+ font-size:clamp(8px,2vw,10px);
+ font-weight:450
+}
+@media(max-width:375px){
+ #archive .calendar-archive.zoom-1 .poster-days{gap:10px 5px}
+ #archive .calendar-archive.zoom-3 .poster-days{gap:8px 3px}
+ #archive .calendar-archive.zoom-6 .poster-days{gap:5px 2px}
+ #archive .calendar-archive.zoom-6 .poster-month-label{font-size:16px}
+}
