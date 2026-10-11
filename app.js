@@ -18,6 +18,24 @@ const DEMO_MODE=new URLSearchParams(window.location.search).get('demo')==='1';
 // Keep all preview dates in memory only. The real localStorage diary stays
 // completely untouched even if someone explores the rest of the app in demo.
 let demoRecords=null;
+/* Reference-style pigment swatches: closely packed and warm-led, with
+   quiet variations within each emotional hue family. DEMO ONLY: personal
+   emotions and their saved original colors remain unchanged. */
+const DEMO_PIGMENTS={
+ joy:['#F5CA68','#F8DC8F','#FCEAB5','#EDC24F','#F5E3A1','#EFD58B'],
+ calm:['#8EC4B6','#78B9AE','#B3D4C1','#A3D0CD','#79AFAE','#C4DBCE'],
+ sad:['#709EC9','#8CC3DB','#B4D5E5','#547BAA','#91B3D0','#5876A6'],
+ anxious:['#B5A3CB','#D8B6D5','#A48CB7','#8F7CAA','#C3BDD7','#BCA1BC'],
+ anger:['#E96767','#C66B6B','#D9505B','#B94B68','#EB8C84','#994C68'],
+ surprise:['#EE9F5A','#F5B575','#F38D4A','#E67D4B','#FACB96','#D58054'],
+ disgust:['#A9C5A0','#C4D4AA','#81AF98','#B9C7A5','#7DAB7C','#D4D9BD'],
+ expectation:['#EFA0AF','#E98FA5','#F6BDC2','#CC86A3','#E6B4BB','#C88BB3']
+};
+const DEMO_EMOTION_POOL=[
+ 'joy','joy','joy','surprise','surprise','surprise',
+ 'expectation','expectation','expectation','anger','anger',
+ 'calm','calm','sad','sad','anxious','disgust'
+];
 const DEMO_GRADIENTS=[
  ['joy','sad'],['anger','calm'],['surprise','anxious'],
  ['disgust','expectation'],['calm','sad'],['joy','anger'],
@@ -45,8 +63,12 @@ function buildDemoRecords(today=new Date()){
  for(let i=0;i<dates.length;i++){
    const isGradient=gradientDays.has(i);
    const choices=isGradient?DEMO_GRADIENTS[Math.floor(random()*DEMO_GRADIENTS.length)]:
-     [BASE[Math.floor(random()*BASE.length)].id];
-   samples[dates[i]]={emotions:[...choices],note:'',demo:true}
+     [DEMO_EMOTION_POOL[Math.floor(random()*DEMO_EMOTION_POOL.length)]];
+   const demoColors=choices.map(id=>{
+     const family=DEMO_PIGMENTS[id]||DEMO_PIGMENTS.joy;
+     return family[Math.floor(random()*family.length)]
+   });
+   samples[dates[i]]={emotions:[...choices],demoColors,note:'',demo:true}
  }
  return samples
 }
@@ -193,6 +215,22 @@ function paintOrb(node,ids){
  node.style.removeProperty('--orb-halo');
  node.style.removeProperty('--orb-halo-strong');
  node.style.removeProperty('--orb-mini-halo');
+}
+function paintArchiveOrb(node,rec){
+ if(!node||!rec)return;
+ if(DEMO_MODE&&rec.demoColors?.length){
+   const colors=rec.demoColors;
+   // CSS pigment for the preview: stable, flat, and cheap to render.
+   // Avoid 85 unique CPU-expensive 224px canvas gradient rasterizations.
+   if(colors.length===1)node.style.background=colors[0];
+   else if(colors.length===2)
+     node.style.background='linear-gradient(125deg,'+colors[0]+' 9%,'+colors[1]+' 94%)';
+   else
+     node.style.background='linear-gradient(125deg,'+colors[0]+' 4%,'+
+       colors[1]+' 53%,'+colors[2]+' 97%)';
+   return
+ }
+ paintOrb(node,rec.emotions)
 }
 function renderChoices(){
 const selected=new Set(selection);
@@ -347,7 +385,8 @@ function periodHeaderLabel(date,span){
 }
 function dateInk(rec){
  if(!rec)return '#969A93';
- const colors=(rec.emotions||[]).map(id=>byId(id)?.color).filter(Boolean);
+ const colors=DEMO_MODE&&rec.demoColors?.length?rec.demoColors:
+   (rec.emotions||[]).map(id=>byId(id)?.color).filter(Boolean);
  if(!colors.length)return '#343A36';
  let mean=0;
  for(const color of colors){
@@ -394,13 +433,13 @@ function renderCalendar(){
  archive.classList.toggle('poster-year',span>1);
  archive.classList.toggle('poster-month-view',span!==12);
  const target=$('calendar');
- target.className='calendar-archive zoom-'+span;
+ target.className='calendar-archive zoom-'+span+(DEMO_MODE?' mosaic-demo':'');
  target.innerHTML=span===12?calendarYearPoster(yr):
   '<div class="poster-months" role="group" aria-label="'+yr+'년 '+span+'개월 감정 기록">'+
   Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(yr,month.getMonth()+i,1),span)).join('')+'</div>';
  target.querySelectorAll('[data-date]').forEach(el=>{
    const rec=previewRecord(el.dataset.date);
-   if(rec)paintOrb(el.querySelector('.mini'),rec.emotions)
+   if(rec)paintArchiveOrb(el.querySelector('.mini'),rec)
  });
  showDate(calendarSelected,false)
 }
@@ -471,14 +510,14 @@ function setupCalendarGestures(){
      '<div class="poster-months" role="group" aria-label="감정 기록 미리보기">'+
      Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(first.getFullYear(),first.getMonth()+i,1),span)).join('')+'</div>';
    const layer=document.createElement('div');
-   layer.className='calendar-archive zoom-'+span+' zoom-next-layer';
+   layer.className='calendar-archive zoom-'+span+(DEMO_MODE?' mosaic-demo':'')+' zoom-next-layer';
    layer.setAttribute('aria-hidden','true');
    layer.inert=true;
    layer.innerHTML=sourceMarkup;
    const targetMap=new Map();
    layer.querySelectorAll('[data-date]').forEach(button=>{
      const rec=previewRecord(button.dataset.date);
-     if(rec)paintOrb(button.querySelector('.mini'),rec.emotions);
+     if(rec)paintArchiveOrb(button.querySelector('.mini'),rec);
      // Stage buttons are hidden by one CSS rule until adopted. Avoid up to
      // 365 inline opacity writes during the initial pinch.
      targetMap.set(button.dataset.date,button)
@@ -674,7 +713,7 @@ function setupCalendarGestures(){
    calendarZoom=data.next;
    month=data.first;
    const span=CAL_SPANS[calendarZoom];
-   el.className='calendar-archive zoom-'+span;
+   el.className='calendar-archive zoom-'+span+(DEMO_MODE?' mosaic-demo':'');
    if(group){
      layer.remove();
      el.replaceChildren(group);
