@@ -181,16 +181,119 @@ function syncOrbShader(){
 }
 function renderPreview(){paintOrb($('today-orb'),selection);$('today-orb').classList.toggle('empty',selection.length===0);$('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'감정을 선택하세요.';$('save-day').disabled=selection.length===0||saving;syncOrbShader()}
 function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='create')startWater();else stopWater();syncOrbShader();window.scrollTo(0,0)}
-function shiftMonth(delta){month=new Date(month.getFullYear(),month.getMonth()+delta,1);renderCalendar()}
+/* V14 — Nordic date-on-color archive, 1 / 3 / 6 / 12 months.
+   Anchored to a calendar month; changing granularity keeps the focused month. */
+const CAL_SPANS=[1,3,6,12];
+let calendarZoom=0,calendarSelected=isoDay();
+function shiftMonth(delta){
+ month=new Date(month.getFullYear(),month.getMonth()+delta*CAL_SPANS[calendarZoom],1);
+ renderCalendar()
+}
+function changeCalendarZoom(delta){
+ const next=Math.max(0,Math.min(CAL_SPANS.length-1,calendarZoom+delta));
+ if(next===calendarZoom)return;
+ calendarZoom=next;
+ renderCalendar()
+}
+function labelMonth(d){return d.getFullYear()+'년 '+(d.getMonth()+1)+'월'}
+function dateInk(rec){
+ if(!rec)return '#8D908A';
+ const colors=(rec.emotions||[]).map(id=>byId(id)?.color).filter(Boolean);
+ if(!colors.length)return '#343A36';
+ let mean=0;
+ for(const color of colors){
+   const rgb=hexRgb(color).map(x=>x<=.04045?x/12.92:Math.pow((x+.055)/1.055,2.4));
+   mean+=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;
+ }
+ return mean/colors.length>.39?'#232925':'#FFFFFF'
+}
+function calendarMonthMarkup(date,zoom){
+ const y=date.getFullYear(),m=date.getMonth(),n=new Date(y,m+1,0).getDate(),leading=new Date(y,m,1).getDay();
+ const weekdays='<div class="calendar-week">'+['일','월','화','수','목','금','토'].map(d=>'<span>'+d+'</span>').join('')+'</div>';
+ const days=Array.from({length:leading},()=>'<span class="calendar-pad"></span>').join('')+
+ Array.from({length:n},(_,i)=>{
+  const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(i+1).padStart(2,'0');
+  const rec=db.records[key],cls=(rec?' recorded':'')+(key===isoDay()?' today':'')+(key===calendarSelected?' selected':'');
+  return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'" aria-label="'+key+(rec?' 감정 기록':' 기록 없음')+'"><span class="mini"><span class="daynum" style="color:'+dateInk(rec)+'">'+(i+1)+'</span></span></button>'
+ }).join('');
+ return '<section class="calendar-month" aria-label="'+labelMonth(date)+'">'+
+ (zoom?'<h3 class="calendar-month-title">'+labelMonth(date)+'</h3>':'')+
+ weekdays+'<div class="calendar-grid">'+days+'</div></section>'
+}
 function renderCalendar(){
-const y=month.getFullYear(),m=month.getMonth(),n=new Date(y,m+1,0).getDate(),leading=new Date(y,m,1).getDay();
-$('month-label').textContent=y+'년 '+String(m+1)+'월';
-$('calendar').innerHTML='<div class="calendar-week">'+['일','월','화','수','목','금','토'].map(d=>'<span>'+d+'</span>').join('')+'</div><div class="calendar-grid">'+Array.from({length:leading},()=>'<span></span>').join('')+Array.from({length:n},(_,i)=>{
-const key=[y,String(m+1).padStart(2,'0'),String(i+1).padStart(2,'0')].join('-'),rec=db.records[key],cls=(rec?' recorded':'')+(key===isoDay()?' today':'');
-return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'"><span class="daynum">'+(i+1)+'</span><span class="mini"></span></button>'}).join('')+'</div>';
-document.querySelectorAll('[data-date]').forEach(el=>{const entry=db.records[el.dataset.date];if(entry)paintOrb(el.querySelector('.mini'),entry.emotions);el.addEventListener('click',()=>showDate(el.dataset.date))});
-showDate(isoDay())}
-function showDate(day){const e=db.records[day];const detail=$('record-detail');detail.replaceChildren();const title=document.createElement('strong');title.textContent=day;detail.append(title);const p=document.createElement('p');p.textContent=e?(e.emotions.map(id=>byId(id)?.name||'이름 미정').join(' · ')+(e.note?'\n'+e.note:'')):'기록 없음';detail.append(p)}
+ const span=CAL_SPANS[calendarZoom];
+ const last=new Date(month.getFullYear(),month.getMonth()+span-1,1);
+ $('month-label').textContent=span===1?labelMonth(month):
+  (month.getFullYear()===last.getFullYear()?
+    (month.getFullYear()+'년 '+(month.getMonth()+1)+'–'+(last.getMonth()+1)+'월'):
+    (labelMonth(month)+' – '+labelMonth(last)));
+ $('zoom-label').textContent=span===12?'1년':span+'개월';
+ $('zoom-in').disabled=calendarZoom===0;
+ $('zoom-out').disabled=calendarZoom===CAL_SPANS.length-1;
+ const target=$('calendar');
+ target.className='calendar-archive zoom-'+span;
+ target.innerHTML=Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(month.getFullYear(),month.getMonth()+i,1),calendarZoom)).join('');
+ target.querySelectorAll('[data-date]').forEach(el=>{
+   const rec=db.records[el.dataset.date];
+   if(rec)paintOrb(el.querySelector('.mini'),rec.emotions);
+   el.addEventListener('click',()=>showDate(el.dataset.date))
+ });
+ showDate(calendarSelected,false)
+}
+function showDate(day,rerender=true){
+ calendarSelected=day;
+ if(rerender){
+  $('calendar').querySelectorAll('.cal-day.selected').forEach(el=>el.classList.remove('selected'));
+  const selected=$('calendar').querySelector('[data-date="'+day+'"]');
+  if(selected)selected.classList.add('selected')
+ }
+ const e=db.records[day],detail=$('record-detail');
+ detail.replaceChildren();
+ const title=document.createElement('strong');title.textContent=day;detail.append(title);
+ const p=document.createElement('p');
+ p.textContent=e?(e.emotions.map(id=>byId(id)?.name||'이름 미정').join(' · ')+(e.note?'\n'+e.note:'')):'기록 없음';
+ detail.append(p)
+}
+function setupCalendarGestures(){
+ const el=$('calendar');
+ const pointers=new Map();
+ let initialDistance=0,initialSingle=null,gestureConsumed=false;
+ const distance=()=>{const p=[...pointers.values()];return Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)};
+ el.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pointers.size===1){initialSingle={x:e.clientX,y:e.clientY};gestureConsumed=false}
+  else if(pointers.size===2){initialDistance=distance();gestureConsumed=false;initialSingle=null}
+ });
+ el.addEventListener('pointermove',e=>{
+  if(!pointers.has(e.pointerId))return;
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pointers.size===2&&initialDistance){
+   const current=distance(),ratio=current/initialDistance;
+   if(ratio>1.22){changeCalendarZoom(-1);initialDistance=current;gestureConsumed=true}
+   else if(ratio<.82){changeCalendarZoom(1);initialDistance=current;gestureConsumed=true}
+  }
+ });
+ const finish=e=>{
+  if(!pointers.has(e.pointerId))return;
+  const p=pointers.get(e.pointerId),single=pointers.size===1;
+  pointers.delete(e.pointerId);
+  if(single&&initialSingle&&!gestureConsumed){
+   const dx=p.x-initialSingle.x,dy=p.y-initialSingle.y;
+   if(Math.abs(dy)>85&&Math.abs(dy)>Math.abs(dx)*1.25){
+    changeCalendarZoom(dy>0?-1:1);gestureConsumed=true
+   }else if(Math.abs(dx)>90&&Math.abs(dx)>Math.abs(dy)*1.25){
+    shiftMonth(dx>0?-1:1);gestureConsumed=true
+   }
+  }
+  if(pointers.size===0){initialDistance=0;initialSingle=null}
+ };
+ el.addEventListener('pointerup',finish);
+ el.addEventListener('pointercancel',finish);
+ // Click/keyboard dates and native page scroll stay available; controls are a fallback.
+ $('zoom-in').onclick=()=>changeCalendarZoom(-1);
+ $('zoom-out').onclick=()=>changeCalendarZoom(1);
+}
 function renderDictionary(){const data=[...db.custom];const host=$('dictionary-list');if(!data.length){host.innerHTML='<div class="empty-state">저장된 감정이 없습니다.</div>';return}
 host.innerHTML=data.slice().reverse().map(e=>'<div class="dictionary-item"><span class="swatch" style="background:'+e.color+'"></span><div class="copy"><strong>'+escapeHTML(e.name||'이름 미정')+'</strong><p>'+escapeHTML(e.definition||e.components.map(c=>byId(c.id)?.name+' '+Math.round(c.ratio*100)+'%').join(' · '))+'</p></div><span class="privacy">Private</span><button type="button" class="subtle-button" data-use="'+escapeHTML(e.id)+'">사용</button></div>').join('');
 host.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{useEmotion(b.dataset.use)})}
@@ -198,7 +301,7 @@ function useEmotion(id){if(!selection.includes(id)){if(selection.length>=4){toas
 function positionFlightStart(rect){const w=168,h=168;return rect.top>=10&&rect.bottom<window.innerHeight-10?{left:rect.left,top:rect.top,width:rect.width,height:rect.height}:{left:(innerWidth-w)/2,top:Math.max(70,(innerHeight-h)/2-40),width:w,height:h}}
 async function saveDay(){
 if(saving||!selection.length)return;saving=true;$('save-day').disabled=true;
-const keys=[...selection],note=$('memo').value;db.records[isoDay()]={emotions:keys,note,createdAt:new Date().toISOString()};saveDB();month=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+const keys=[...selection],note=$('memo').value;db.records[isoDay()]={emotions:keys,note,createdAt:new Date().toISOString()};saveDB();month=new Date(new Date().getFullYear(),new Date().getMonth(),1);calendarSelected=isoDay();
 const start=positionFlightStart($('today-orb').getBoundingClientRect()),ghost=document.createElement('div');ghost.className='flying-orb';ghost.style.cssText='left:'+start.left+'px;top:'+start.top+'px;width:'+start.width+'px;height:'+start.height+'px;';
 const inner=document.createElement('div');inner.className='orb';paintOrb(inner,keys);ghost.append(inner);document.body.append(ghost);
 setScreen('archive');await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
@@ -402,7 +505,7 @@ $('reset-select').onclick=()=>{selection=[];renderChoices();renderPreview()};
 $('add-custom').onclick=()=>{resetMix();setScreen('create')};$('start-create').onclick=()=>{resetMix();setScreen('create')};
 $('create-back').onclick=()=>setScreen('today');
 $('save-day').onclick=saveDay;
-$('month-prev').onclick=()=>shiftMonth(-1);$('month-next').onclick=()=>shiftMonth(1);
+$('month-prev').onclick=()=>shiftMonth(-1);$('month-next').onclick=()=>shiftMonth(1);setupCalendarGestures();
 $('mix-button').onclick=blendMix;$('mix-undo').onclick=undoDrop;$('mix-reset').onclick=resetMix;
 $('save-word').onclick=()=>createEmotion(false);$('use-word').onclick=()=>createEmotion(true);
 window.addEventListener('resize',()=>drawWater());
