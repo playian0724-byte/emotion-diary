@@ -21,28 +21,38 @@ let demoRecords=null;
 /* Reference-style pigment swatches: closely packed and warm-led, with
    quiet variations within each emotional hue family. DEMO ONLY: personal
    emotions and their saved original colors remain unchanged. */
+/* V25 brighter, clearer half-pastel pigments. Each family has:
+   light [0,1] (35%), middle [2,3,4] (45%), accent [5] (20%).
+   DEMO ONLY; real saved emotion colors are unchanged. */
 const DEMO_PIGMENTS={
- joy:['#F5CA68','#F3D79E','#F9ECBB','#F1D3BE','#E9B883','#F0C94E'],
- calm:['#8EC4B6','#7FAFA7','#B3D4C1','#A3D0CD','#79AFAE','#C4DBCE'],
- sad:['#8EB5D1','#778EB8','#B5D4ED','#667997','#91B3D0','#525576'],
- anxious:['#B5A3CB','#D8B6D5','#B89398','#9C747B','#C3BDD7','#8F7CAA'],
- anger:['#DC716C','#D1604F','#AC5951','#7F464A','#E68A7C','#C18772'],
- surprise:['#EAA76B','#E09058','#E5823F','#D69D7C','#E9B883','#F1D3BE'],
- disgust:['#A9C5A0','#C4D4AA','#81AF98','#B9C7A5','#7DAB7C','#D4D9BD'],
- expectation:['#E6BFAA','#D3AE99','#B89398','#F1D3BE','#C18772','#E1A0AB']
+ joy:['#FFE7A3','#FFEDBD','#FFD86B','#FFCE55','#FAD77D','#FFC72F'],
+ calm:['#B6F2E3','#CAF5ED','#7FDCCB','#8FE5D5','#60CFC4','#34C7B1'],
+ sad:['#BCE4FF','#D1EBFF','#8CCCF2','#80BAEC','#9FCBF5','#318FDF'],
+ anxious:['#DECDF9','#EBDDFF','#B997EE','#C7ADF3','#A98BE4','#935DDA'],
+ anger:['#FFB0AC','#FFD0C6','#F88980','#FA8E9B','#EF766E','#ED5658'],
+ surprise:['#FFE0B1','#FFEBCD','#FFBC72','#F9AB5B','#FFC681','#FF8B30'],
+ disgust:['#CFEAB2','#E2F3CA','#A6D98C','#B6E09C','#95D182','#62B855'],
+ expectation:['#FFD2DB','#FFE0E6','#F7A3BF','#F8BAC9','#F4ADC4','#E8739E']
 };
+function demoToneIndex(random){
+ const group=random();
+ if(group<.35)return Math.floor(random()*2);      // light 35%
+ if(group<.8)return 2+Math.floor(random()*3);  // middle 45%
+ return 5;                                     // vivid accent 20%
+}
 const DEMO_EMOTION_POOL=[
  'joy','joy','joy','surprise','surprise','surprise',
  'expectation','expectation','expectation','anger','anger',
  'calm','calm','sad','sad','anxious','disgust'
 ];
 const DEMO_GRADIENTS=[
- ['joy','sad'],['anger','calm'],['surprise','anxious'],
- ['disgust','expectation'],['calm','sad'],['joy','anger'],
- ['surprise','disgust'],['expectation','sad'],
- ['joy','calm'],['anxious','anger'],['sad','surprise'],
- ['joy','sad','anger'],['calm','surprise','anxious'],
- ['disgust','expectation','sad'],['joy','calm','expectation']
+ ['joy','surprise'],['joy','expectation'],['surprise','anger'],
+ ['anger','expectation'],['calm','sad'],['sad','anxious'],
+ ['calm','disgust'],['anxious','expectation'],
+ ['joy','anger'],['sad','expectation'],
+ ['joy','surprise','anger'],['calm','sad','anxious'],
+ ['surprise','joy','expectation'],['anxious','expectation','anger'],
+ ['disgust','calm','sad']
 ];
 function buildDemoRecords(today=new Date()){
  const year=today.getFullYear(),dates=[];
@@ -66,7 +76,7 @@ function buildDemoRecords(today=new Date()){
      [DEMO_EMOTION_POOL[Math.floor(random()*DEMO_EMOTION_POOL.length)]];
    const demoColors=choices.map(id=>{
      const family=DEMO_PIGMENTS[id]||DEMO_PIGMENTS.joy;
-     return family[Math.floor(random()*family.length)]
+     return family[demoToneIndex(random)]
    });
    samples[dates[i]]={emotions:[...choices],demoColors,note:'',demo:true}
  }
@@ -224,10 +234,10 @@ function paintArchiveOrb(node,rec){
    // Avoid 85 unique CPU-expensive 224px canvas gradient rasterizations.
    if(colors.length===1)node.style.background=colors[0];
    else if(colors.length===2)
-     node.style.background='linear-gradient(125deg,'+colors[0]+' 9%,'+colors[1]+' 94%)';
+     node.style.background='linear-gradient(125deg,'+colors[0]+' 8%,'+colors[1]+' 92%)';
    else
-     node.style.background='linear-gradient(125deg,'+colors[0]+' 4%,'+
-       colors[1]+' 53%,'+colors[2]+' 97%)';
+     node.style.background='linear-gradient(125deg,'+colors[0]+' 6%,'+
+       colors[1]+' 50%,'+colors[2]+' 96%)';
    return
  }
  paintOrb(node,rec.emotions)
