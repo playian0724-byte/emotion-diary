@@ -958,3 +958,29 @@ nav button.active{font-weight:630;color:#232725}
  #archive .calendar-archive.mosaic-demo.zoom-12 .poster-days,
  #archive > .zoom-next-layer.mosaic-demo.zoom-12 .poster-days{gap:1px}
 }
+
+
+/* V25 — bright, clear pigment; preserve V24 near-touching marble density.
+   Only the read-only demo receives this print-like finish. */
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day.recorded .mini,
+#archive > .zoom-next-layer.mosaic-demo .poster-days .cal-day.recorded .mini{
+  box-shadow:inset 0 0 0 .65px rgba(61,50,41,.12)!important;
+  border:0;
+}
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day:not(.recorded) .mini,
+#archive > .zoom-next-layer.mosaic-demo .poster-days .cal-day:not(.recorded) .mini{
+  background:#FAF9F5;
+  box-shadow:inset 0 0 0 .55px rgba(70,61,46,.09)!important;
+}
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day .daynum,
+#archive > .zoom-next-layer.mosaic-demo .poster-days .cal-day .daynum{
+  opacity:.36;
+}
+#archive .calendar-archive.mosaic-demo.zoom-12 .poster-days .cal-day .daynum,
+#archive > .zoom-next-layer.mosaic-demo.zoom-12 .poster-days .cal-day .daynum{
+  opacity:.20;
+}
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day.today .daynum,
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day.selected .daynum{
+  opacity:.85;
+}
