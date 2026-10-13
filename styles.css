@@ -1267,8 +1267,9 @@ nav button.active{font-weight:630;color:#232725}
 .expiry-ticks{
   position:absolute;
   z-index:1;
-  left:10px;
-  right:10px;
+  /* Tick circles are centered on the slider's 10px inset end-points. */
+  left:5px;
+  right:5px;
   top:19px;
   display:flex;
   justify-content:space-between;
