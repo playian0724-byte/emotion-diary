@@ -1196,3 +1196,127 @@ nav button.active{font-weight:630;color:#232725}
    will-change:auto!important
  }
 }
+
+/* V32 — quiet, explicit expiry settings and archived-record editor. */
+.settings-group{
+  margin-top:28px;
+  padding:22px 20px 19px;
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:#fff;
+}
+.settings-label{
+  display:block;
+  color:#242723;
+  font-size:16px;
+  font-weight:650;
+  letter-spacing:-.035em;
+}
+.settings-copy{
+  margin:10px 0 17px;
+  color:#72776f;
+  font-size:13px;
+  line-height:1.8;
+}
+.settings-select{
+  display:block;
+  appearance:auto;
+  width:100%;
+  min-height:50px;
+  border:1px solid #dadfd7;
+  border-radius:13px;
+  padding:0 13px;
+  background:#fafbf9;
+  color:#2b302b;
+  font-size:14px;
+  outline-offset:3px;
+}
+.settings-select:focus-visible{outline:2px solid #008471}
+.settings-summary{
+  margin:13px 0 0;
+  font-size:12px;
+  color:#255a46;
+  line-height:1.7;
+}
+.settings-disclaimer{
+  margin:16px 0 0;
+  padding-top:14px;
+  border-top:1px solid #ecefeb;
+  color:#969b92;
+  line-height:1.7;
+  font-size:11px;
+}
+.today-lock-note{
+  color:#8f6253;
+  text-align:center;
+}
+#today-lock-note[hidden]{display:none!important}
+.record-expiry-hint{
+  margin-top:9px!important;
+  font-size:11px!important;
+  color:#888f84!important;
+}
+.record-locked{
+  margin-top:15px;
+  border-top:1px solid #ecefeb;
+  padding-top:14px;
+  color:#8a756b;
+  font-size:12px;
+  line-height:1.6;
+}
+.record-edit-button{
+  display:block;
+  margin-top:14px;
+  padding:11px 0;
+  background:transparent;
+  border:0;
+  color:#255a46;
+  font-size:13px;
+  font-weight:650;
+  text-align:left;
+}
+.record-editor{margin-top:17px}
+.record-editor-hint{
+  font-size:12px!important;
+  color:#8a8e85!important;
+  line-height:1.6;
+  margin-bottom:14px!important;
+}
+.record-edit-emotions{
+  gap:7px;
+  margin:0 0 20px;
+}
+.record-edit-chip{
+  min-height:80px;
+  padding:9px 3px;
+  gap:6px;
+  border-radius:14px;
+  font-size:11px;
+  min-width:0;
+}
+.record-edit-chip .swatch{
+  width:28px;
+  height:28px;
+}
+.record-editor .input-label{
+  display:block;
+  margin:10px 0 0;
+}
+.record-editor .memo{
+  margin-top:9px;
+  width:100%;
+}
+.record-edit-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:16px;
+}
+.record-edit-actions .button-primary,
+.record-edit-actions .button-outline{
+  width:100%;
+  min-height:49px;
+  margin:0;
+  padding:12px 8px;
+  border-radius:13px;
+}
