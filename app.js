@@ -561,7 +561,101 @@ function showDate(day,rerender=true){
  const title=document.createElement('strong');title.textContent=day;detail.append(title);
  const p=document.createElement('p');
  p.textContent=e?(e.emotions.map(id=>byId(id)?.name||'이름 미정').join(' · ')+(e.note?'\n'+e.note:'')):'기록 없음';
- detail.append(p)
+ detail.append(p);
+ if(!e||DEMO_MODE)return;
+ const editable=canEditRecord(day,e);
+ const time=expiryDeadline(day,e);
+ if(time!==null){
+   const hint=document.createElement('p');
+   hint.className='record-expiry-hint';
+   hint.textContent=editable?'수정 가능 · '+new Date(time).toLocaleString('ko-KR')+'까지':
+     '유통기한이 지난 기록 · 읽기 전용';
+   detail.append(hint)
+ }
+ if(editable){
+   const edit=document.createElement('button');
+   edit.type='button';edit.className='record-edit-button';
+   edit.textContent='감정과 메모 수정';
+   edit.onclick=()=>openRecordEditor(day);
+   detail.append(edit)
+ }else{
+   const locked=document.createElement('div');
+   locked.className='record-locked';
+   locked.textContent='유통기한이 지나 수정할 수 없어요.';
+   detail.append(locked)
+ }
+}
+function openRecordEditor(day){
+ const record=db.records[day];
+ if(!record||!canEditRecord(day,record)){
+   toast('유통기한이 지난 기록은 수정할 수 없어요.');
+   showDate(day,true);return
+ }
+ const detail=$('record-detail');
+ detail.replaceChildren();
+ const title=document.createElement('strong');
+ title.textContent=day+' 기록 수정';
+ detail.append(title);
+ const form=document.createElement('div');form.className='record-editor';
+ const description=document.createElement('p');
+ description.className='record-editor-hint';
+ description.textContent='최대 4가지 감정 · 첫 감정이 가운데 구슬로 표시돼요.';
+ form.append(description);
+ const grid=document.createElement('div');grid.className='grid-emotions record-edit-emotions';
+ form.append(grid);
+ let picked=[...record.emotions].filter(id=>byId(id)).slice(0,4);
+ for(const item of allEmotions()){
+   const button=document.createElement('button');
+   button.type='button';button.className='emotion record-edit-chip';
+   const color=document.createElement('span');color.className='swatch';
+   color.style.background=/^#[0-9a-f]{6}$/i.test(item.color)?item.color:'#E1E2DF';
+   const name=document.createElement('span');
+   name.textContent=item.name||'이름 미정';
+   button.append(color,name);
+   button.setAttribute('aria-pressed',String(picked.includes(item.id)));
+   const update=()=>{
+     const active=picked.includes(item.id);
+     button.classList.toggle('active',active);
+     button.setAttribute('aria-pressed',String(active))
+   };
+   button.onclick=()=>{
+     if(picked.includes(item.id))picked=picked.filter(id=>id!==item.id);
+     else if(picked.length<4)picked.push(item.id);
+     else{toast('최대 4개까지 선택할 수 있어요.');return}
+     for(const item of grid.children)item.syncEditSelection?.()
+   };
+   button.syncEditSelection=update;update();grid.append(button)
+ }
+ const label=document.createElement('label');
+ label.className='input-label';label.textContent='메모';
+ const memo=document.createElement('textarea');
+ memo.className='memo';memo.maxLength=1000;
+ memo.value=record.note||'';
+ label.append(memo);form.append(label);
+ const actions=document.createElement('div');actions.className='record-edit-actions';
+ const cancel=document.createElement('button');
+ cancel.className='button-outline';cancel.type='button';cancel.textContent='취소';
+ cancel.onclick=()=>showDate(day,true);
+ const save=document.createElement('button');
+ save.className='button-primary';save.type='button';save.textContent='수정 저장';
+ save.onclick=()=>{
+   const current=db.records[day];
+   if(!current||!canEditRecord(day,current)){
+     toast('유통기한이 지나 더는 수정할 수 없어요.');
+     showDate(day,true);return
+   }
+   if(!picked.length){toast('감정을 하나 이상 선택해 주세요.');return}
+   db.records[day]={...current,emotions:[...picked],note:memo.value.trim(),
+     editedAt:new Date().toISOString()};
+   saveDB();
+   if(day===isoDay()){
+     selection=[...picked];$('memo').value=memo.value.trim();
+     renderChoices();renderPreview()
+   }
+   renderCalendar();showDate(day,true);
+   toast('기록을 수정했어요.')
+ };
+ actions.append(cancel,save);form.append(actions);detail.append(form)
 }
 /* V18 — stage the next bead field BEFORE the gesture completes.
    The incoming dates are revealed continuously into the shrinking gaps, not
