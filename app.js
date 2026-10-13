@@ -221,11 +221,16 @@ function orbStyle(ids){
 function orbDiscColors(inputColors){
  const c=inputColors.filter(Boolean).slice(0,4);
  const half=(a,b)=>'linear-gradient(90deg,'+a+' 0%, '+a+' 50%,'+b+' 50%, '+b+' 100%)';
+ // Sharp 120° sectors; "gradient" is only a CSS drawing primitive,
+ // with abrupt color stops and no actual color blending.
+ const thirds=(a,b,c)=>'conic-gradient(from -90deg,'+
+   a+' 0deg 120deg,'+b+' 120deg 240deg,'+c+' 240deg 360deg)';
  if(c.length===0)return{outer:'#EDF0EB',inner:null};
  if(c.length===1)return{outer:c[0],inner:null};
  if(c.length===2)return{outer:c[1],inner:c[0]};
  if(c.length===3)return{outer:half(c[1],c[2]),inner:c[0]};
- return{outer:half(c[2],c[3]),inner:half(c[0],c[1])}
+ // V29: never split the central emotion — the other three share the ring.
+ return{outer:thirds(c[1],c[2],c[3]),inner:c[0]}
 }
 function paintDisc(node,colors){
  if(!node)return;
@@ -422,10 +427,9 @@ function dateInk(rec){
  if(!rec)return '#83867C';
  const ids=(rec.emotions||[]).filter(id=>byId(id)).slice(0,4);
  if(!ids.length)return '#343A36';
- // Text sits INSIDE the inner disc, not on the outer ring.
- // For 1–3 emotions the first emotion alone fills that disc.
- // For 4 emotions the inner disc is split between the first two.
- const innerIds=ids.length===4?ids.slice(0,2):ids.slice(0,1);
+ // The innermost disc is always a solid first-emotion pigment, even
+ // for 4-emotion days; its associated number ink stays the same.
+ const innerIds=ids.slice(0,1);
  if(innerIds.length===1&&BASIC_PALETTE.has(innerIds[0]))
    return BASIC_PALETTE.get(innerIds[0]).ink;
  const colors=innerIds.map(id=>byId(id).color);
