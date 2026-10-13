@@ -1063,3 +1063,14 @@ nav button.active{font-weight:630;color:#232725}
   box-shadow:none!important;
   border:0!important
 }
+
+
+/* V27 — honor the reference image's chosen pigment / numeral pair exactly.
+   The numeric text color is authored by BASE[].ink; CSS must not wash it out. */
+#archive .calendar-archive .poster-days .cal-day .daynum,
+#archive > .zoom-next-layer .poster-days .cal-day .daynum,
+#archive .calendar-archive.zoom-12 .poster-days .cal-day .daynum,
+#archive > .zoom-next-layer.zoom-12 .poster-days .cal-day .daynum{
+  opacity:1!important;
+  font-weight:780!important;
+}
