@@ -797,6 +797,32 @@ function setupCalendarGestures(){
    }
    settleRaf=requestAnimationFrame(frame)
  }
+ // Keep swipe and mouse-drag navigation visually consistent with pinch.
+ // Only poster transitions use the low-cost composited V31 path; the
+ // other zoom levels retain the familiar date-by-date V20 animation.
+ function animateSwipeZoom(delta,point){
+   const next=clamp(calendarZoom+delta,0,CAL_SPANS.length-1);
+   if(next===calendarZoom)return false;
+   if(reduced()||(CAL_SPANS[next]!==12&&CAL_SPANS[calendarZoom]!==12))
+     return changeCalendarZoom(delta,point);
+   if(posterSettle)clearPosterSettle();
+   if(stage)cleanupStage();
+   detailWasVisible=!$('record-detail').hidden;
+   $('record-detail').hidden=true;
+   stage=stageLayout(delta,point);
+   if(!stage){$('record-detail').hidden=!detailWasVisible;return false}
+   const start=performance.now(),duration=360;
+   function frame(now){
+     if(!stage)return;
+     const p=ease((now-start)/duration);
+     drawStage(p);
+     if(p<1){settleRaf=requestAnimationFrame(frame);return}
+     settleRaf=0;
+     commitStaged()
+   }
+   settleRaf=requestAnimationFrame(frame);
+   return true
+ }
  let titleGhost=null;
  function updatePeriodHeader(first,next,staged){
    const span=CAL_SPANS[next],heading=$('month-label');
@@ -987,6 +1013,7 @@ function setupCalendarGestures(){
  }
  el.addEventListener('touchstart',e=>{
    if(posterSettle)clearPosterSettle();
+   if(settleRaf&&stage)cleanupStage();
    if(e.touches.length===2){
      if(settleRaf)cleanupStage();
      if(titleGhost){titleGhost.remove();titleGhost=null}
@@ -1024,7 +1051,7 @@ function setupCalendarGestures(){
      const dx=b.clientX-a.x,dy=b.clientY-a.y;
      if(Math.abs(dy)>105&&Math.abs(dy)>Math.abs(dx)*1.3){
        calendarIgnoreClickUntil=performance.now()+350;
-       changeCalendarZoom(dy>0?-1:1,{x:b.clientX,y:b.clientY})
+       animateSwipeZoom(dy>0?-1:1,{x:b.clientX,y:b.clientY})
      }else if(Math.abs(dx)>95&&Math.abs(dx)>Math.abs(dy)*1.3){
        calendarIgnoreClickUntil=performance.now()+350;
        shiftMonth(dx>0?-1:1)
@@ -1037,6 +1064,7 @@ function setupCalendarGestures(){
  el.addEventListener('pointerdown',e=>{
    if(e.pointerType==='touch'||e.button!==0)return;
    if(posterSettle)clearPosterSettle();
+   if(settleRaf&&stage)cleanupStage();
    mouseDrag={x:e.clientX,y:e.clientY,id:e.pointerId}
  });
  el.addEventListener('pointerup',e=>{
@@ -1045,7 +1073,7 @@ function setupCalendarGestures(){
    mouseDrag=null;
    if(Math.abs(dy)>85&&Math.abs(dy)>Math.abs(dx)*1.2){
      calendarIgnoreClickUntil=performance.now()+350;
-     changeCalendarZoom(dy>0?-1:1,{x:e.clientX,y:e.clientY})
+     animateSwipeZoom(dy>0?-1:1,{x:e.clientX,y:e.clientY})
    }else if(Math.abs(dx)>95&&Math.abs(dx)>Math.abs(dy)*1.2){
      calendarIgnoreClickUntil=performance.now()+350;
      shiftMonth(dx>0?-1:1)
