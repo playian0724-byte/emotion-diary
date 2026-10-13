@@ -1076,11 +1076,11 @@ nav button.active{font-weight:630;color:#232725}
 }
 
 
-/* V28 — two concentric circles, no gradient blends:
+/* V29 — solid centers at every emotion count.
    2 emotions = solid outer ring + solid inner disc;
-   3 = two halves in ring + solid inner disc;
-   4 = split outer ring + split inner disc.
-   Both discs are flat, and their boundary stays crisp at any zoom size. */
+   3 = two half-rings + solid inner disc;
+   4 = three 120-degree ring sectors + solid inner disc.
+   No blurred color boundaries; thicker ring improves miniature legibility. */
 .orb.orb-layered,
 .cal-day .mini.orb-layered,
 #archive .calendar-archive .mini.orb-layered,
@@ -1101,8 +1101,8 @@ nav button.active{font-weight:630;color:#232725}
   position:absolute!important;
   left:50%!important;
   top:50%!important;
-  width:69%!important;
-  height:69%!important;
+  width:62%!important;
+  height:62%!important;
   aspect-ratio:1;
   transform:translate(-50%,-50%)!important;
   display:block;
