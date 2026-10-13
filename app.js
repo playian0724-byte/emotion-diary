@@ -1269,8 +1269,15 @@ host.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{useEmotion(b.datas
 function useEmotion(id){if(!selection.includes(id)){if(selection.length>=4){toast('감정 하나를 해제하세요.');setScreen('today');return}selection.push(id)}renderChoices();renderPreview();setScreen('today');toast('오늘에 추가됨')}
 function positionFlightStart(rect){const w=168,h=168;return rect.top>=10&&rect.bottom<window.innerHeight-10?{left:rect.left,top:rect.top,width:rect.width,height:rect.height}:{left:(innerWidth-w)/2,top:Math.max(70,(innerHeight-h)/2-40),width:w,height:h}}
 async function saveDay(){
-if(saving||!selection.length)return;saving=true;$('save-day').disabled=true;
-const keys=[...selection],note=$('memo').value;db.records[isoDay()]={emotions:keys,note,createdAt:new Date().toISOString()};saveDB();month=new Date(new Date().getFullYear(),calendarZoom===3?0:new Date().getMonth(),1);calendarSelected=isoDay();
+if(saving||!selection.length)return;
+if(DEMO_MODE){toast('미리보기에서는 저장할 수 없어요.');return}
+const day=isoDay(),old=db.records[day];
+if(old&&!canEditRecord(day,old)){toast('유통기한이 지난 기록은 수정할 수 없어요.');renderPreview();return}
+saving=true;$('save-day').disabled=true;
+const keys=[...selection],note=$('memo').value;
+db.records[day]={...old,emotions:keys,note,
+ createdAt:old?.createdAt||new Date().toISOString()};
+saveDB();month=new Date(new Date().getFullYear(),calendarZoom===3?0:new Date().getMonth(),1);calendarSelected=isoDay();
 const start=positionFlightStart($('today-orb').getBoundingClientRect()),ghost=document.createElement('div');ghost.className='flying-orb';ghost.style.cssText='left:'+start.left+'px;top:'+start.top+'px;width:'+start.width+'px;height:'+start.height+'px;';
 const inner=document.createElement('div');inner.className='orb';paintOrb(inner,keys);ghost.append(inner);document.body.append(ghost);
 setScreen('archive');await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
@@ -1479,11 +1486,18 @@ $('reset-select').onclick=()=>{selection=[];renderChoices();renderPreview()};
 $('add-custom').onclick=()=>{resetMix();setScreen('create')};$('start-create').onclick=()=>{resetMix();setScreen('create')};
 $('create-back').onclick=()=>setScreen('today');
 $('save-day').onclick=saveDay;
+$('edit-expiry').onchange=()=>{
+ if(DEMO_MODE){renderSettings();return}
+ db.settings={...db.settings,editExpiryHours:validEditExpiry($('edit-expiry').value)};
+ saveDB();renderSettings();renderPreview();
+ if($('record-detail')&&!$('record-detail').hidden)showDate(calendarSelected,true);
+ toast('기록 유통기한을 설정했어요.')
+};
 $('month-prev').onclick=()=>shiftMonth(-1);$('month-next').onclick=()=>shiftMonth(1);setupCalendarGestures();
 $('mix-button').onclick=blendMix;$('mix-undo').onclick=undoDrop;$('mix-reset').onclick=resetMix;
 $('save-word').onclick=()=>createEmotion(false);$('use-word').onclick=()=>createEmotion(true);
 window.addEventListener('resize',()=>drawWater());
-renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixButtons();
+renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixButtons();renderSettings();
 const viewName=new URLSearchParams(window.location.search).get('view');
 const zoomForView={month:0,quarter:1,half:2,year:3};
 if(Object.prototype.hasOwnProperty.call(zoomForView,viewName)){
