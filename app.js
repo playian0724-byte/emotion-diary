@@ -1529,6 +1529,8 @@ $('save-word').onclick=()=>createEmotion(false);$('use-word').onclick=()=>create
 window.addEventListener('resize',()=>drawWater());
 renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixButtons();renderSettings();
 const viewName=new URLSearchParams(window.location.search).get('view');
+// V35: let design reviews land on the actual settings control immediately.
+if(viewName==='settings')setScreen('settings');
 const zoomForView={month:0,quarter:1,half:2,year:3};
 if(Object.prototype.hasOwnProperty.call(zoomForView,viewName)){
  calendarZoom=zoomForView[viewName];
