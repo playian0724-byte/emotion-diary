@@ -82,7 +82,7 @@ function previewRecord(day){
  if(!demoRecords)demoRecords=buildDemoRecords();
  return demoRecords[day]
 }
-let db={records:{},custom:[],settings:{editExpiryHours:0}},selection=[],month=new Date(new Date().getFullYear(),new Date().getMonth(),1),saving=false;
+let db={records:{},custom:[],settings:{editExpiryHours:24}},selection=[],month=new Date(new Date().getFullYear(),new Date().getMonth(),1),saving=false;
 let drops=[],amounts={},mixed=null,droppingTimer=null,repeatTimer=null,raf=0,mixBusy=false,toastTimer=0;
 let nextUnnamed=1,mixStartedAt=0,mixDuration=1900,lastWaterFrame=0;
 let mixRaster=null;
@@ -93,17 +93,19 @@ const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>'
 const isoDay=(d=new Date())=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 const allEmotions=()=>[...BASE,...SAMPLES,...db.custom];
 const byId=id=>allEmotions().find(e=>e.id===id);
-// V32 — edit-window setting: a personal rule, not a security control.
-// All choices are explicit to avoid accidental permanent locking.
-const EDIT_EXPIRY_OPTIONS=[0,1,24,72,168,720];
+// V33 — every diary record has a finite editing window.
+// Migrate removed legacy settings (0 = unlimited, 720 = 30 days)
+// and missing/invalid values to a balanced 24-hour default.
+const EDIT_EXPIRY_OPTIONS=[1,24,72,168];
+const DEFAULT_EDIT_EXPIRY_HOURS=24;
 function validEditExpiry(value){
  const n=Number(value);
- return EDIT_EXPIRY_OPTIONS.includes(n)?n:0
+ return EDIT_EXPIRY_OPTIONS.includes(n)?n:DEFAULT_EDIT_EXPIRY_HOURS
 }
 function expiryHours(){return validEditExpiry(db.settings?.editExpiryHours)}
 function expiryDeadline(day,rec){
  const hours=expiryHours();
- if(!rec||hours===0)return null;
+ if(!rec)return null;
  const original=Date.parse(rec.createdAt||'');
  // Pre-V32 records without timestamps use the END of their record date.
  // Never assign a fabricated creation time that resets their expiration.
@@ -118,16 +120,14 @@ function canEditRecord(day,rec,now=Date.now()){
  return cutoff===null||now<cutoff
 }
 function expiryLabel(hours=expiryHours()){
- return ({0:'제한 없음',1:'1시간',24:'24시간',72:'3일',168:'7일',720:'30일'})[hours]||'제한 없음'
+ return ({1:'1시간',24:'24시간',72:'3일',168:'7일'})[hours]||'24시간'
 }
 function renderSettings(){
  const select=$('edit-expiry');
  select.value=String(expiryHours());
  select.disabled=DEMO_MODE;
  const status=$('edit-expiry-summary');
- status.textContent=expiryHours()===0?
-   '지금은 언제든 기록을 수정할 수 있어요.':
-   '기록을 처음 저장한 순간부터 '+expiryLabel()+'이 지나면 수정할 수 없어요.';
+ status.textContent='기록을 처음 저장한 순간부터 '+expiryLabel()+'이 지나면 수정할 수 없어요.';
  if(DEMO_MODE)status.textContent+=' 미리보기에서는 설정을 변경할 수 없어요.'
 }
 function saveDB(){if(DEMO_MODE)return;try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){console.warn('Storage unavailable',e)}}
