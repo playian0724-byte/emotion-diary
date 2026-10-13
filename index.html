@@ -17,7 +17,7 @@
 #settings .expiry-rail{position:absolute;top:25px;left:10px;right:10px;height:2px;border-radius:2px;background:#dadeD8;pointer-events:none;}
 #settings .expiry-rail-fill{display:block;width:var(--expiry-progress);height:100%;background:#315c48;border-radius:2px;transition:width .1s linear;}
 #settings .expiry-ticks{position:absolute;left:0;right:0;top:16px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;z-index:2;}
-#settings .expiry-tick{display:block;position:relative;flex:0 0 20px;width:20px;height:20px;}
+#settings .expiry-tick{display:block;position:relative;flex:0 0 20px;width:20px;height:20px;border:0!important;background:transparent!important;box-shadow:none!important;transform:none!important;}
 #settings .expiry-tick::before{content:"";position:absolute;left:50%;top:50%;width:9px;height:9px;transform:translate(-50%,-50%);border:1.5px solid #a8b3aa;border-radius:50%;background:#fbfbf9;transition:background .14s ease,width .14s ease,height .14s ease,border-color .14s ease;}
 #settings .expiry-tick.selected::before{width:17px;height:17px;background:#315c48;border:3px solid #fbfbf9;box-shadow:0 0 0 1px #315c48;}
 /* The transparent native range supplies native drag/tap/keyboard/VoiceOver
