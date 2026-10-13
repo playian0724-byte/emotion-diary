@@ -1074,3 +1074,48 @@ nav button.active{font-weight:630;color:#232725}
   opacity:1!important;
   font-weight:780!important;
 }
+
+
+/* V28 — two concentric circles, no gradient blends:
+   2 emotions = solid outer ring + solid inner disc;
+   3 = two halves in ring + solid inner disc;
+   4 = split outer ring + split inner disc.
+   Both discs are flat, and their boundary stays crisp at any zoom size. */
+.orb.orb-layered,
+.cal-day .mini.orb-layered,
+#archive .calendar-archive .mini.orb-layered,
+#archive > .zoom-next-layer .mini.orb-layered{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  border:0!important;
+  box-shadow:none!important;
+}
+/* A real, reusable inner disc avoids expensive canvas rasterization and
+   stays aligned while V21 individually morphs dated beads. */
+.orb-center,
+.orb.orb-layered > .orb-center,
+.cal-day .mini.orb-layered > .orb-center,
+#archive .poster-days .mini.orb-layered > .orb-center,
+#archive > .zoom-next-layer .mini.orb-layered > .orb-center{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:69%!important;
+  height:69%!important;
+  aspect-ratio:1;
+  transform:translate(-50%,-50%)!important;
+  display:block;
+  border-radius:50%;
+  border:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  pointer-events:none;
+  z-index:0;
+}
+/* Numbers remain ABOVE both regions of the bead. */
+.cal-day .mini.orb-layered .daynum,
+#archive .poster-days .mini.orb-layered .daynum{
+  position:relative;
+  z-index:2
+}
