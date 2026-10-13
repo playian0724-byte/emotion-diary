@@ -40,11 +40,16 @@ const DEMO_EMOTION_POOL=[
  'expectation','expectation','expectation','anger','anger',
  'calm','calm','sad','sad','anxious','disgust'
 ];
-// Restrained two-emotion demo gradients. Only existing base emotions.
+// V28 preview: 30% multicolor days are split across 2-, 3- and 4-tone
+// nested discs, so all requested ring geometries are visible in the year.
 const DEMO_GRADIENTS=[
- ['joy','expectation'],['joy','surprise'],['calm','sad'],
- ['sad','anxious'],['calm','expectation'],['surprise','expectation'],
- ['anger','expectation'],['calm','disgust']
+ ['joy','anger'],['calm','sad'],['joy','surprise'],
+ ['sad','anxious'],['anger','expectation'],['calm','disgust'],
+ ['expectation','joy','surprise'],['sad','anxious','calm'],
+ ['joy','anger','sad'],['expectation','disgust','calm'],
+ ['joy','expectation','surprise','anger'],
+ ['calm','sad','anxious','disgust'],
+ ['sad','expectation','anger','joy']
 ];
 function buildDemoRecords(today=new Date()){
  const year=today.getFullYear(),dates=[];
@@ -415,22 +420,18 @@ function inkContrast(a,b){
 }
 function dateInk(rec){
  if(!rec)return '#83867C';
- const ids=(rec.emotions||[]).filter(id=>byId(id));
+ const ids=(rec.emotions||[]).filter(id=>byId(id)).slice(0,4);
  if(!ids.length)return '#343A36';
- // A one-emotion day always inherits its exact reference-card text pairing.
- if(ids.length===1&&BASIC_PALETTE.has(ids[0]))return BASIC_PALETTE.get(ids[0]).ink;
- // Approved base mixtures have explicitly designed fixed text colors.
- if(ids.every(id=>BASIC_PALETTE.has(id))){
-   const signature=[...new Set(ids)].sort().join('|');
-   if(GRADIENT_INKS[signature])return GRADIENT_INKS[signature]
- }
- // Custom/emergent blends fall back to best contrast among the same
- // family of reference text colors, preserving color harmony.
- const colors=DEMO_MODE&&rec.demoColors?.length?rec.demoColors:
-   ids.map(id=>byId(id).color);
- const choices=[...new Set(BASE.map(e=>e.ink))];
- let best=choices[0],score=-1;
- for(const candidate of choices){
+ // Text sits INSIDE the inner disc, not on the outer ring.
+ // For 1–3 emotions the first emotion alone fills that disc.
+ // For 4 emotions the inner disc is split between the first two.
+ const innerIds=ids.length===4?ids.slice(0,2):ids.slice(0,1);
+ if(innerIds.length===1&&BASIC_PALETTE.has(innerIds[0]))
+   return BASIC_PALETTE.get(innerIds[0]).ink;
+ const colors=innerIds.map(id=>byId(id).color);
+ const candidates=[...new Set(BASE.map(e=>e.ink))];
+ let best=candidates[0],score=-1;
+ for(const candidate of candidates){
    const floor=Math.min(...colors.map(color=>inkContrast(candidate,color)));
    if(floor>score){score=floor;best=candidate}
  }
