@@ -1218,154 +1218,87 @@ nav button.active{font-weight:630;color:#232725}
   font-size:13px;
   line-height:1.8;
 }
-/* V34 — Copenhagen-modern, four point range:
-   a hairline rail, quietly printed ticks, one restrained accent dot. */
-.expiry-reading{
-  display:flex;
-  gap:13px;
-  align-items:baseline;
-  margin:20px 0 8px;
+/* V35 — synchronized with the small first-paint fallback inside index.html.
+   Four fixed 20px hit markers, a 2px print-like rail and an invisible
+   native range so Safari never draws an unsolicited blue bar or white thumb. */
+#settings .expiry-reading{display:flex;align-items:baseline;gap:11px;margin:19px 0 22px}
+#settings .expiry-reading strong{
+  color:#263d32;font-size:37px;font-weight:550;line-height:1.14;
+  letter-spacing:-.075em;font-variant-numeric:tabular-nums
 }
-.expiry-reading strong{
-  color:#263e34;
-  font-size:34px;
-  font-weight:530;
-  line-height:1.15;
-  letter-spacing:-.068em;
-  font-variant-numeric:tabular-nums;
+#settings .expiry-reading span{font-size:12px;color:#91988f}
+#settings .expiry-scale{
+  --expiry-progress:33.333333%;position:relative;width:100%;height:52px;touch-action:pan-y
 }
-.expiry-reading span{
-  font-size:12px;
-  color:#858c81;
-  letter-spacing:-.02em;
+#settings .expiry-rail{
+  position:absolute;left:10px;right:10px;top:25px;height:2px;border-radius:2px;
+  background:#daded8;pointer-events:none
 }
-.expiry-scale{
-  --expiry-progress:33.333%;
-  position:relative;
-  height:48px;
-  width:100%;
+#settings .expiry-rail-fill{
+  display:block;width:var(--expiry-progress);height:100%;
+  background:#315c48;border-radius:2px;transition:width .1s linear
 }
-.expiry-rail{
-  position:absolute;
-  z-index:0;
-  left:10px;
-  right:10px;
-  top:23px;
-  height:2px;
-  background:#d8ddd7;
-  border-radius:2px;
-  pointer-events:none;
+#settings .expiry-ticks{
+  position:absolute;left:0;right:0;top:16px;z-index:2;display:flex;
+  align-items:center;justify-content:space-between;pointer-events:none
 }
-.expiry-rail-fill{
-  display:block;
-  width:var(--expiry-progress);
-  height:100%;
-  border-radius:2px;
-  background:#406c57;
-  transition:width .12s ease-out;
+#settings .expiry-tick{
+  display:block;position:relative;flex:0 0 20px;width:20px;height:20px;
+  border:0!important;background:transparent!important;box-shadow:none!important;
+  transform:none!important
 }
-.expiry-ticks{
-  position:absolute;
-  z-index:1;
-  /* Tick circles are centered on the slider's 10px inset end-points. */
-  left:5px;
-  right:5px;
-  top:19px;
-  display:flex;
-  justify-content:space-between;
-  pointer-events:none;
+#settings .expiry-tick::before{
+  content:"";position:absolute;left:50%;top:50%;width:9px;height:9px;
+  transform:translate(-50%,-50%);border:1.5px solid #a8b3aa;
+  border-radius:50%;background:#fbfbf9;
+  transition:background .14s ease,width .14s ease,height .14s ease,border-color .14s ease
 }
-.expiry-tick{
-  display:block;
-  flex:none;
-  width:10px;
-  height:10px;
-  border:1.5px solid #aab6ac;
-  border-radius:50%;
-  background:#fbfbf9;
-  transform:translateX(0);
-  transition:border-color .12s ease,background-color .12s ease;
+#settings .expiry-tick.selected::before{
+  width:17px;height:17px;background:#315c48;border:3px solid #fbfbf9;
+  box-shadow:0 0 0 1px #315c48
 }
-.expiry-tick.selected{
-  border-color:#406c57;
-  background:#406c57;
+#settings #edit-expiry.expiry-range{
+  position:absolute;left:0;top:0;z-index:3;display:block;box-sizing:border-box;
+  width:100%;height:52px;margin:0;padding:0;border:0;
+  background:transparent!important;opacity:0!important;
+  -webkit-appearance:none!important;appearance:none!important;cursor:pointer
 }
-.expiry-range{
-  -webkit-appearance:none;
-  appearance:none;
-  position:absolute;
-  inset:0;
-  z-index:2;
-  width:100%;
-  height:48px;
-  padding:0;
-  margin:0;
-  border:0;
-  outline:none;
-  background:transparent;
-  cursor:pointer;
+#settings #edit-expiry.expiry-range::-webkit-slider-runnable-track{
+  height:2px;background:transparent!important;border:0
 }
-.expiry-range::-webkit-slider-runnable-track{
-  height:2px;
-  border:0;
-  background:transparent;
+#settings #edit-expiry.expiry-range::-webkit-slider-thumb{
+  -webkit-appearance:none!important;width:20px;height:20px;
+  margin-top:-9px;border:0;border-radius:50%;background:transparent
 }
-.expiry-range::-moz-range-track{
-  height:2px;
-  border:0;
-  background:transparent;
+#settings #edit-expiry.expiry-range::-moz-range-track{
+  height:2px;background:transparent!important;border:0
 }
-.expiry-range::-webkit-slider-thumb{
-  -webkit-appearance:none;
-  appearance:none;
-  width:20px;
-  height:20px;
-  margin-top:-9px;
-  border-radius:50%;
-  border:4px solid #fbfbf9;
-  background:#315d4a;
-  box-shadow:0 0 0 1px #315d4a;
-  transition:box-shadow .12s ease,transform .12s ease;
+#settings #edit-expiry.expiry-range::-moz-range-thumb{
+  width:20px;height:20px;border:0;border-radius:50%;background:transparent
 }
-.expiry-range::-moz-range-thumb{
-  width:12px;
-  height:12px;
-  border-radius:50%;
-  border:4px solid #fbfbf9;
-  background:#315d4a;
-  box-shadow:0 0 0 1px #315d4a;
+#settings .expiry-scale:focus-within .expiry-tick.selected::before{
+  box-shadow:0 0 0 1px #315c48,0 0 0 5px rgba(49,92,72,.09)
 }
-.expiry-range:focus-visible::-webkit-slider-thumb{
-  box-shadow:0 0 0 2px #315d4a,0 0 0 5px rgba(49,93,74,.18);
+#settings .expiry-labels{
+  display:block;position:relative;width:auto;height:30px;margin:2px 10px 0
 }
-.expiry-range:focus-visible::-moz-range-thumb{
-  box-shadow:0 0 0 2px #315d4a,0 0 0 5px rgba(49,93,74,.18);
+#settings .expiry-labels span{
+  display:block;position:absolute;top:0;color:#8f978e;
+  font-size:12px;font-weight:470;line-height:1.5;letter-spacing:-.035em;
+  white-space:nowrap;transform:translateX(-50%)
 }
-.expiry-range:disabled{cursor:default;opacity:.65}
-.expiry-labels{
-  position:relative;
-  height:24px;
-  margin:0 10px;
+#settings .expiry-labels span:nth-child(1){left:0}
+#settings .expiry-labels span:nth-child(2){left:33.333333%}
+#settings .expiry-labels span:nth-child(3){left:66.666667%}
+#settings .expiry-labels span:nth-child(4){left:100%}
+#settings .expiry-labels span.selected{color:#315c48;font-weight:720}
+#settings .settings-summary{
+  margin:12px 0 0;font-size:12px;line-height:1.7;color:#506558
 }
-.expiry-labels span{
-  position:absolute;
-  top:0;
-  transform:translateX(-50%);
-  color:#989e94;
-  font-size:11px;
-  font-weight:450;
-  letter-spacing:-.035em;
-  white-space:nowrap;
-  transition:color .12s ease;
+@media(prefers-reduced-motion:reduce){
+ #settings .expiry-rail-fill,#settings .expiry-tick::before{transition:none}
 }
-.expiry-labels span:nth-child(1){left:0}
-.expiry-labels span:nth-child(2){left:33.333%}
-.expiry-labels span:nth-child(3){left:66.667%}
-.expiry-labels span:nth-child(4){left:100%}
-.expiry-labels span.selected{
-  color:#315d4a;
-  font-weight:700;
-}
+
 .settings-summary{
   margin:13px 0 0;
   font-size:12px;
