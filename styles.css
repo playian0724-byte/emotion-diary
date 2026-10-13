@@ -984,3 +984,71 @@ nav button.active{font-weight:630;color:#232725}
 #archive .calendar-archive.mosaic-demo .poster-days .cal-day.selected .daynum{
   opacity:.85;
 }
+
+
+/* V26 — exact palette-card colors, borderless pigment beads and sturdy
+   complementary numerals. These layout/type changes apply to the archive;
+   reference colors themselves remain demo-only to protect saved emotions. */
+#archive .calendar-archive .poster-days .cal-day .mini,
+#archive > .zoom-next-layer .poster-days .cal-day .mini{
+  box-shadow:none!important;
+  border:0!important;
+}
+#archive .calendar-archive .poster-days .cal-day:not(.recorded) .mini,
+#archive > .zoom-next-layer .poster-days .cal-day:not(.recorded) .mini{
+  background:#F5F3EF;
+  box-shadow:none!important;
+}
+#archive .calendar-archive .poster-days .cal-day.selected .mini,
+#archive .calendar-archive .poster-days .cal-day.today .mini{
+  outline:none!important;
+}
+/* Keep the keyboard focus outline on the button itself. */
+#archive .calendar-archive .cal-day:focus-visible{
+  outline:2px solid #25533F;
+  outline-offset:2px
+}
+#archive .calendar-archive .poster-days .cal-day .daynum,
+#archive > .zoom-next-layer .poster-days .cal-day .daynum{
+  font-weight:760!important;
+  opacity:.98!important;
+  letter-spacing:-.045em;
+  text-rendering:optimizeLegibility
+}
+#archive .calendar-archive.zoom-12 .poster-days .cal-day .daynum,
+#archive > .zoom-next-layer.zoom-12 .poster-days .cal-day .daynum{
+  font-size:clamp(8px,2.1vw,11px)!important;
+  font-weight:790!important;
+  opacity:.93!important
+}
+#archive .calendar-archive.zoom-6 .poster-days .cal-day .daynum,
+#archive > .zoom-next-layer.zoom-6 .poster-days .cal-day .daynum{
+  font-size:clamp(9px,2.5vw,12px)!important
+}
+#archive .calendar-archive.zoom-3 .poster-days .cal-day .daynum,
+#archive > .zoom-next-layer.zoom-3 .poster-days .cal-day .daynum{
+  font-size:clamp(11px,3vw,15px)!important
+}
+/* The seven daily columns are bounded by the phone width, so enlarge
+   the actual circles by letting the month field use a little side padding.
+   Their center-to-center date map is preserved for the morph animation. */
+#archive .calendar-archive.zoom-1 .poster-days,
+#archive > .zoom-next-layer.zoom-1 .poster-days{
+  width:calc(100% + 26px);
+  margin-inline:-13px;
+  --bead-shift:6px;
+  gap:4px 2px
+}
+#archive .calendar-archive.zoom-1 .poster-days .cal-day .daynum,
+#archive > .zoom-next-layer.zoom-1 .poster-days .cal-day .daynum{
+  font-size:clamp(15px,4vw,19px)!important;
+  font-weight:780!important
+}
+@media(max-width:375px){
+  #archive .calendar-archive.zoom-1 .poster-days,
+  #archive > .zoom-next-layer.zoom-1 .poster-days{
+    width:calc(100% + 24px);
+    margin-inline:-12px;
+    gap:3px 1px
+  }
+}
