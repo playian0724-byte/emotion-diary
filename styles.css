@@ -1119,3 +1119,80 @@ nav button.active{font-weight:630;color:#232725}
   position:relative;
   z-index:2
 }
+
+
+/* V31 — dense 6-month <-> year poster transitions.
+   Two whole poster fields crossfade on compositor layers, while at most 48
+   visible date copies follow true position+size FLIP. Unlike V21, omitted
+   dates never pop in/out at touch release. */
+#archive .calendar-archive.zoom-staging.zoom-poster-morph > .poster-months{
+  opacity:var(--old-poster-opacity,1)!important;
+  will-change:opacity!important;
+}
+#archive > .zoom-next-layer.zoom-poster-stage{
+  opacity:var(--next-poster-opacity,0)!important;
+  will-change:opacity!important;
+}
+#archive > .zoom-next-layer.zoom-poster-stage .cal-day{
+  opacity:1!important;
+}
+#archive .calendar-archive .cal-day.zoom-morph-hidden,
+#archive > .zoom-next-layer.zoom-poster-stage .cal-day.zoom-morph-hidden{
+  visibility:hidden!important;
+}
+/* The old month columns survive release briefly as an inert fading layer. */
+#archive > .calendar-archive.zoom-old-layer{
+  position:absolute!important;
+  z-index:3;
+  pointer-events:none!important;
+  touch-action:none!important;
+  margin:0!important;
+  overflow:visible;
+  will-change:opacity;
+}
+#archive > .calendar-archive.zoom-old-layer .poster-months{
+  width:100%;
+}
+/* A few visible dates travel independently on a fixed GPU overlay.
+   This layer does not reflow the calendar or intercept taps. */
+.zoom-bead-overlay{
+  position:fixed;
+  inset:0;
+  z-index:300;
+  pointer-events:none;
+  touch-action:none;
+  overflow:visible;
+}
+.zoom-bead-overlay .zoom-bead-ghost{
+  position:absolute!important;
+  display:grid!important;
+  place-items:center!important;
+  box-sizing:border-box;
+  border-radius:50%;
+  background-size:100% 100%;
+  background-position:center;
+  overflow:hidden;
+  border:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  pointer-events:none;
+  transform-origin:center center;
+  backface-visibility:hidden;
+  will-change:transform;
+}
+.zoom-bead-overlay .zoom-bead-ghost .daynum{
+  position:relative;
+  z-index:2;
+  display:grid;
+  place-items:center;
+  opacity:1!important;
+  font-variant-numeric:tabular-nums;
+  text-rendering:optimizeLegibility;
+}
+@media(prefers-reduced-motion:reduce){
+ #archive > .zoom-next-layer.zoom-poster-stage,
+ #archive .calendar-archive.zoom-staging.zoom-poster-morph > .poster-months,
+ .zoom-bead-overlay .zoom-bead-ghost{
+   will-change:auto!important
+ }
+}
