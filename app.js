@@ -520,7 +520,19 @@ function setupCalendarGestures(){
  const midpoint=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});
  const ease=v=>{v=clamp(v,0,1);return v*v*(3-2*v)};
  let pinch=null,touchSingle=null,mouseDrag=null,stage=null,settleRaf=0,drawRaf=0;
- let nextFrame=null,detailWasVisible=false,wheelScale=1,wheelTimer=0;
+ let nextFrame=null,detailWasVisible=false,wheelScale=1,wheelTimer=0,posterSettle=null;
+ function clearPosterSettle(){
+   if(!posterSettle)return;
+   const last=posterSettle;posterSettle=null;
+   for(const item of last.morphs){
+     item.targetButton.classList.remove('zoom-morph-hidden');
+     item.sourceButton.classList.remove('zoom-morph-hidden')
+   }
+   last.newGroup.style.removeProperty('opacity');
+   last.oldLayer.remove();
+   last.ghostLayer.remove();
+   for(const animation of last.animations){try{animation.cancel()}catch(e){}}
+ }
  function cancelDraw(){
    if(drawRaf){cancelAnimationFrame(drawRaf);drawRaf=0}
    nextFrame=null
@@ -532,6 +544,18 @@ function setupCalendarGestures(){
  });
  function clearGeometry(){
    if(!stage)return;
+   if(stage.posterMode){
+     stage.oldGroup.style.removeProperty('--old-poster-opacity');
+     stage.layer.style.removeProperty('--next-poster-opacity');
+     for(const item of stage.morphs){
+       item.sourceButton.classList.remove('zoom-morph-hidden');
+       item.targetButton.classList.remove('zoom-morph-hidden')
+     }
+     stage.ghostLayer.remove();
+     $('month-label').style.removeProperty('opacity');
+     stage.nextHeading?.remove();
+     return
+   }
    for(const item of stage.morphs)item.source.style.removeProperty('transform');
    for(const button of stage.oldOnly)button.style.removeProperty('opacity');
    for(const button of stage.incoming)button.style.removeProperty('opacity');
@@ -545,7 +569,76 @@ function setupCalendarGestures(){
    if(settleRaf){cancelAnimationFrame(settleRaf);settleRaf=0}
    clearGeometry();
    if(stage){stage.layer.remove();stage=null}
-   el.classList.remove('zoom-staging')
+   el.classList.remove('zoom-staging','zoom-poster-morph')
+ }
+ // V31: a high-density poster transition composites the two entire fields
+ // while a SMALL set of date-identity ghosts travels between precise places.
+ // No hundreds-of-dates opacity writes, and no non-animated bead pops.
+ function stagePoster(first,next,layer,targetMap,point){
+   const height=window.innerHeight||document.documentElement.clientHeight;
+   const width=window.innerWidth||document.documentElement.clientWidth||400;
+   const near=rect=>rect.bottom>=-50&&rect.top<=height+50&&
+     rect.right>=-20&&rect.left<=width+20;
+   const focus=point||{x:width*.5,y:height*.5};
+   const candidates=[];
+   for(const button of el.querySelectorAll('[data-date]')){
+     const destButton=targetMap.get(button.dataset.date);
+     if(!destButton)continue;
+     const source=button.querySelector('.mini'),dest=destButton.querySelector('.mini');
+     if(!source||!dest)continue;
+     const from=source.getBoundingClientRect(),to=dest.getBoundingClientRect();
+     if((!near(from)&&!near(to))||from.width<1||to.width<1)continue;
+     const score=Math.min(
+       Math.hypot((from.left+from.width*.5-focus.x)*.8,from.top+from.height*.5-focus.y),
+       Math.hypot((to.left+to.width*.5-focus.x)*.8,to.top+to.height*.5-focus.y)
+     );
+     candidates.push({button,destButton,source,dest,from,to,score})
+   }
+   candidates.sort((a,b)=>a.score-b.score);
+   // Each ghost is paint-once then compositor-animated, not a live canvas.
+   const visibleGhosts=candidates.slice(0,width<450?48:60);
+   const ghostLayer=document.createElement('div');
+   ghostLayer.className='zoom-bead-overlay';
+   document.body.appendChild(ghostLayer);
+   const morphs=[];
+   for(const item of visibleGhosts){
+     const {button,destButton,source,dest,from,to}=item;
+     const ghost=source.cloneNode(true);
+     ghost.classList.add('zoom-bead-ghost');
+     const label=ghost.querySelector('.daynum'),original=source.querySelector('.daynum');
+     if(label&&original&&window.getComputedStyle){
+       const type=window.getComputedStyle(original);
+       label.style.fontSize=type.fontSize;
+       label.style.fontWeight=type.fontWeight;
+       label.style.lineHeight=type.lineHeight;
+       label.style.letterSpacing=type.letterSpacing
+     }
+     ghost.style.left=from.left+'px';ghost.style.top=from.top+'px';
+     ghost.style.width=from.width+'px';ghost.style.height=from.height+'px';
+     ghost.style.transformOrigin='center center';
+     button.classList.add('zoom-morph-hidden');
+     destButton.classList.add('zoom-morph-hidden');
+     ghostLayer.appendChild(ghost);
+     morphs.push({source:ghost,sourceButton:button,targetButton:destButton,dest,
+       from,
+       dx:to.left+to.width*.5-from.left-from.width*.5,
+       dy:to.top+to.height*.5-from.top-from.height*.5,
+       ratio:to.width/from.width})
+   }
+   layer.classList.add('zoom-poster-stage');
+   layer.style.setProperty('--next-poster-opacity','0');
+   const oldGroup=el.querySelector('.poster-months');
+   oldGroup.style.setProperty('--old-poster-opacity','1');
+   const heading=$('month-label');
+   const nextHeading=heading.cloneNode(false);
+   nextHeading.removeAttribute('id');
+   nextHeading.classList.add('calendar-heading-next',CAL_SPANS[next]===1?'heading-single-view':'heading-year-view');
+   nextHeading.setAttribute('aria-hidden','true');
+   nextHeading.innerHTML=periodHeaderMarkup(first,CAL_SPANS[next]);
+   nextHeading.style.opacity='0';
+   heading.parentElement.appendChild(nextHeading);
+   el.classList.add('zoom-staging','zoom-poster-morph');
+   return {posterMode:true,next,first,layer,nextHeading,morphs,ghostLayer,oldGroup,progress:0}
  }
  function stageLayout(delta,point){
    const next=clamp(calendarZoom+delta,0,CAL_SPANS.length-1);
@@ -577,6 +670,10 @@ function setupCalendarGestures(){
    layer.style.width=gridRect.width+'px';
    layer.style.opacity='1';
    host.appendChild(layer);
+   // Month-to-year (and the reverse): a bounded ghost set rides over two
+   // opacity-composited poster fields so untracked dates never snap.
+   if(span===12||CAL_SPANS[calendarZoom]===12)
+     return stagePoster(first,next,layer,targetMap,point);
    // V21: only animate beads near the viewport. On a year grid hundreds
    // of off-screen transforms were needlessly updated on every animation frame.
    const morphs=[],oldOnly=[],incoming=[],shared=new Set();
@@ -640,6 +737,17 @@ function setupCalendarGestures(){
    if(!stage)return;
    p=clamp(p,0,1);stage.progress=p;
    const inv=1-p;
+   if(stage.posterMode){
+     stage.oldGroup.style.setProperty('--old-poster-opacity',String(inv));
+     stage.layer.style.setProperty('--next-poster-opacity',String(p));
+     for(const {source,dx,dy,ratio} of stage.morphs){
+       const x=dx*p,y=dy*p,scale=1+(ratio-1)*p;
+       source.style.transform='translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0) scale('+scale.toFixed(4)+')'
+     }
+     $('month-label').style.opacity=String(inv);
+     stage.nextHeading.style.opacity=String(p);
+     return
+   }
    // Identical dates move continuously, keeping the SAME real DOM bead.
    // No opacity crossfade for these; this is a geometric position/size morph.
    for(const {source,dx,dy,ratio} of stage.morphs){
