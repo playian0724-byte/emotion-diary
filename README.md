@@ -6,9 +6,10 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
-## V30 — 3등분 링의 수직 대칭 정렬
+## V31 — 6개월 ↔ 1년 전환의 부드러운 고성능 모션
 
 - **V27 기본 감정 고정 8색:** 참고 이미지의 8가지 배경색·숫자색 조합을 **기쁨/평온/슬픔/불안/분노/놀람/혐오/기대** 각각에 1:1 매핑. 기본 감정 수는 그대로 8개이며 12색 데모 팔레트는 제거. **실제 오늘 기록/사전/아카이브의 기본 감정색도 동일하게 변경**. 기록은 감정 ID로 저장되므로 기존 데이터 내용은 그대로지만 이전 기록의 표시색은 새 팔레트로 바뀜. 데모는 정확히 8색, 단색 70%/다중감정 30%; 그라데이션은 미리 정한 8가지 기본 감정 조합만 사용. 구슬 테두리 없음, 굵은 날짜 숫자, 큰 1개월 구슬 및 기존 연속 핀치는 유지
+- **V31 연감 모션:** 6개월 ↔ 1년 전환 시 기존 최대 76개 구슬만 이동하고 일부 날짜가 갑자기 나타나던 방식을 개선. **이전·다음 달력 포스터 전체를 GPU opacity 레이어로 겹쳐 전환**하고 손가락 주변에서 중요한 동일 날짜 구슬만 모바일 최대 **48개 고스트 복사본**으로 실제 위치와 크기를 이어 이동. 손을 놓으면 화면은 바로 새 레이아웃으로 전환하면서 약 **230ms** 동안 기존/새 포스터 페이드와 구슬 이동이 자연스럽게 마무리. 연속 핀치·한 손가락 스와이프·마우스 드래그에서도 해당 전환 적용. 1↔3↔6개월 기존 모션, 저장 형식, 구슬 디자인은 유지. 실제 iPhone 성능은 별도 측정 필요.
 - **오늘 기록:** 기본/개인 감정 1~4개 선택, 선택적 메모, 로컬 저장
 - **V30 좌우 대칭:** 4감정 구슬의 120° 바깥 링 시작 각도를 -90° → **-60°**로 회전. 맨 위 색상 조각은 정확히 12시 축을 중심으로 좌우 대칭이며, 아래쪽 분할선은 6시 수직 방향으로 내려감. 감정 순서, 링 두께 62% 내부 지름, 1·2·3감정 구슬, 날짜 숫자·기존 기록·핀치 이동은 모두 그대로.
 - **V29 동심원 구슬:** 1감정은 단색. 2감정은 첫 감정 단색 내부원+두 번째 감정 바깥 링. 3감정은 첫 감정 단색 내부원+나머지 2감정을 반반 나눈 바깥 링. 4감정은 **첫 감정 단색 내부원+나머지 3감정을 각각 120°씩 나눈 바깥 링**. 내부원 지름을 69% → **62%**로 줄여 바깥 링을 약 23% 더 두껍게. 오늘의 큰 구슬·달력·저장 이동·데모는 같은 렌더러를 사용. 기존 8가지 기본 감정과 기록 구조는 변경 없음.
@@ -22,18 +23,18 @@
 
 [**V13 느린 확산과 길게 누르기 속도**](./docs/V13_DIFFUSION_TUNING.md) · [V12 기존 색상 원 UI 복원](./docs/V12_CLASSIC_SWATCHES.md) · [V11 물감 확산 개선](./docs/V11_INK_DROPS.md) · [V10 단일 Canvas 응집 애니메이션](./docs/V10_UNIFIED_MIX.md) · [V9 원색 구슬 디자인 원칙](./docs/V9_COLOR_FIRST.md)
 
-### V30 달력
+### V31 달력
 - **숫자를 색 위에:** 날짜를 원색 감정 구슬 위에 직접 표시하고, 요일(일–토)을 맨 윗줄에 둠
 - **기간 확대·축소:** 1개월 → 3개월 → 6개월 → 1년. 전 기간을 동일한 감정 구슬 포스터 레이아웃으로 통일하며, 각 월의 날짜를 7/3/2/1열로 펼쳐 담음
 - **조작:** 기존 구슬 개별 이동(V20)과 빠른 확정(V21)을 유지. **3개월·6개월·1년 상단에는 큰 연도만 표시**하고 각 월의 굵은 두 자리 숫자를 구슬 위에 유지. **핀치 중 구슬 이동과 동시에 상단 제목을 페이드**하며, 손을 놓으면 진행 중이던 투명도에서 짧게 마무리(초기화 후 다시 페이드하지 않음). 1개월 상단은 연도와 월을 글자 크기·간격으로 구분
 - **시각 언어:** 아이보리 바탕, 절제된 타이포그래피와 여백. 전 기간에서 지그재그 배열과 숫자 날짜 구슬. 연도는 크고 가볍게, 월은 굵게, 연월 사이 슬래시 없이 여백으로 구분
 - **유지:** 날짜 탭 시 기록 상세 보기, 저장 시 날짜 구슬까지 이동, 기존 데이터 구조
-- **V30 연간 모음 바로 열기:** https://playian0724-byte.github.io/emotion-diary/?v=30&view=year
-- [V30 가운데 대칭 3분할](./docs/V30_SYMMETRIC_SECTORS.md) · [V29 두꺼운 3분할 링](./docs/V29_THICK_THREE_PART_RING.md) · [V28 2·3·4감정 동심원 구슬 규칙](./docs/V28_CONCENTRIC_BEADS.md) · [V27 감정 8색 및 고정 글자색 매핑](./docs/V27_EIGHT_EMOTION_PALETTE.md) · [V26 레퍼런스 스와치 및 날짜 텍스트](./docs/V26_REFERENCE_SWATCHES.md) · [V25 맑은 컬러 팔레트](./docs/V25_BRIGHT_PALETTE.md) · [V24 촘촘한 종이물감 모자이크](./docs/V24_PIGMENT_MOSAIC.md) · [V23 샘플 구슬 미리보기](./docs/V23_DEMO_BEADS.md) · [V22 통일된 연도 헤더·핀치 페이드](./docs/V22_SYNCED_HEADING.md) · [V21 빠른 연속 줌 및 헤더 페이드](./docs/V21_FAST_CONTINUOUS_ZOOM.md) · [V20 날짜별 구슬 모핑](./docs/V20_PER_BEAD_ZOOM.md) · [V19 고정 축과 기록 설명 분리](./docs/V19_STABLE_ZOOM.md) · [V18 먼저 채워지는 축소 모션](./docs/V18_EARLY_FILL_ZOOM.md) · [V17 연속 핀치 모션](./docs/V17_CONTINUOUS_ZOOM.md) · [V16 모든 기간 포스터 통일](./docs/V16_UNIFIED_ARCHIVE.md) · [V15 연감 포스터](./docs/V15_YEAR_POSTER.md) · [V14 확대형 달력](./docs/V14_NORDIC_CALENDAR.md)
+- **V31 연간 모음 바로 열기:** https://playian0724-byte.github.io/emotion-diary/?v=31&view=year
+- [V31 부드러운 연감 확대·축소](./docs/V31_SMOOTH_YEAR_ZOOM.md) · [V30 가운데 대칭 3분할](./docs/V30_SYMMETRIC_SECTORS.md) · [V29 두꺼운 3분할 링](./docs/V29_THICK_THREE_PART_RING.md) · [V28 2·3·4감정 동심원 구슬 규칙](./docs/V28_CONCENTRIC_BEADS.md) · [V27 감정 8색 및 고정 글자색 매핑](./docs/V27_EIGHT_EMOTION_PALETTE.md) · [V26 레퍼런스 스와치 및 날짜 텍스트](./docs/V26_REFERENCE_SWATCHES.md) · [V25 맑은 컬러 팔레트](./docs/V25_BRIGHT_PALETTE.md) · [V24 촘촘한 종이물감 모자이크](./docs/V24_PIGMENT_MOSAIC.md) · [V23 샘플 구슬 미리보기](./docs/V23_DEMO_BEADS.md) · [V22 통일된 연도 헤더·핀치 페이드](./docs/V22_SYNCED_HEADING.md) · [V21 빠른 연속 줌 및 헤더 페이드](./docs/V21_FAST_CONTINUOUS_ZOOM.md) · [V20 날짜별 구슬 모핑](./docs/V20_PER_BEAD_ZOOM.md) · [V19 고정 축과 기록 설명 분리](./docs/V19_STABLE_ZOOM.md) · [V18 먼저 채워지는 축소 모션](./docs/V18_EARLY_FILL_ZOOM.md) · [V17 연속 핀치 모션](./docs/V17_CONTINUOUS_ZOOM.md) · [V16 모든 기간 포스터 통일](./docs/V16_UNIFIED_ARCHIVE.md) · [V15 연감 포스터](./docs/V15_YEAR_POSTER.md) · [V14 확대형 달력](./docs/V14_NORDIC_CALENDAR.md)
 
 ## V8.2 광원 실험 아카이브
 
-**[현재 원색과 이전 V8.2 광원 나란히 비교하기](https://playian0724-byte.github.io/emotion-diary/compare.html)** · [이전 V8.2 실험 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=webgl&v=15) · [현재 V9 원색 앱](https://playian0724-byte.github.io/emotion-diary/?v=30)
+**[현재 원색과 이전 V8.2 광원 나란히 비교하기](https://playian0724-byte.github.io/emotion-diary/compare.html)** · [이전 V8.2 실험 앱](https://playian0724-byte.github.io/emotion-diary/?renderer=webgl&v=15) · [현재 V9 원색 앱](https://playian0724-byte.github.io/emotion-diary/?v=31)
 
 [**V8.2 빛·후광 튜닝 (이전 실험)**](./docs/V8_2_LIGHT_BALANCE.md) · [V8.1 이전 튜닝](./docs/V8_1_TUNING.md) · [V8 실험 구현 및 QA](./docs/V8_EXPERIMENT.md)
 
