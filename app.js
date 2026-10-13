@@ -223,7 +223,9 @@ function orbDiscColors(inputColors){
  const half=(a,b)=>'linear-gradient(90deg,'+a+' 0%, '+a+' 50%,'+b+' 50%, '+b+' 100%)';
  // Sharp 120° sectors; "gradient" is only a CSS drawing primitive,
  // with abrupt color stops and no actual color blending.
- const thirds=(a,b,c)=>'conic-gradient(from -90deg,'+
+ // V30: -60° centers the first 120° sector exactly at 12 o'clock.
+ // Boundaries are -60° / 60° / 180°: perfectly mirror-symmetric Y.
+ const thirds=(a,b,c)=>'conic-gradient(from -60deg,'+
    a+' 0deg 120deg,'+b+' 120deg 240deg,'+c+' 240deg 360deg)';
  if(c.length===0)return{outer:'#EDF0EB',inner:null};
  if(c.length===1)return{outer:c[0],inner:null};
