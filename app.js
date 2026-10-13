@@ -611,16 +611,23 @@ function setupCalendarGestures(){
    const visibleGhosts=candidates.slice(0,width<450?48:60);
    const ghostLayer=document.createElement('div');
    ghostLayer.className='zoom-bead-overlay';
-   // Build all 48 copies off-DOM, then attach once. This prevents a
-   // forced style/layout pass for every cloned numeral on older Safari.
+   // Read all numeral styles before hiding any original date: this avoids
+   // invalidating styles between consecutive getComputedStyle() calls.
+   const fonts=visibleGhosts.map(({source})=>{
+     const digit=source.querySelector('.daynum');
+     if(!digit||!window.getComputedStyle)return null;
+     const type=window.getComputedStyle(digit);
+     return{fontSize:type.fontSize,fontWeight:type.fontWeight,
+       lineHeight:type.lineHeight,letterSpacing:type.letterSpacing}
+   });
+   // Build all 48 copies off-DOM, then attach once.
    const morphs=[];
-   for(const item of visibleGhosts){
-     const {button,destButton,source,dest,from,to}=item;
+   for(let index=0;index<visibleGhosts.length;index++){
+     const {button,destButton,source,dest,from,to}=visibleGhosts[index];
      const ghost=source.cloneNode(true);
      ghost.classList.add('zoom-bead-ghost');
-     const label=ghost.querySelector('.daynum'),original=source.querySelector('.daynum');
-     if(label&&original&&window.getComputedStyle){
-       const type=window.getComputedStyle(original);
+     const label=ghost.querySelector('.daynum'),type=fonts[index];
+     if(label&&type){
        label.style.fontSize=type.fontSize;
        label.style.fontWeight=type.fontWeight;
        label.style.lineHeight=type.lineHeight;
