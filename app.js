@@ -209,28 +209,50 @@ function orbStyleForColors(inputColors){
 function orbStyle(ids){
  return orbStyleForColors(ids.filter(id=>byId(id)).slice(0,4).map(id=>byId(id).color))
 }
-function paintOrb(node,ids){
- const colors=ids.filter(id=>byId(id)).slice(0,4).map(id=>byId(id).color);
- node.style.background=orbStyleForColors(colors);
+/* V28 — pure flat geometry, never muddy gradient mixing.
+   Order is meaningful: [first, second] -> center/ring;
+   three -> one-color center and a two-half outer ring;
+   four -> split inner disc and split outer ring. */
+function orbDiscColors(inputColors){
+ const c=inputColors.filter(Boolean).slice(0,4);
+ const half=(a,b)=>'linear-gradient(90deg,'+a+' 0%, '+a+' 50%,'+b+' 50%, '+b+' 100%)';
+ if(c.length===0)return{outer:'#EDF0EB',inner:null};
+ if(c.length===1)return{outer:c[0],inner:null};
+ if(c.length===2)return{outer:c[1],inner:c[0]};
+ if(c.length===3)return{outer:half(c[1],c[2]),inner:c[0]};
+ return{outer:half(c[2],c[3]),inner:half(c[0],c[1])}
+}
+function paintDisc(node,colors){
+ if(!node)return;
+ const layers=orbDiscColors(colors);
+ node.style.background=layers.outer;
+ const layered=Boolean(layers.inner);
+ node.classList.toggle('orb-layered',layered);
+ let center=node.querySelector(':scope > .orb-center');
+ if(layered){
+   if(!center){
+     center=document.createElement('span');
+     center.className='orb-center';
+     center.setAttribute('aria-hidden','true');
+     node.append(center)
+   }
+   center.style.background=layers.inner
+ }else if(center)center.remove();
+ // No white highlights, soft edges, shadows or color interpolation.
  node.style.removeProperty('--orb-halo');
  node.style.removeProperty('--orb-halo-strong');
  node.style.removeProperty('--orb-mini-halo');
 }
+function paintOrb(node,ids){
+ const colors=ids.filter(id=>byId(id)).slice(0,4).map(id=>byId(id).color);
+ paintDisc(node,colors)
+}
 function paintArchiveOrb(node,rec){
  if(!node||!rec)return;
- if(DEMO_MODE&&rec.demoColors?.length){
-   const colors=rec.demoColors;
-   // CSS pigment for the preview: stable, flat, and cheap to render.
-   // Avoid 85 unique CPU-expensive 224px canvas gradient rasterizations.
-   if(colors.length===1)node.style.background=colors[0];
-   else if(colors.length===2)
-     node.style.background='linear-gradient(125deg,'+colors[0]+' 8%,'+colors[1]+' 92%)';
-   else
-     node.style.background='linear-gradient(125deg,'+colors[0]+' 6%,'+
-       colors[1]+' 50%,'+colors[2]+' 96%)';
-   return
- }
- paintOrb(node,rec.emotions)
+ // Demo and saved records follow the exact same center/ring geometry.
+ const colors=(rec.emotions||[]).filter(id=>byId(id)).slice(0,4)
+   .map(id=>byId(id).color);
+ paintDisc(node,colors)
 }
 function renderChoices(){
 const selected=new Set(selection);
