@@ -51,14 +51,24 @@ const DEMO_EMOTION_POOL=[
  'expectation','expectation','expectation','anger','anger',
  'calm','calm','sad','sad','anxious','disgust'
 ];
+// Curated colorways avoid dark/light clashes under the same small numeral.
 const DEMO_GRADIENTS=[
- ['joy','surprise'],['joy','expectation'],['surprise','anger'],
- ['anger','expectation'],['calm','sad'],['sad','anxious'],
- ['calm','disgust'],['anxious','expectation'],
- ['joy','anger'],['sad','expectation'],
- ['joy','surprise','anger'],['calm','sad','anxious'],
- ['surprise','joy','expectation'],['anxious','expectation','anger'],
- ['disgust','calm','sad']
+ {emotions:['calm','expectation'],colors:['#AACC96','#F4BEAE']},
+ {emotions:['joy','expectation'],colors:['#EFCE7B','#F4BEAE']},
+ {emotions:['sad','anxious'],colors:['#B8CEE8','#D3B6D3']},
+ {emotions:['calm','joy'],colors:['#AACC96','#EFCE7B']},
+ {emotions:['expectation','sad'],colors:['#FF7BAC','#52A5CE']},
+ {emotions:['joy','sad'],colors:['#EFCE7B','#B8CEE8']},
+ {emotions:['anger','sad'],colors:['#EF6F3C','#52A5CE']},
+ {emotions:['calm','disgust'],colors:['#AACC96','#AFAB23']},
+ {emotions:['expectation','disgust'],colors:['#FF7BAC','#AFAB23']},
+ {emotions:['calm','anxious'],colors:['#25533F','#6D1F42']},
+ {emotions:['anxious','anger'],colors:['#6D1F42','#876029']},
+ {emotions:['disgust','calm'],colors:['#876029','#25533F']},
+ {emotions:['calm','sad','anxious'],colors:['#AACC96','#B8CEE8','#D3B6D3']},
+ {emotions:['expectation','joy','calm'],colors:['#F4BEAE','#EFCE7B','#AACC96']},
+ {emotions:['sad','expectation','disgust'],colors:['#52A5CE','#FF7BAC','#AFAB23']},
+ {emotions:['anxious','calm','disgust'],colors:['#6D1F42','#25533F','#876029']}
 ];
 function buildDemoRecords(today=new Date()){
  const year=today.getFullYear(),dates=[];
@@ -78,9 +88,10 @@ function buildDemoRecords(today=new Date()){
  const samples={};
  for(let i=0;i<dates.length;i++){
    const isGradient=gradientDays.has(i);
-   const choices=isGradient?DEMO_GRADIENTS[Math.floor(random()*DEMO_GRADIENTS.length)]:
+   const colorway=isGradient?DEMO_GRADIENTS[Math.floor(random()*DEMO_GRADIENTS.length)]:null;
+   const choices=colorway?colorway.emotions:
      [DEMO_EMOTION_POOL[Math.floor(random()*DEMO_EMOTION_POOL.length)]];
-   const demoColors=choices.map(id=>{
+   const demoColors=colorway?[...colorway.colors]:choices.map(id=>{
      const family=DEMO_PIGMENTS[id]||DEMO_PIGMENTS.joy;
      return family[Math.floor(random()*family.length)]
    });
