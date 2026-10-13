@@ -588,10 +588,12 @@ function setupCalendarGestures(){
      if(!source||!dest)continue;
      const from=source.getBoundingClientRect(),to=dest.getBoundingClientRect();
      if((!near(from)&&!near(to))||from.width<1||to.width<1)continue;
+     // Both-visible dates get priority: they provide the clearest proof
+     // of a continuous date journey without long across-screen streaks.
      const score=Math.min(
        Math.hypot((from.left+from.width*.5-focus.x)*.8,from.top+from.height*.5-focus.y),
        Math.hypot((to.left+to.width*.5-focus.x)*.8,to.top+to.height*.5-focus.y)
-     );
+     )+(near(from)&&near(to)?0:90);
      candidates.push({button,destButton,source,dest,from,to,score})
    }
    candidates.sort((a,b)=>a.score-b.score);
@@ -599,7 +601,8 @@ function setupCalendarGestures(){
    const visibleGhosts=candidates.slice(0,width<450?48:60);
    const ghostLayer=document.createElement('div');
    ghostLayer.className='zoom-bead-overlay';
-   document.body.appendChild(ghostLayer);
+   // Build all 48 copies off-DOM, then attach once. This prevents a
+   // forced style/layout pass for every cloned numeral on older Safari.
    const morphs=[];
    for(const item of visibleGhosts){
      const {button,destButton,source,dest,from,to}=item;
@@ -625,6 +628,7 @@ function setupCalendarGestures(){
        dy:to.top+to.height*.5-from.top-from.height*.5,
        ratio:to.width/from.width})
    }
+   document.body.appendChild(ghostLayer);
    layer.classList.add('zoom-poster-stage');
    layer.style.setProperty('--next-poster-opacity','0');
    const oldGroup=el.querySelector('.poster-months');
