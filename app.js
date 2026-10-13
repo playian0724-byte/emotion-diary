@@ -1,14 +1,17 @@
 
 'use strict';
+/* V27 — eight fixed emotion identities. Background & numeral ink are
+   explicitly paired from the reference color cards (not 12 arbitrary hues). */
 const BASE=[
-{id:'joy',name:'기쁨',color:'#FFD02F'},
-{id:'calm',name:'평온',color:'#20C4AD'},
-{id:'sad',name:'슬픔',color:'#3389EF'},
-{id:'anxious',name:'불안',color:'#9557E6'},
-{id:'anger',name:'분노',color:'#F15C63'},
-{id:'surprise',name:'놀람',color:'#FB9B2D'},
-{id:'disgust',name:'혐오',color:'#62C44B'},
-{id:'expectation',name:'기대',color:'#F36E9D'}];
+{id:'joy',name:'기쁨',color:'#F4D242',ink:'#008471'},
+{id:'calm',name:'평온',color:'#008471',ink:'#F4D242'},
+{id:'sad',name:'슬픔',color:'#80B0E8',ink:'#F4D242'},
+{id:'anxious',name:'불안',color:'#D1CAEA',ink:'#C45F3F'},
+{id:'anger',name:'분노',color:'#C45F3F',ink:'#FFC0C0'},
+{id:'surprise',name:'놀람',color:'#D6D35F',ink:'#008471'},
+{id:'disgust',name:'혐오',color:'#898E46',ink:'#FFC0C0'},
+{id:'expectation',name:'기대',color:'#F29CC3',ink:'#C45F3F'}];
+const BASIC_PALETTE=new Map(BASE.map(e=>[e.id,e]));
 const SAMPLES=[
 {id:'sample-a',name:'여운',color:'#B795DC',definition:'마음에 남아 오래 이어지는 느낌.',sample:true},
 {id:'sample-b',name:'후련함',color:'#65C9B5',definition:'무거운 마음이 풀린 느낌.',sample:true},
@@ -18,57 +21,30 @@ const DEMO_MODE=new URLSearchParams(window.location.search).get('demo')==='1';
 // Keep all preview dates in memory only. The real localStorage diary stays
 // completely untouched even if someone explores the rest of the app in demo.
 let demoRecords=null;
-/* V26 — the twelve exact swatch colors from the supplied reference chart.
-   Changes are isolated to preview data (demo=1), not the user's records. */
-const REFERENCE_SWATCHES={
- tea:'#AACC96',forest:'#25533F',peach:'#F4BEAE',
- berry:'#52A5CE',gum:'#FF7BAC',earth:'#876029',
- grape:'#6D1F42',lilac:'#D3B6D3',butter:'#EFCE7B',
- ice:'#B8CEE8',orange:'#EF6F3C',olive:'#AFAB23'
-};
-const DEMO_PIGMENTS={
- joy:['#EFCE7B','#EFCE7B','#F4BEAE','#EF6F3C','#EFCE7B','#EF6F3C'],
- calm:['#AACC96','#AACC96','#B8CEE8','#52A5CE','#25533F','#AACC96'],
- sad:['#B8CEE8','#B8CEE8','#52A5CE','#52A5CE','#25533F','#B8CEE8'],
- anxious:['#D3B6D3','#D3B6D3','#6D1F42','#FF7BAC','#B8CEE8','#6D1F42'],
- anger:['#EF6F3C','#EF6F3C','#FF7BAC','#6D1F42','#EF6F3C','#876029'],
- surprise:['#EFCE7B','#EF6F3C','#EF6F3C','#52A5CE','#F4BEAE','#EF6F3C'],
- disgust:['#AACC96','#AFAB23','#AACC96','#AFAB23','#25533F','#AFAB23'],
- expectation:['#FF7BAC','#F4BEAE','#FF7BAC','#D3B6D3','#F4BEAE','#FF7BAC']
-};
-// Specific light complementary inks chosen for dark swatches and deeper
-// complementary inks on pastel/bright swatches to keep small digits legible.
-const REFERENCE_INKS={
- '#AACC96':'#552345', '#25533F':'#FFE5CF',
- '#F4BEAE':'#25533F', '#52A5CE':'#521E40',
- '#FF7BAC':'#521E40', '#876029':'#DFEDFC',
- '#6D1F42':'#F4DAD1', '#D3B6D3':'#25533F',
- '#EFCE7B':'#6D1F42', '#B8CEE8':'#6D1F42',
- '#EF6F3C':'#451532', '#AFAB23':'#521E40'
+/* V27 demo samples use exactly the SAME eight base-emotion colors
+   as the real diary, no independent swatch palette or recoloring. */
+const DEMO_PIGMENTS=Object.fromEntries(BASE.map(e=>[e.id,[e.color]]));
+const REFERENCE_INKS=Object.fromEntries(BASE.map(e=>[e.color,e.ink]));
+const GRADIENT_INKS={
+ 'expectation|joy':'#C45F3F',
+ 'joy|surprise':'#008471',
+ 'calm|sad':'#F4D242',
+ 'anxious|sad':'#C45F3F',
+ 'calm|expectation':'#F4D242',
+ 'expectation|surprise':'#C45F3F',
+ 'anger|expectation':'#FFC0C0',
+ 'calm|disgust':'#F4D242'
 };
 const DEMO_EMOTION_POOL=[
  'joy','joy','joy','surprise','surprise','surprise',
  'expectation','expectation','expectation','anger','anger',
  'calm','calm','sad','sad','anxious','disgust'
 ];
-// Curated colorways avoid dark/light clashes under the same small numeral.
+// Restrained two-emotion demo gradients. Only existing base emotions.
 const DEMO_GRADIENTS=[
- {emotions:['calm','expectation'],colors:['#AACC96','#F4BEAE']},
- {emotions:['joy','expectation'],colors:['#EFCE7B','#F4BEAE']},
- {emotions:['sad','anxious'],colors:['#B8CEE8','#D3B6D3']},
- {emotions:['calm','joy'],colors:['#AACC96','#EFCE7B']},
- {emotions:['expectation','sad'],colors:['#FF7BAC','#52A5CE']},
- {emotions:['joy','sad'],colors:['#EFCE7B','#B8CEE8']},
- {emotions:['anger','sad'],colors:['#EF6F3C','#52A5CE']},
- {emotions:['calm','disgust'],colors:['#AACC96','#AFAB23']},
- {emotions:['expectation','disgust'],colors:['#FF7BAC','#AFAB23']},
- {emotions:['calm','anxious'],colors:['#25533F','#6D1F42']},
- {emotions:['anxious','anger'],colors:['#6D1F42','#876029']},
- {emotions:['disgust','calm'],colors:['#876029','#25533F']},
- {emotions:['calm','sad','anxious'],colors:['#AACC96','#B8CEE8','#D3B6D3']},
- {emotions:['expectation','joy','calm'],colors:['#F4BEAE','#EFCE7B','#AACC96']},
- {emotions:['sad','expectation','disgust'],colors:['#52A5CE','#FF7BAC','#AFAB23']},
- {emotions:['anxious','calm','disgust'],colors:['#6D1F42','#25533F','#876029']}
+ ['joy','expectation'],['joy','surprise'],['calm','sad'],
+ ['sad','anxious'],['calm','expectation'],['surprise','expectation'],
+ ['anger','expectation'],['calm','disgust']
 ];
 function buildDemoRecords(today=new Date()){
  const year=today.getFullYear(),dates=[];
@@ -89,12 +65,9 @@ function buildDemoRecords(today=new Date()){
  for(let i=0;i<dates.length;i++){
    const isGradient=gradientDays.has(i);
    const colorway=isGradient?DEMO_GRADIENTS[Math.floor(random()*DEMO_GRADIENTS.length)]:null;
-   const choices=colorway?colorway.emotions:
+   const choices=colorway?[...colorway]:
      [DEMO_EMOTION_POOL[Math.floor(random()*DEMO_EMOTION_POOL.length)]];
-   const demoColors=colorway?[...colorway.colors]:choices.map(id=>{
-     const family=DEMO_PIGMENTS[id]||DEMO_PIGMENTS.joy;
-     return family[Math.floor(random()*family.length)]
-   });
+   const demoColors=choices.map(id=>BASIC_PALETTE.get(id).color);
    samples[dates[i]]={emotions:[...choices],demoColors,note:'',demo:true}
  }
  return samples
@@ -420,22 +393,24 @@ function inkContrast(a,b){
 }
 function dateInk(rec){
  if(!rec)return '#83867C';
- const colors=DEMO_MODE&&rec.demoColors?.length?rec.demoColors:
-   (rec.emotions||[]).map(id=>byId(id)?.color).filter(Boolean);
- if(!colors.length)return '#343A36';
- // A single pigment uses its curated pale-complement/deep-complement pair.
- if(DEMO_MODE&&colors.length===1){
-   return REFERENCE_INKS[colors[0].toUpperCase()]||'#552345'
+ const ids=(rec.emotions||[]).filter(id=>byId(id));
+ if(!ids.length)return '#343A36';
+ // A one-emotion day always inherits its exact reference-card text pairing.
+ if(ids.length===1&&BASIC_PALETTE.has(ids[0]))return BASIC_PALETTE.get(ids[0]).ink;
+ // Approved base mixtures have explicitly designed fixed text colors.
+ if(ids.every(id=>BASIC_PALETTE.has(id))){
+   const signature=[...new Set(ids)].sort().join('|');
+   if(GRADIENT_INKS[signature])return GRADIENT_INKS[signature]
  }
- // On gradients use the ink which survives the LOWEST contrast among
- // colors, rather than averaging brightness (which makes digits vanish).
- const candidates=DEMO_MODE?[
-   '#521E40','#25533F','#451532','#DFEDFC','#FFE5CF','#F4DAD1'
- ]:['#243628','#452743','#F4EADB','#D6ECFF'];
- let best=candidates[0],score=-1;
- for(const ink of candidates){
-   const min=Math.min(...colors.map(color=>inkContrast(ink,color)));
-   if(min>score){best=ink;score=min}
+ // Custom/emergent blends fall back to best contrast among the same
+ // family of reference text colors, preserving color harmony.
+ const colors=DEMO_MODE&&rec.demoColors?.length?rec.demoColors:
+   ids.map(id=>byId(id).color);
+ const choices=[...new Set(BASE.map(e=>e.ink))];
+ let best=choices[0],score=-1;
+ for(const candidate of choices){
+   const floor=Math.min(...colors.map(color=>inkContrast(candidate,color)));
+   if(floor>score){score=floor;best=candidate}
  }
  return best
 }
