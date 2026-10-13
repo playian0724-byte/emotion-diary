@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#fbfbf9">
 <meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
 <title>결. — 감정 일기</title>
-<link rel="stylesheet" href="./styles.css?v=31">
+<link rel="stylesheet" href="./styles.css?v=32">
 <script defer src="./orb-renderer.js?v=8.2"></script>
-<script defer src="./app.js?v=31"></script>
+<script defer src="./app.js?v=32"></script>
 </head>
 <body>
 <main class="app">
@@ -18,6 +18,7 @@
 <button type="button" data-open="today" class="active">오늘</button>
 <button type="button" data-open="archive">기록</button>
 <button type="button" data-open="dictionary">사전</button>
+<button type="button" data-open="settings">설정</button>
 </nav>
 </header>
 <section id="today" class="screen active" aria-label="오늘의 감정 기록">
@@ -31,11 +32,12 @@
 <label class="heading-row" for="memo"><h2>메모</h2><span class="subline">선택</span></label>
 <textarea id="memo" class="memo" placeholder="기억하고 싶은 것" maxlength="1000"></textarea>
 <button id="save-day" class="button-primary" type="button" disabled>오늘의 구슬 저장</button>
+<p id="today-lock-note" class="hintbox today-lock-note" hidden>기록 유통기한이 지나 오늘의 기록을 수정할 수 없어요.</p>
 
 </section>
 <section id="archive" class="screen" aria-label="감정 아카이브">
 <div class="calendar-controls"><strong id="month-label"></strong><div class="arrow-buttons"><button type="button" id="month-prev" aria-label="이전 기간">‹</button><button type="button" id="month-next" aria-label="다음 기간">›</button></div></div>
-<p id="demo-note" class="demo-note" hidden>동심원 구슬 미리보기 · 단색 70% / 다중감정 30% <a href="./?v=31&view=year">실제 기록 보기</a></p>
+<p id="demo-note" class="demo-note" hidden>동심원 구슬 미리보기 · 단색 70% / 다중감정 30% <a href="./?v=32&view=year">실제 기록 보기</a></p>
 <div id="calendar" aria-label="감정 아카이브 달력"></div>
 <div class="entry-card" id="record-detail" hidden></div>
 
@@ -46,6 +48,23 @@
 <div class="heading-row"><h2>나의 감정</h2><span class="subline">Private</span></div>
 <div id="dictionary-list" class="dictionary-list"></div>
 <p class="hintbox">이 기기에만 저장됩니다.</p>
+</section>
+<section id="settings" class="screen" aria-label="앱 설정">
+<div class="intro"><h1>설정</h1><p>기록을 남기는 방식을 정하세요.</p></div>
+<div class="settings-group">
+<label class="settings-label" for="edit-expiry">기록 유통기한</label>
+<p class="settings-copy">처음 기록한 순간부터 일정 시간이 지나면 그날의 감정과 메모를 수정할 수 없어요. 기록은 그대로 남아 언제든 다시 볼 수 있습니다.</p>
+<select id="edit-expiry" class="settings-select">
+<option value="0">제한 없음 (기본)</option>
+<option value="1">1시간</option>
+<option value="24">24시간</option>
+<option value="72">3일</option>
+<option value="168">7일</option>
+<option value="720">30일</option>
+</select>
+<p id="edit-expiry-summary" class="settings-summary" aria-live="polite"></p>
+<p class="settings-disclaimer">설정을 바꾸면 이전 기록에도 적용돼요. 유통기한은 이 기기에서 설정하는 개인 규칙으로, 설정을 해제하면 다시 수정할 수 있어요.</p>
+</div>
 </section>
 <section id="create" class="screen" aria-label="새 감정 만들기">
 <button id="create-back" type="button" class="back">‹ 돌아가기</button>
