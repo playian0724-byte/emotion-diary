@@ -1052,3 +1052,14 @@ nav button.active{font-weight:630;color:#232725}
     gap:3px 1px
   }
 }
+
+
+/* V26 specificity guard: older V24/V25 demo rules also used !important.
+   These more-specific borderless overrides win on filled AND empty beads. */
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day.recorded .mini,
+#archive > .zoom-next-layer.mosaic-demo .poster-days .cal-day.recorded .mini,
+#archive .calendar-archive.mosaic-demo .poster-days .cal-day:not(.recorded) .mini,
+#archive > .zoom-next-layer.mosaic-demo .poster-days .cal-day:not(.recorded) .mini{
+  box-shadow:none!important;
+  border:0!important
+}
