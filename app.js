@@ -82,7 +82,7 @@ function previewRecord(day){
  if(!demoRecords)demoRecords=buildDemoRecords();
  return demoRecords[day]
 }
-let db={records:{},custom:[]},selection=[],month=new Date(new Date().getFullYear(),new Date().getMonth(),1),saving=false;
+let db={records:{},custom:[],settings:{editExpiryHours:0}},selection=[],month=new Date(new Date().getFullYear(),new Date().getMonth(),1),saving=false;
 let drops=[],amounts={},mixed=null,droppingTimer=null,repeatTimer=null,raf=0,mixBusy=false,toastTimer=0;
 let nextUnnamed=1,mixStartedAt=0,mixDuration=1900,lastWaterFrame=0;
 let mixRaster=null;
@@ -93,9 +93,47 @@ const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>'
 const isoDay=(d=new Date())=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 const allEmotions=()=>[...BASE,...SAMPLES,...db.custom];
 const byId=id=>allEmotions().find(e=>e.id===id);
+// V32 — edit-window setting: a personal rule, not a security control.
+// All choices are explicit to avoid accidental permanent locking.
+const EDIT_EXPIRY_OPTIONS=[0,1,24,72,168,720];
+function validEditExpiry(value){
+ const n=Number(value);
+ return EDIT_EXPIRY_OPTIONS.includes(n)?n:0
+}
+function expiryHours(){return validEditExpiry(db.settings?.editExpiryHours)}
+function expiryDeadline(day,rec){
+ const hours=expiryHours();
+ if(!rec||hours===0)return null;
+ const original=Date.parse(rec.createdAt||'');
+ // Pre-V32 records without timestamps use the END of their record date.
+ // Never assign a fabricated creation time that resets their expiration.
+ const fallback=new Date(day+'T23:59:59.999').getTime();
+ const anchor=Number.isFinite(original)?original:fallback;
+ return Number.isFinite(anchor)?anchor+hours*3600000:null
+}
+function canEditRecord(day,rec,now=Date.now()){
+ if(DEMO_MODE)return false;
+ if(!rec)return true;
+ const cutoff=expiryDeadline(day,rec);
+ return cutoff===null||now<cutoff
+}
+function expiryLabel(hours=expiryHours()){
+ return ({0:'제한 없음',1:'1시간',24:'24시간',72:'3일',168:'7일',720:'30일'})[hours]||'제한 없음'
+}
+function renderSettings(){
+ const select=$('edit-expiry');
+ select.value=String(expiryHours());
+ select.disabled=DEMO_MODE;
+ const status=$('edit-expiry-summary');
+ status.textContent=expiryHours()===0?
+   '지금은 언제든 기록을 수정할 수 있어요.':
+   '기록을 처음 저장한 순간부터 '+expiryLabel()+'이 지나면 수정할 수 없어요.';
+ if(DEMO_MODE)status.textContent+=' 미리보기에서는 설정을 변경할 수 없어요.'
+}
 function saveDB(){if(DEMO_MODE)return;try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){console.warn('Storage unavailable',e)}}
 function loadDB(){
-try{const raw=localStorage.getItem(KEY);if(raw){const v=JSON.parse(raw);if(v&&typeof v==='object'){db={records:v.records||{},custom:Array.isArray(v.custom)?v.custom:[]};return}}}
+try{const raw=localStorage.getItem(KEY);if(raw){const v=JSON.parse(raw);if(v&&typeof v==='object'){db={records:v.records||{},custom:Array.isArray(v.custom)?v.custom:[],
+settings:{editExpiryHours:validEditExpiry(v.settings?.editExpiryHours)}};return}}}
 catch(e){console.warn(e)}
 try{const legacy=JSON.parse(localStorage.getItem('gyeolRecords')||'{}');const keys=[...BASE,...SAMPLES].map(x=>x.id);
 for(const [day,record] of Object.entries(legacy)){if(record&&Array.isArray(record.ids)){db.records[day]={emotions:record.ids.map(i=>keys[i]).filter(Boolean).slice(0,4),note:String(record.note||'')}}}
@@ -292,8 +330,16 @@ function syncOrbShader(){
    v8Shader.detach();v8Failed=true;
  }
 }
-function renderPreview(){paintOrb($('today-orb'),selection);$('today-orb').classList.toggle('empty',selection.length===0);$('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'감정을 선택하세요.';$('save-day').disabled=selection.length===0||saving;syncOrbShader()}
-function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='create')startWater();else stopWater();syncOrbShader();window.scrollTo(0,0)}
+function renderPreview(){
+ paintOrb($('today-orb'),selection);
+ $('today-orb').classList.toggle('empty',selection.length===0);
+ $('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'감정을 선택하세요.';
+ const locked=Boolean(db.records[isoDay()]&&!canEditRecord(isoDay(),db.records[isoDay()]));
+ $('save-day').disabled=selection.length===0||saving||locked||DEMO_MODE;
+ $('today-lock-note').hidden=!locked;
+ syncOrbShader()
+}
+function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='settings')renderSettings();if(id==='create')startWater();else stopWater();syncOrbShader();window.scrollTo(0,0)}
 /* V16 — one staggered bead-poster grammar at every timescale.
    Zoom uses 7/3/2/1 bead-columns PER month for 1/3/6/12 month views. */
 const CAL_SPANS=[1,3,6,12];
