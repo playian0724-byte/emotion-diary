@@ -122,13 +122,36 @@ function canEditRecord(day,rec,now=Date.now()){
 function expiryLabel(hours=expiryHours()){
  return ({1:'1시간',24:'24시간',72:'3일',168:'7일'})[hours]||'24시간'
 }
-function renderSettings(){
- const select=$('edit-expiry');
- select.value=String(expiryHours());
- select.disabled=DEMO_MODE;
+/* V34 — a discrete four-stop range with an always-visible print-like
+   scale. The indices are evenly spaced; persisted values remain real hours. */
+function sliderIndexForHours(hours){
+ return Math.max(0,EDIT_EXPIRY_OPTIONS.indexOf(validEditExpiry(hours)))
+}
+function sliderHoursForIndex(value){
+ const index=Math.max(0,Math.min(EDIT_EXPIRY_OPTIONS.length-1,
+   Math.round(Number(value)||0)));
+ return EDIT_EXPIRY_OPTIONS[index]
+}
+function displayExpirySlider(index){
+ const hours=sliderHoursForIndex(index),position=sliderIndexForHours(hours);
+ const slider=$('edit-expiry'),scale=$('expiry-scale');
+ slider.value=String(position);
+ slider.setAttribute('aria-valuetext',expiryLabel(hours));
+ scale.style.setProperty('--expiry-progress',(position/3*100)+'%');
+ $('expiry-value').textContent=expiryLabel(hours);
+ scale.querySelectorAll('.expiry-tick').forEach((dot,i)=>{
+   dot.classList.toggle('selected',i===position)
+ });
+ document.querySelectorAll('.expiry-labels span').forEach((label,i)=>{
+   label.classList.toggle('selected',i===position)
+ });
  const status=$('edit-expiry-summary');
- status.textContent='기록을 처음 저장한 순간부터 '+expiryLabel()+'이 지나면 수정할 수 없어요.';
+ status.textContent='처음 저장한 순간부터 '+expiryLabel(hours)+'이 지나면 수정할 수 없어요.';
  if(DEMO_MODE)status.textContent+=' 미리보기에서는 설정을 변경할 수 없어요.'
+}
+function renderSettings(){
+ displayExpirySlider(sliderIndexForHours(expiryHours()));
+ $('edit-expiry').disabled=DEMO_MODE
 }
 function saveDB(){if(DEMO_MODE)return;try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){console.warn('Storage unavailable',e)}}
 function loadDB(){
@@ -1486,9 +1509,16 @@ $('reset-select').onclick=()=>{selection=[];renderChoices();renderPreview()};
 $('add-custom').onclick=()=>{resetMix();setScreen('create')};$('start-create').onclick=()=>{resetMix();setScreen('create')};
 $('create-back').onclick=()=>setScreen('today');
 $('save-day').onclick=saveDay;
+// Dragging updates the visual selection immediately; release/keyboard
+// commit persists only the matching hour value, never the slider index.
+$('edit-expiry').oninput=()=>{
+ if(DEMO_MODE){renderSettings();return}
+ displayExpirySlider($('edit-expiry').value)
+};
 $('edit-expiry').onchange=()=>{
  if(DEMO_MODE){renderSettings();return}
- db.settings={...db.settings,editExpiryHours:validEditExpiry($('edit-expiry').value)};
+ db.settings={...db.settings,
+   editExpiryHours:sliderHoursForIndex($('edit-expiry').value)};
  saveDB();renderSettings();renderPreview();
  if($('record-detail')&&!$('record-detail').hidden)showDate(calendarSelected,true);
  toast('기록 유통기한을 설정했어요.')
