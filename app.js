@@ -850,8 +850,71 @@ function setupCalendarGestures(){
      heading.style.removeProperty('opacity')
    }
  }
+ // V31: commit the next grid right away, but keep the old layout as a
+ // temporary fade-out layer until the composited ghosts finish their FLIP.
+ // This preserves the exact p-value at lift-off instead of a 30%-to-100% pop.
+ function commitPosterStaged(){
+   if(!stage||!stage.posterMode)return false;
+   if(nextFrame!==null){
+     const p=nextFrame;cancelDraw();drawStage(p)
+   }else cancelDraw();
+   const data=stage,p=clamp(data.progress,0,1);
+   const nextGroup=data.layer.querySelector('.poster-months');
+   if(!nextGroup){cleanupStage();return false}
+   const host=$('archive');
+   const hostRect=host.getBoundingClientRect(),oldRect=el.getBoundingClientRect();
+   const oldLayer=document.createElement('div');
+   oldLayer.className='calendar-archive zoom-'+CAL_SPANS[calendarZoom]+
+     (DEMO_MODE?' mosaic-demo':'')+' zoom-old-layer';
+   oldLayer.style.left=(oldRect.left-hostRect.left)+'px';
+   oldLayer.style.top=(oldRect.top-hostRect.top)+'px';
+   oldLayer.style.width=oldRect.width+'px';
+   data.oldGroup.style.removeProperty('--old-poster-opacity');
+   oldLayer.appendChild(data.oldGroup);
+   host.appendChild(oldLayer);
+   // The next layout is interactive immediately. The old layer and moving
+   // copies are inert (pointer-events:none).
+   calendarZoom=data.next;month=data.first;
+   const span=CAL_SPANS[calendarZoom];
+   el.className='calendar-archive zoom-'+span+(DEMO_MODE?' mosaic-demo':'');
+   el.replaceChildren(nextGroup);
+   data.layer.remove();
+   oldLayer.style.opacity=String(1-p);
+   nextGroup.style.opacity=String(p);
+   stopCalendarMotion();
+   updatePeriodHeader(month,calendarZoom,data);
+   stage=null;
+   calendarIgnoreClickUntil=performance.now()+240;
+   $('record-detail').hidden=true;
+   showDate(calendarSelected,false);
+   const settle={oldLayer,newGroup:nextGroup,ghostLayer:data.ghostLayer,
+     morphs:data.morphs,animations:[]};
+   posterSettle=settle;
+   if(reduced()||!nextGroup.animate){clearPosterSettle();return true}
+   const duration=230,easing='cubic-bezier(.22,.72,.22,1)';
+   const fadeOut=oldLayer.animate([{opacity:1-p},{opacity:0}],
+     {duration,easing,fill:'forwards'});
+   const fadeIn=nextGroup.animate([{opacity:p},{opacity:1}],
+     {duration,easing,fill:'forwards'});
+   settle.animations.push(fadeOut,fadeIn);
+   for(const item of data.morphs){
+     const ghost=item.source,finish=item.dest.getBoundingClientRect();
+     if(!ghost.animate||finish.width<1)continue;
+     const x=finish.left+finish.width*.5-item.from.left-item.from.width*.5;
+     const y=finish.top+finish.height*.5-item.from.top-item.from.height*.5;
+     const ratio=clamp(finish.width/item.from.width,.1,8);
+     const end='translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0) scale('+ratio.toFixed(4)+')';
+     const start=ghost.style.transform||'translate3d(0px,0px,0) scale(1)';
+     const anim=ghost.animate([{transform:start},{transform:end}],
+       {duration,easing,fill:'forwards'});
+     settle.animations.push(anim)
+   }
+   fadeIn.onfinish=()=>{if(posterSettle===settle)clearPosterSettle()};
+   return true
+ }
  function commitStaged(){
    if(!stage)return false;
+   if(stage.posterMode)return commitPosterStaged();
    // Settle the most recent finger position, even when touchend arrives
    // before the next scheduled animation frame.
    if(nextFrame!==null){
@@ -923,6 +986,7 @@ function setupCalendarGestures(){
    commitStaged()
  }
  el.addEventListener('touchstart',e=>{
+   if(posterSettle)clearPosterSettle();
    if(e.touches.length===2){
      if(settleRaf)cleanupStage();
      if(titleGhost){titleGhost.remove();titleGhost=null}
@@ -972,6 +1036,7 @@ function setupCalendarGestures(){
  },{passive:true});
  el.addEventListener('pointerdown',e=>{
    if(e.pointerType==='touch'||e.button!==0)return;
+   if(posterSettle)clearPosterSettle();
    mouseDrag={x:e.clientX,y:e.clientY,id:e.pointerId}
  });
  el.addEventListener('pointerup',e=>{
@@ -991,6 +1056,7 @@ function setupCalendarGestures(){
    if(!e.ctrlKey)return;
    if(e.cancelable)e.preventDefault();
    if(!stage&&wheelScale===1){
+     if(posterSettle)clearPosterSettle();
      if(titleGhost){titleGhost.remove();titleGhost=null}
      stopCalendarMotion();
      $('month-label').style.removeProperty('opacity');
