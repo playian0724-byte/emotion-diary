@@ -18,28 +18,34 @@ const DEMO_MODE=new URLSearchParams(window.location.search).get('demo')==='1';
 // Keep all preview dates in memory only. The real localStorage diary stays
 // completely untouched even if someone explores the rest of the app in demo.
 let demoRecords=null;
-/* Reference-style pigment swatches: closely packed and warm-led, with
-   quiet variations within each emotional hue family. DEMO ONLY: personal
-   emotions and their saved original colors remain unchanged. */
-/* V25 brighter, clearer half-pastel pigments. Each family has:
-   light [0,1] (35%), middle [2,3,4] (45%), accent [5] (20%).
-   DEMO ONLY; real saved emotion colors are unchanged. */
-const DEMO_PIGMENTS={
- joy:['#FFE7A3','#FFEDBD','#FFD86B','#FFCE55','#FAD77D','#FFC72F'],
- calm:['#B6F2E3','#CAF5ED','#7FDCCB','#8FE5D5','#60CFC4','#34C7B1'],
- sad:['#BCE4FF','#D1EBFF','#8CCCF2','#80BAEC','#9FCBF5','#318FDF'],
- anxious:['#DECDF9','#EBDDFF','#B997EE','#C7ADF3','#A98BE4','#935DDA'],
- anger:['#FFB0AC','#FFD0C6','#F88980','#FA8E9B','#EF766E','#ED5658'],
- surprise:['#FFE0B1','#FFEBCD','#FFBC72','#F9AB5B','#FFC681','#FF8B30'],
- disgust:['#CFEAB2','#E2F3CA','#A6D98C','#B6E09C','#95D182','#62B855'],
- expectation:['#FFD2DB','#FFE0E6','#F7A3BF','#F8BAC9','#F4ADC4','#E8739E']
+/* V26 — the twelve exact swatch colors from the supplied reference chart.
+   Changes are isolated to preview data (demo=1), not the user's records. */
+const REFERENCE_SWATCHES={
+ tea:'#AACC96',forest:'#25533F',peach:'#F4BEAE',
+ berry:'#52A5CE',gum:'#FF7BAC',earth:'#876029',
+ grape:'#6D1F42',lilac:'#D3B6D3',butter:'#EFCE7B',
+ ice:'#B8CEE8',orange:'#EF6F3C',olive:'#AFAB23'
 };
-function demoToneIndex(random){
- const group=random();
- if(group<.35)return Math.floor(random()*2);      // light 35%
- if(group<.8)return 2+Math.floor(random()*3);  // middle 45%
- return 5;                                     // vivid accent 20%
-}
+const DEMO_PIGMENTS={
+ joy:['#EFCE7B','#EFCE7B','#F4BEAE','#EF6F3C','#EFCE7B','#EF6F3C'],
+ calm:['#AACC96','#AACC96','#B8CEE8','#52A5CE','#25533F','#AACC96'],
+ sad:['#B8CEE8','#B8CEE8','#52A5CE','#52A5CE','#25533F','#B8CEE8'],
+ anxious:['#D3B6D3','#D3B6D3','#6D1F42','#FF7BAC','#B8CEE8','#6D1F42'],
+ anger:['#EF6F3C','#EF6F3C','#FF7BAC','#6D1F42','#EF6F3C','#876029'],
+ surprise:['#EFCE7B','#EF6F3C','#EF6F3C','#52A5CE','#F4BEAE','#EF6F3C'],
+ disgust:['#AACC96','#AFAB23','#AACC96','#AFAB23','#25533F','#AFAB23'],
+ expectation:['#FF7BAC','#F4BEAE','#FF7BAC','#D3B6D3','#F4BEAE','#FF7BAC']
+};
+// Specific light complementary inks chosen for dark swatches and deeper
+// complementary inks on pastel/bright swatches to keep small digits legible.
+const REFERENCE_INKS={
+ '#AACC96':'#552345', '#25533F':'#FFE5CF',
+ '#F4BEAE':'#25533F', '#52A5CE':'#521E40',
+ '#FF7BAC':'#521E40', '#876029':'#DFEDFC',
+ '#6D1F42':'#F4DAD1', '#D3B6D3':'#25533F',
+ '#EFCE7B':'#6D1F42', '#B8CEE8':'#6D1F42',
+ '#EF6F3C':'#451532', '#AFAB23':'#521E40'
+};
 const DEMO_EMOTION_POOL=[
  'joy','joy','joy','surprise','surprise','surprise',
  'expectation','expectation','expectation','anger','anger',
@@ -76,7 +82,7 @@ function buildDemoRecords(today=new Date()){
      [DEMO_EMOTION_POOL[Math.floor(random()*DEMO_EMOTION_POOL.length)]];
    const demoColors=choices.map(id=>{
      const family=DEMO_PIGMENTS[id]||DEMO_PIGMENTS.joy;
-     return family[demoToneIndex(random)]
+     return family[Math.floor(random()*family.length)]
    });
    samples[dates[i]]={emotions:[...choices],demoColors,note:'',demo:true}
  }
@@ -393,17 +399,34 @@ function periodHeaderLabel(date,span){
  return span===1?date.getFullYear()+'년 '+(date.getMonth()+1)+'월':
    date.getFullYear()+'년 '+(date.getMonth()+1)+'월부터 '+(last.getMonth()+1)+'월까지'
 }
+function inkLuma(hex){
+ const rgb=hexRgb(hex).map(c=>c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4));
+ return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722
+}
+function inkContrast(a,b){
+ const x=inkLuma(a),y=inkLuma(b);
+ return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)
+}
 function dateInk(rec){
- if(!rec)return '#969A93';
+ if(!rec)return '#83867C';
  const colors=DEMO_MODE&&rec.demoColors?.length?rec.demoColors:
    (rec.emotions||[]).map(id=>byId(id)?.color).filter(Boolean);
  if(!colors.length)return '#343A36';
- let mean=0;
- for(const color of colors){
-   const rgb=hexRgb(color).map(x=>x<=.04045?x/12.92:Math.pow((x+.055)/1.055,2.4));
-   mean+=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722
+ // A single pigment uses its curated pale-complement/deep-complement pair.
+ if(DEMO_MODE&&colors.length===1){
+   return REFERENCE_INKS[colors[0].toUpperCase()]||'#552345'
  }
- return mean/colors.length>.39?'#232925':'#FFFFFF'
+ // On gradients use the ink which survives the LOWEST contrast among
+ // colors, rather than averaging brightness (which makes digits vanish).
+ const candidates=DEMO_MODE?[
+   '#521E40','#25533F','#451532','#DFEDFC','#FFE5CF','#F4DAD1'
+ ]:['#243628','#452743','#F4EADB','#D6ECFF'];
+ let best=candidates[0],score=-1;
+ for(const ink of candidates){
+   const min=Math.min(...colors.map(color=>inkContrast(ink,color)));
+   if(min>score){best=ink;score=min}
+ }
+ return best
 }
 function calendarDayMarkup(y,m,day){
  const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
