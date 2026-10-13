@@ -447,7 +447,19 @@ function calendarDayMarkup(y,m,day){
  const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
  const rec=previewRecord(key);
  const cls=(rec?' recorded':'')+(key===isoDay()?' today':'')+(key===calendarSelected?' selected':'');
- return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'" aria-label="'+key+(rec?' 감정 기록':' 기록 없음')+'"><span class="mini"><span class="daynum" style="color:'+dateInk(rec)+'">'+day+'</span></span></button>'
+ // V31: serialize flat pigment and its 62% center directly into markup.
+ // No 365-node paintArchiveOrb() DOM pass after parsing each poster.
+ const colors=rec?(rec.emotions||[]).filter(id=>byId(id)).slice(0,4)
+   .map(id=>byId(id).color).filter(c=>/^#[0-9a-f]{6}$/i.test(c)):[];
+ const layers=orbDiscColors(colors);
+ const layered=rec&&layers.inner;
+ const miniClass='mini'+(layered?' orb-layered':'');
+ const ink=dateInk(rec);
+ const style=rec?' style="background:'+layers.outer+'"':'';
+ const center=layered?'<span class="orb-center" aria-hidden="true" style="background:'+layers.inner+'"></span>':'';
+ return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'" aria-label="'+key+
+   (rec?' 감정 기록':' 기록 없음')+'"><span class="'+miniClass+'"'+style+'>'+center+
+   '<span class="daynum" style="color:'+ink+'">'+day+'</span></span></button>'
 }
 function calendarMonthMarkup(date,span){
  const y=date.getFullYear(),m=date.getMonth(),n=new Date(y,m+1,0).getDate();
@@ -485,10 +497,8 @@ function renderCalendar(){
  target.innerHTML=span===12?calendarYearPoster(yr):
   '<div class="poster-months" role="group" aria-label="'+yr+'년 '+span+'개월 감정 기록">'+
   Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(yr,month.getMonth()+i,1),span)).join('')+'</div>';
- target.querySelectorAll('[data-date]').forEach(el=>{
-   const rec=previewRecord(el.dataset.date);
-   if(rec)paintArchiveOrb(el.querySelector('.mini'),rec)
- });
+ // Date backgrounds and inner circles are already present in the HTML.
+ // Avoid a second full poster traversal and hundreds of inline style writes.
  showDate(calendarSelected,false)
 }
 function showDate(day,rerender=true){
@@ -661,10 +671,7 @@ function setupCalendarGestures(){
    layer.innerHTML=sourceMarkup;
    const targetMap=new Map();
    layer.querySelectorAll('[data-date]').forEach(button=>{
-     const rec=previewRecord(button.dataset.date);
-     if(rec)paintArchiveOrb(button.querySelector('.mini'),rec);
-     // Stage buttons are hidden by one CSS rule until adopted. Avoid up to
-     // 365 inline opacity writes during the initial pinch.
+     // Colors and center discs were serialized into the markup itself.
      targetMap.set(button.dataset.date,button)
    });
    const host=el.parentElement;
