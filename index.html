@@ -85,9 +85,10 @@
 <button type="button" data-map-period="30" aria-pressed="false">30일</button>
 </div>
 </div>
+<p id="emotion-map-demo-note" class="emotion-map-demo-note" hidden>샘플 감정 지도 · 실제 기록과 별개로 표시돼요.</p>
 <div class="emotion-map-board" id="emotion-map-board">
-<svg id="emotion-map-graphic" role="img" aria-label="감정별 빈도와 함께 기록한 관계를 표시하는 감정 지도" viewBox="0 0 360 345" preserveAspectRatio="xMidYMid meet"></svg>
-<div id="emotion-map-empty" class="emotion-map-empty" hidden>기록이 쌓이면 감정들이 이곳에 연결돼요.</div>
+<svg id="emotion-map-graphic" role="group" aria-label="감정별 빈도와 함께 기록한 관계를 표시하는 감정 지도" viewBox="0 0 360 345" preserveAspectRatio="xMidYMid meet"></svg>
+<div id="emotion-map-empty" class="emotion-map-empty" hidden><span>기록이 쌓이면 감정들이 이곳에 연결돼요.</span><a href="./?v=36&demo=1&view=map">샘플 감정 지도 보기 ↗</a></div>
 </div>
 <div class="emotion-map-legend">
 <span><i class="map-legend-dot" aria-hidden="true"></i>원의 크기 · 기록 횟수</span>
