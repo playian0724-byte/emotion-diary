@@ -1431,11 +1431,23 @@ nav button.active{font-weight:630;color:#232725}
 }
 #emotion-map-graphic[hidden]{display:none!important}
 .emotion-map-empty{
- position:absolute;inset:0;display:grid;place-items:center;
+ position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
  padding:30px;text-align:center;color:#90978d;
  font-size:13px;line-height:1.8
 }
+/* Empty diary can see a memory-only preview without touching storage. */
+.emotion-map-empty{flex-direction:column;gap:12px}
+.emotion-map-empty a{
+  display:block;margin-top:12px;color:#315c48;
+  font-size:12px;font-weight:630;letter-spacing:-.025em;
+  text-underline-offset:4px;text-decoration-thickness:1px
+}
 .emotion-map-empty[hidden]{display:none!important}
+.emotion-map-demo-note{
+  margin:0 0 10px;color:#92998f;
+  font-size:11px;line-height:1.6
+}
+.emotion-map-demo-note[hidden]{display:none!important}
 .emotion-map-legend{
  display:flex;flex-wrap:wrap;column-gap:18px;row-gap:8px;
  align-items:center;margin:14px 3px 8px;
