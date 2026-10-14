@@ -1560,3 +1560,48 @@ nav button.active{font-weight:630;color:#232725}
  #my .emotion-map-board{height:clamp(500px,74svh,640px)}
  #my .emotion-map-top h2{font-size:16px}
 }
+
+
+/* V38 — Remove redundant coaching copy. Keep essential dynamic feedback
+   and form accessibility, but let typography, colors and controls lead. */
+.sr-only{
+ position:absolute!important;
+ width:1px!important;height:1px!important;padding:0!important;
+ margin:-1px!important;overflow:hidden!important;
+ clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;
+ white-space:nowrap!important;border:0!important
+}
+#selected-label:empty,
+#mix-summary:empty{display:none!important}
+#my .my-intro{
+ margin-top:28px;
+ margin-bottom:12px
+}
+#my .emotion-map-top{
+ display:flex;
+ align-items:center;
+ justify-content:flex-end;
+ min-height:35px;
+ margin-bottom:10px
+}
+#my .emotion-map-top .emotion-map-period{margin-left:auto}
+#my .emotion-map-board{
+ height:clamp(540px,80svh,760px)
+}
+#settings .intro{margin-bottom:26px}
+#settings .settings-group{margin-top:0}
+#settings .expiry-reading{margin:17px 0 18px}
+#settings .settings-group .expiry-labels{margin-bottom:8px}
+#dictionary .intro{margin-bottom:13px}
+#dictionary .secondary-action{margin-top:0}
+#create .intro{margin-bottom:22px}
+#create #mix-summary:not(:empty){margin-top:12px}
+#create .mix-controls{margin-top:17px}
+#create #blend-panel{margin-top:15px}
+#today .preview{gap:11px}
+@media(max-width:420px){
+ #my .emotion-map-board{height:clamp(540px,80svh,730px)}
+}
+@media(max-width:350px){
+ #my .emotion-map-board{height:clamp(520px,77svh,675px)}
+}
