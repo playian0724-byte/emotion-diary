@@ -140,7 +140,9 @@ function displayExpirySlider(index){
  scale.style.setProperty('--expiry-progress',(position/3*100)+'%');
  $('expiry-value').textContent=expiryLabel(hours);
  scale.querySelectorAll('.expiry-tick').forEach((dot,i)=>{
-   dot.classList.toggle('selected',i===position)
+   const chosen=i===position;
+   dot.classList.toggle('selected',chosen);
+   dot.setAttribute('aria-pressed',String(chosen))
  });
  document.querySelectorAll('.expiry-labels span').forEach((label,i)=>{
    label.classList.toggle('selected',i===position)
@@ -151,9 +153,49 @@ function displayExpirySlider(index){
 }
 function renderSettings(){
  displayExpirySlider(sliderIndexForHours(expiryHours()));
- $('edit-expiry').disabled=DEMO_MODE
+ $('edit-expiry').disabled=DEMO_MODE;
+ document.querySelectorAll('[data-expiry-index]').forEach(btn=>{
+   btn.disabled=DEMO_MODE;
+   btn.setAttribute('aria-pressed',String(
+     Number(btn.dataset.expiryIndex)===sliderIndexForHours(expiryHours())))
+ })
 }
-function saveDB(){if(DEMO_MODE)return;try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){console.warn('Storage unavailable',e)}}
+function persistExpiryHours(hours,announce=false){
+ if(DEMO_MODE){renderSettings();return false}
+ const chosen=validEditExpiry(hours),previous=expiryHours();
+ if(chosen!==previous){
+   db.settings={...db.settings,editExpiryHours:chosen};
+   if(!saveDB()){
+     db.settings={...db.settings,editExpiryHours:previous};
+     renderSettings();toast('설정을 저장할 수 없어요.');return false
+   }
+ }
+ renderSettings();
+ renderPreview();
+ const detail=$('record-detail');
+ if(!detail.hidden&&!detail.querySelector('.record-editor'))
+   showDate(calendarSelected,true);
+ if(announce)toast('유통기한 · '+expiryLabel(chosen));
+ return true
+}
+function refreshExpiryLocks(){
+ // In an open tab, the edit window may elapse while the user is reading.
+ // The save handlers still check the exact timestamp as a second barrier.
+ const today=isoDay(),rec=db.records[today],locked=Boolean(rec&&!canEditRecord(today,rec));
+ if($('today-lock-note').hidden===locked)
+   renderPreview();
+ const detail=$('record-detail');
+ if(!detail.hidden&&!detail.querySelector('.record-editor')){
+   const dayRec=db.records[calendarSelected];
+   if(dayRec&&!canEditRecord(calendarSelected,dayRec)&&
+     detail.querySelector('.record-edit-button'))showDate(calendarSelected,true)
+ }
+}
+function saveDB(){
+ if(DEMO_MODE)return false;
+ try{localStorage.setItem(KEY,JSON.stringify(db));return true}
+ catch(e){console.warn('Storage unavailable',e);return false}
+}
 function loadDB(){
 try{const raw=localStorage.getItem(KEY);if(raw){const v=JSON.parse(raw);if(v&&typeof v==='object'){db={records:v.records||{},custom:Array.isArray(v.custom)?v.custom:[],
 settings:{editExpiryHours:validEditExpiry(v.settings?.editExpiryHours)}};return}}}
@@ -1749,20 +1791,25 @@ $('reset-select').onclick=()=>{selection=[];renderChoices();renderPreview()};
 $('add-custom').onclick=()=>{resetMix();setScreen('create')};$('start-create').onclick=()=>{resetMix();setScreen('create')};
 $('create-back').onclick=()=>setScreen('today');
 $('save-day').onclick=saveDay;
-// Dragging updates the visual selection immediately; release/keyboard
-// commit persists only the matching hour value, never the slider index.
+// V40: persist on INPUT too, not only on CHANGE. Mobile Safari may
+// dispatch a final change only after the gesture (or not before leaving).
 $('edit-expiry').oninput=()=>{
- if(DEMO_MODE){renderSettings();return}
- displayExpirySlider($('edit-expiry').value)
+ persistExpiryHours(sliderHoursForIndex($('edit-expiry').value))
 };
 $('edit-expiry').onchange=()=>{
- if(DEMO_MODE){renderSettings();return}
- db.settings={...db.settings,
-   editExpiryHours:sliderHoursForIndex($('edit-expiry').value)};
- saveDB();renderSettings();renderPreview();
- if($('record-detail')&&!$('record-detail').hidden)showDate(calendarSelected,true);
- toast('기록 유통기한을 설정했어요.')
+ persistExpiryHours(sliderHoursForIndex($('edit-expiry').value),true)
 };
+// Four explicit large tap targets mean users don't need to grab an
+// invisible native range thumb on small iPhones.
+document.querySelectorAll('[data-expiry-index]').forEach(btn=>{
+ btn.onclick=()=>persistExpiryHours(sliderHoursForIndex(btn.dataset.expiryIndex),true)
+});
+$('my-settings').onclick=()=>setScreen('settings');
+$('settings-back').onclick=()=>setScreen('my');
+document.addEventListener('visibilitychange',()=>{
+ if(!document.hidden)refreshExpiryLocks()
+});
+window.setInterval(refreshExpiryLocks,30000);
 document.querySelectorAll('[data-map-period]').forEach(btn=>btn.onclick=()=>{
  emotionMapPeriod=btn.dataset.mapPeriod==='30'?'30':'all';
  emotionMapSelected=null;
