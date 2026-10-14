@@ -1605,3 +1605,214 @@ nav button.active{font-weight:630;color:#232725}
 @media(max-width:350px){
  #my .emotion-map-board{height:clamp(520px,77svh,675px)}
 }
+
+
+/* V39 — editorial polish inspired by Copenhagen-modern reference screens.
+   Preserve layout structure, 4-column emotion selector, map geometry and
+   EVERY pigment/orb rendering rule unchanged. This is interface chrome only. */
+:root{
+  --ink:#20221f;
+  --muted:#85867e;
+  --line:#e8e2d8;
+  --paper:#faf8f2;
+  --canvas:#f4f0e8;
+}
+body{
+  background:#f2eee7;
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  letter-spacing:-.025em;
+}
+.app{
+  background:var(--paper);
+}
+/* Keep all five original tabs in the original top navigation. */
+header{
+  padding-bottom:14px;
+  border-bottom:1px solid #e8e3da;
+}
+header .brand{
+  color:#1b1d1b;
+  font-size:32px;
+  font-weight:800;
+  letter-spacing:-.09em;
+  line-height:1;
+}
+nav{align-items:center;gap:2px}
+nav button{
+  color:#95948b;
+  border-radius:12px;
+  padding:8px 10px;
+  font-size:12px;
+  font-weight:550;
+  letter-spacing:-.045em;
+  transition:background-color .15s ease,color .15s ease
+}
+nav button.active{
+  color:#1f211f;
+  background:#ece8df;
+  font-weight:750
+}
+/* Editorial hierarchy; same positions and the same content. */
+.intro{margin-top:30px}
+.intro h1,
+#my .my-intro h1{
+  color:#1e201e;
+  font-size:35px;
+  font-weight:790;
+  letter-spacing:-.078em;
+  line-height:1.15;
+  margin-bottom:9px
+}
+#my .my-intro{margin-top:28px;margin-bottom:13px}
+#today .intro p{
+  color:#8f8e84;
+  font-size:13px;
+  font-weight:520;
+  letter-spacing:-.03em
+}
+.heading-row{margin-top:21px;margin-bottom:14px}
+.heading-row h2{
+  color:#262825;
+  font-size:16px;
+  font-weight:730;
+  letter-spacing:-.052em
+}
+.subline,
+.subtle-button{
+  color:#8d8e84;
+  font-size:12px
+}
+/* Same four-column selector and circles; change only the tile surfaces. */
+.grid-emotions{gap:9px}
+.emotion{
+  background:#fffdf8;
+  border:1px solid #e9e3d9;
+  border-radius:19px;
+  color:#31332f;
+  font-size:12px;
+  font-weight:650;
+  letter-spacing:-.045em
+}
+.emotion.active{
+  background:#f2eee5;
+  border:1.5px solid #30332f
+}
+/* Control shapes follow the rounded rectangles and bold typography
+   of the references without moving buttons to a new location. */
+.secondary-action{
+  color:#272a26;
+  font-size:14px;
+  font-weight:650;
+  letter-spacing:-.035em
+}
+.plus-box{
+  border-radius:50%;
+  background:#252724;
+  color:#faf8f2;
+  font-weight:400
+}
+.right-arrow{color:#62655e}
+.memo,
+.text-field{
+  background:#f6f2ea;
+  border:1px solid #e7e0d5;
+  border-radius:18px;
+  color:#262923;
+  font-size:14px
+}
+.memo:focus,
+.text-field:focus{border-color:#8d9a88}
+.button-primary{
+  background:#20221f;
+  color:#faf8f2;
+  border-radius:21px;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:-.035em;
+  min-height:54px
+}
+.button-primary:disabled{
+  background:#dedbd2;
+  color:#98978e
+}
+.button-outline{
+  background:#fffdf8;
+  border-color:#e7dfd5;
+  border-radius:17px;
+  color:#363934;
+  font-weight:640
+}
+.calendar-controls strong{
+  color:#222521;
+  font-size:19px;
+  font-weight:760;
+  letter-spacing:-.062em
+}
+.arrow-buttons button{
+  background:#ece8df;
+  color:#333630;
+  border-radius:50%;
+  font-size:19px
+}
+.entry-card,
+.dictionary-item{
+  background:#fffdf8;
+  border-color:#e8e2d8;
+  border-radius:19px
+}
+.dictionary-item .copy strong{
+  font-size:14px;
+  font-weight:730;
+  letter-spacing:-.045em
+}
+#my .emotion-map-period{background:#ede9df;border-radius:13px}
+#my .emotion-map-period button{border-radius:11px;font-weight:600}
+#my .emotion-map-period button.active{
+  color:#faf8f2;
+  background:#252724;
+  font-weight:730;
+  box-shadow:none
+}
+/* Map remains full-width, full-height and all circles keep their SVG fills. */
+#my .emotion-map-board{background:#f6f3eb}
+#my .emotion-map-summary strong{font-weight:740}
+#settings .settings-group{
+  background:#fffdf8;
+  border-color:#e7e0d5;
+  border-radius:22px
+}
+#settings .settings-label{
+  color:#282b27;
+  font-size:17px;
+  font-weight:740;
+  letter-spacing:-.052em
+}
+#settings .expiry-reading strong{
+  color:#242824;
+  font-weight:700;
+  letter-spacing:-.073em
+}
+.mix-stage{
+  background:#f4f0e8;
+  border-color:#e8e1d6;
+  border-radius:22px
+}
+.input-label{font-weight:720;letter-spacing:-.045em}
+.back{color:#4f534d;font-weight:600}
+@media(max-width:420px){
+  header .brand{font-size:29px}
+  nav{gap:1px}
+  nav button{font-size:11px;padding:8px 7px;border-radius:10px}
+  .intro h1,
+  #my .my-intro h1{font-size:33px}
+}
+@media(max-width:350px){
+  header .brand{font-size:27px}
+  nav button{font-size:10.5px;padding:8px 5px}
+  .intro h1,
+  #my .my-intro h1{font-size:31px}
+}
+@media(prefers-reduced-motion:reduce){
+  nav button{transition:none}
+}
