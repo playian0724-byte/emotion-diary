@@ -362,7 +362,7 @@ function renderPreview(){
  $('today-lock-note').hidden=!locked;
  syncOrbShader()
 }
-function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='settings')renderSettings();if(id==='create')startWater();else stopWater();syncOrbShader();window.scrollTo(0,0)}
+function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary'){renderDictionary();renderEmotionMap()}if(id==='settings')renderSettings();if(id==='create')startWater();else stopWater();syncOrbShader();window.scrollTo(0,0)}
 /* V16 — one staggered bead-poster grammar at every timescale.
    Zoom uses 7/3/2/1 bead-columns PER month for 1/3/6/12 month views. */
 const CAL_SPANS=[1,3,6,12];
@@ -1286,6 +1286,193 @@ function setupCalendarGestures(){
    }
  },true)
 }
+/* V36 — Emotion constellation.
+   Counts are DISTINCT diary dates, not how many times a chip was tapped.
+   Co-occurrence weights are one vote per day containing both emotions.
+   Positions are deterministic and calculated only upon opening this tab. */
+const EMOTION_MAP_MAX_NODES=16,EMOTION_MAP_MAX_EDGES=50;
+let emotionMapPeriod='all',emotionMapSelected=null;
+function emotionMapStats(records,period='all',today=new Date()){
+ const cutoff=new Date(today.getFullYear(),today.getMonth(),today.getDate()-29);
+ const first=period==='30'?isoDay(cutoff):null;
+ const known=new Map(allEmotions().map(e=>[e.id,e]));
+ const totals=new Map(),pairs=new Map();
+ let recordedDays=0;
+ for(const [day,entry] of Object.entries(records||{})){
+   if(first&&day<first)continue;
+   if(!entry||!Array.isArray(entry.emotions))continue;
+   const ids=[...new Set(entry.emotions.filter(id=>known.has(id)))];
+   if(!ids.length)continue;
+   recordedDays++;
+   for(const id of ids)totals.set(id,(totals.get(id)||0)+1);
+   const sorted=ids.sort();
+   for(let i=0;i<sorted.length;i++)for(let j=i+1;j<sorted.length;j++){
+     const pair=sorted[i]+'|'+sorted[j];
+     pairs.set(pair,(pairs.get(pair)||0)+1)
+   }
+ }
+ const all=[...totals].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+ const visible=all.slice(0,EMOTION_MAP_MAX_NODES);
+ const available=new Set(visible.map(v=>v[0]));
+ const maxCount=Math.max(1,...visible.map(v=>v[1]));
+ const nodes=visible.map(([id,count])=>{
+   const e=known.get(id);
+   const radius=maxCount<4?19+7*Math.sqrt(count/maxCount):
+     18+23*Math.sqrt(count/maxCount);
+   return{id,count,name:e.name||'이름 미정',
+     color:/^#[0-9a-fA-F]{6}$/.test(e.color||'')?e.color:'#898E46',
+     ink:e.ink||null,r:Math.min(41,radius)}
+ });
+ const edges=[];
+ for(const [pair,count] of pairs){
+   const [a,b]=pair.split('|');
+   if(available.has(a)&&available.has(b))edges.push({a,b,count})
+ }
+ edges.sort((a,b)=>b.count-a.count||a.a.localeCompare(b.a)||a.b.localeCompare(b.b));
+ return{nodes,edges:edges.slice(0,EMOTION_MAP_MAX_EDGES),allEdgeCount:edges.length,
+   totalNodes:all.length,recordedDays,period}
+}
+function layoutEmotionMap(graph){
+ const nodes=graph.nodes.map((n,i)=>{
+   // Golden-angle distribution avoids unstable random jumping across visits.
+   const angle=i*2.399963229728653;
+   const seedRadius=i===0?0:54+24*Math.sqrt(i);
+   return{...n,x:180+Math.cos(angle)*seedRadius,
+     y:173+Math.sin(angle)*seedRadius*.86,vx:0,vy:0}
+ });
+ if(nodes.length===1){nodes[0].x=180;nodes[0].y=172;return nodes}
+ const byId=new Map(nodes.map(n=>[n.id,n]));
+ const maxLink=Math.max(1,...graph.edges.map(e=>e.count));
+ // Fixed iterations with no rAF physics work: performant even on mobile.
+ for(let k=0;k<180;k++){
+   for(let i=0;i<nodes.length;i++){
+     const a=nodes[i];
+     for(let j=i+1;j<nodes.length;j++){
+       const b=nodes[j],dx=b.x-a.x,dy=b.y-a.y;
+       const d=Math.max(.01,Math.hypot(dx,dy));
+       const minDistance=a.r+b.r+13;
+       const repel=Math.max(0,minDistance-d)*.095+120/(d*d+80);
+       const px=dx/d*repel,py=dy/d*repel;
+       a.vx-=px;a.vy-=py;b.vx+=px;b.vy+=py
+     }
+   }
+   for(const edge of graph.edges){
+     const a=byId.get(edge.a),b=byId.get(edge.b);
+     if(!a||!b)continue;
+     const dx=b.x-a.x,dy=b.y-a.y,d=Math.max(.01,Math.hypot(dx,dy));
+     const strength=edge.count/maxLink;
+     const desired=Math.max(a.r+b.r+17,133-42*strength);
+     const pull=(d-desired)*(.0012+.0025*strength);
+     a.vx+=dx/d*pull;a.vy+=dy/d*pull;
+     b.vx-=dx/d*pull;b.vy-=dy/d*pull
+   }
+   for(const n of nodes){
+     n.vx+=(180-n.x)*.0017;
+     n.vy+=(172-n.y)*.0017;
+     n.vx*=.79;n.vy*=.79;
+     n.x+=Math.max(-5,Math.min(5,n.vx));
+     n.y+=Math.max(-5,Math.min(5,n.vy));
+     const padding=n.r+9;
+     n.x=Math.max(padding,Math.min(360-padding,n.x));
+     n.y=Math.max(padding,Math.min(345-padding,n.y))
+   }
+ }
+ return nodes
+}
+function renderEmotionMap(){
+ const records=DEMO_MODE?(demoRecords||buildDemoRecords()):db.records;
+ const graph=emotionMapStats(records,emotionMapPeriod);
+ const svg=$('emotion-map-graphic'),summary=$('emotion-map-summary');
+ const empty=$('emotion-map-empty');
+ svg.replaceChildren();
+ empty.hidden=graph.nodes.length>0;
+ svg.hidden=graph.nodes.length===0;
+ document.querySelectorAll('[data-map-period]').forEach(button=>{
+   const active=button.dataset.mapPeriod===emotionMapPeriod;
+   button.classList.toggle('active',active);
+   button.setAttribute('aria-pressed',String(active))
+ });
+ if(!graph.nodes.length){
+   summary.textContent=emotionMapPeriod==='30'?
+     '최근 30일에 기록된 감정이 없어요.':'첫 감정을 기록하면 지도가 자라나요.';
+   emotionMapSelected=null;
+   return
+ }
+ if(emotionMapSelected&&!graph.nodes.some(n=>n.id===emotionMapSelected))
+   emotionMapSelected=null;
+ const points=layoutEmotionMap(graph),positions=new Map(points.map(n=>[n.id,n]));
+ const ns='http://www.w3.org/2000/svg';
+ const elem=(tag,attrs={})=>{
+   const v=document.createElementNS(ns,tag);
+   for(const [key,value] of Object.entries(attrs))v.setAttribute(key,String(value));
+   return v
+ };
+ const active=emotionMapSelected,maxLink=Math.max(1,...graph.edges.map(e=>e.count));
+ const edgeLayer=elem('g',{'aria-hidden':'true'});
+ for(const edge of graph.edges){
+   const a=positions.get(edge.a),b=positions.get(edge.b);
+   if(!a||!b)continue;
+   const strength=Math.sqrt(edge.count/maxLink);
+   const involved=!active||edge.a===active||edge.b===active;
+   const line=elem('line',{x1:a.x.toFixed(1),y1:a.y.toFixed(1),
+     x2:b.x.toFixed(1),y2:b.y.toFixed(1),
+     stroke:involved&&active?'#335a48':'#778f7d',
+     'stroke-width':(0.8+6.1*strength).toFixed(2),
+     'stroke-opacity':involved?(0.16+0.73*strength).toFixed(2):'.055',
+     'stroke-linecap':'round'});
+   edgeLayer.append(line)
+ }
+ svg.append(edgeLayer);
+ const nodeLayer=elem('g');
+ for(const n of points){
+   const focused=active===n.id,related=!active||graph.edges.some(e=>
+     (e.a===active&&e.b===n.id)||(e.b===active&&e.a===n.id));
+   const group=elem('g',{role:'button',tabindex:'0',
+     'aria-label':n.name+', '+n.count+'회 기록. 연결 관계 보기',
+     'aria-pressed':String(focused),transform:'translate('+n.x.toFixed(1)+' '+n.y.toFixed(1)+')'});
+   group.classList.add('map-node');
+   if(active&&!focused&&!related)group.classList.add('map-node-dimmed');
+   if(focused)group.classList.add('map-node-selected');
+   const circle=elem('circle',{r:n.r.toFixed(2),fill:n.color});
+   group.append(circle);
+   const caption=elem('text',{'text-anchor':'middle','dominant-baseline':'central',
+     fill:n.ink||'#24352b','font-size':n.name.length>3?11:13,
+     'font-weight':'730','letter-spacing':'-.7px'});
+   caption.textContent=[...n.name].length>4?[...n.name].slice(0,3).join('')+'…':n.name;
+   group.append(caption);
+   const choose=()=>{
+     emotionMapSelected=emotionMapSelected===n.id?null:n.id;
+     renderEmotionMap()
+   };
+   group.addEventListener('click',choose);
+   group.addEventListener('keydown',event=>{
+     if(event.key==='Enter'||event.key===' '){event.preventDefault();choose()}
+   });
+   nodeLayer.append(group)
+ }
+ svg.append(nodeLayer);
+ if(active){
+   const focus=positions.get(active);
+   const related=graph.edges.filter(e=>e.a===active||e.b===active)
+     .sort((a,b)=>b.count-a.count).slice(0,4);
+   summary.replaceChildren();
+   const heading=document.createElement('strong');
+   heading.textContent=focus.name+' · '+focus.count+'일';
+   summary.append(heading);
+   const note=document.createElement('span');
+   note.textContent=related.length?'함께 기록한 감정: '+
+     related.map(e=>{const other=positions.get(e.a===active?e.b:e.a);
+       return other.name+' '+e.count+'회'}).join(' · '):
+     '이 기간에는 다른 감정과 함께 기록되지 않았어요.';
+   summary.append(note);
+ }else{
+   summary.textContent=graph.recordedDays+'일의 기록 · '+graph.totalNodes+
+     '가지 감정'+(graph.totalNodes>graph.nodes.length?
+     ' · 주요 '+graph.nodes.length+'가지 표시':'')+
+     (graph.allEdgeCount>graph.edges.length?' · 강한 연결 우선':'');
+ }
+}
+
 function renderDictionary(){const data=[...db.custom];const host=$('dictionary-list');if(!data.length){host.innerHTML='<div class="empty-state">저장된 감정이 없습니다.</div>';return}
 host.innerHTML=data.slice().reverse().map(e=>'<div class="dictionary-item"><span class="swatch" style="background:'+e.color+'"></span><div class="copy"><strong>'+escapeHTML(e.name||'이름 미정')+'</strong><p>'+escapeHTML(e.definition||e.components.map(c=>byId(c.id)?.name+' '+Math.round(c.ratio*100)+'%').join(' · '))+'</p></div><span class="privacy">Private</span><button type="button" class="subtle-button" data-use="'+escapeHTML(e.id)+'">사용</button></div>').join('');
 host.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{useEmotion(b.dataset.use)})}
@@ -1523,6 +1710,11 @@ $('edit-expiry').onchange=()=>{
  if($('record-detail')&&!$('record-detail').hidden)showDate(calendarSelected,true);
  toast('기록 유통기한을 설정했어요.')
 };
+document.querySelectorAll('[data-map-period]').forEach(btn=>btn.onclick=()=>{
+ emotionMapPeriod=btn.dataset.mapPeriod==='30'?'30':'all';
+ emotionMapSelected=null;
+ renderEmotionMap()
+});
 $('month-prev').onclick=()=>shiftMonth(-1);$('month-next').onclick=()=>shiftMonth(1);setupCalendarGestures();
 $('mix-button').onclick=blendMix;$('mix-undo').onclick=undoDrop;$('mix-reset').onclick=resetMix;
 $('save-word').onclick=()=>createEmotion(false);$('use-word').onclick=()=>createEmotion(true);
@@ -1531,6 +1723,7 @@ renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixBut
 const viewName=new URLSearchParams(window.location.search).get('view');
 // V35: let design reviews land on the actual settings control immediately.
 if(viewName==='settings')setScreen('settings');
+if(viewName==='dictionary'||viewName==='map')setScreen('dictionary');
 const zoomForView={month:0,quarter:1,half:2,year:3};
 if(Object.prototype.hasOwnProperty.call(zoomForView,viewName)){
  calendarZoom=zoomForView[viewName];
