@@ -1317,8 +1317,11 @@ function emotionMapStats(records,period='all',today=new Date()){
  const maxCount=Math.max(1,...visible.map(v=>v[1]));
  const nodes=visible.map(([id,count])=>{
    const e=known.get(id);
-   const radius=maxCount<4?19+7*Math.sqrt(count/maxCount):
+   const rawRadius=maxCount<4?19+7*Math.sqrt(count/maxCount):
      18+23*Math.sqrt(count/maxCount);
+   // Large dictionaries must fit on the same compact phone canvas.
+   const density=visible.length>12?.63:visible.length>9?.77:1;
+   const radius=Math.max(15,rawRadius*density);
    return{id,count,name:e.name||'이름 미정',
      color:/^#[0-9a-fA-F]{6}$/.test(e.color||'')?e.color:'#898E46',
      ink:e.ink||null,r:Math.min(41,radius)}
@@ -1376,6 +1379,26 @@ function layoutEmotionMap(graph){
      n.x=Math.max(padding,Math.min(360-padding,n.x));
      n.y=Math.max(padding,Math.min(345-padding,n.y))
    }
+ }
+ // Final deterministic overlap relaxation keeps every caption readable,
+ // even for a full 16-node map with a dense connection network.
+ for(let pass=0;pass<65;pass++){
+   let overlap=0;
+   for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+     const a=nodes[i],b=nodes[j],dx=b.x-a.x,dy=b.y-a.y;
+     const d=Math.max(.01,Math.hypot(dx,dy)),gap=a.r+b.r+8-d;
+     if(gap<=0)continue;
+     overlap=Math.max(overlap,gap);
+     const move=gap*.52,ux=dx/d,uy=dy/d;
+     a.x-=ux*move;a.y-=uy*move;
+     b.x+=ux*move;b.y+=uy*move
+   }
+   for(const n of nodes){
+     const pad=n.r+6;
+     n.x=Math.max(pad,Math.min(360-pad,n.x));
+     n.y=Math.max(pad,Math.min(345-pad,n.y))
+   }
+   if(overlap<.5)break
  }
  return nodes
 }
