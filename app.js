@@ -362,7 +362,7 @@ function renderPreview(){
  $('today-lock-note').hidden=!locked;
  syncOrbShader()
 }
-function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary'){renderDictionary();renderEmotionMap()}if(id==='settings')renderSettings();if(id==='create')startWater();else stopWater();syncOrbShader();window.scrollTo(0,0)}
+function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='my')renderEmotionMap();if(id==='settings')renderSettings();if(id==='create')startWater();else stopWater();syncOrbShader();window.scrollTo(0,0)}
 /* V16 — one staggered bead-poster grammar at every timescale.
    Zoom uses 7/3/2/1 bead-columns PER month for 1/3/6/12 month views. */
 const CAL_SPANS=[1,3,6,12];
@@ -1336,14 +1336,17 @@ function emotionMapStats(records,period='all',today=new Date()){
    totalNodes:all.length,recordedDays,period}
 }
 function layoutEmotionMap(graph){
+ const mapW=420,mapH=610,centerX=mapW/2,centerY=mapH/2;
  const nodes=graph.nodes.map((n,i)=>{
    // Golden-angle distribution avoids unstable random jumping across visits.
    const angle=i*2.399963229728653;
-   const seedRadius=i===0?0:54+24*Math.sqrt(i);
-   return{...n,x:180+Math.cos(angle)*seedRadius,
-     y:173+Math.sin(angle)*seedRadius*.86,vx:0,vy:0}
+   // V37: open the constellation vertically instead of clustering in
+   // the center of the old 360×345 dictionary card.
+   const seedRadius=i===0?0:76+40*Math.sqrt(i);
+   return{...n,x:centerX+Math.cos(angle)*seedRadius*.77,
+     y:centerY+Math.sin(angle)*seedRadius*1.08,vx:0,vy:0}
  });
- if(nodes.length===1){nodes[0].x=180;nodes[0].y=172;return nodes}
+ if(nodes.length===1){nodes[0].x=centerX;nodes[0].y=centerY;return nodes}
  const byId=new Map(nodes.map(n=>[n.id,n]));
  const maxLink=Math.max(1,...graph.edges.map(e=>e.count));
  // Fixed iterations with no rAF physics work: performant even on mobile.
@@ -1364,20 +1367,21 @@ function layoutEmotionMap(graph){
      if(!a||!b)continue;
      const dx=b.x-a.x,dy=b.y-a.y,d=Math.max(.01,Math.hypot(dx,dy));
      const strength=edge.count/maxLink;
-     const desired=Math.max(a.r+b.r+17,133-42*strength);
-     const pull=(d-desired)*(.0012+.0025*strength);
+     const desired=Math.max(a.r+b.r+28,172-45*strength);
+     const pull=(d-desired)*(.0009+.00135*strength);
      a.vx+=dx/d*pull;a.vy+=dy/d*pull;
      b.vx-=dx/d*pull;b.vy-=dy/d*pull
    }
    for(const n of nodes){
-     n.vx+=(180-n.x)*.0017;
-     n.vy+=(172-n.y)*.0017;
+     // Less central pull lets the full height breathe, even for linked days.
+     n.vx+=(centerX-n.x)*.00065;
+     n.vy+=(centerY-n.y)*.00065;
      n.vx*=.79;n.vy*=.79;
      n.x+=Math.max(-5,Math.min(5,n.vx));
      n.y+=Math.max(-5,Math.min(5,n.vy));
-     const padding=n.r+9;
-     n.x=Math.max(padding,Math.min(360-padding,n.x));
-     n.y=Math.max(padding,Math.min(345-padding,n.y))
+     const padding=n.r+10;
+     n.x=Math.max(padding,Math.min(mapW-padding,n.x));
+     n.y=Math.max(padding,Math.min(mapH-padding,n.y))
    }
  }
  // Final deterministic overlap relaxation keeps every caption readable,
@@ -1386,7 +1390,7 @@ function layoutEmotionMap(graph){
    let overlap=0;
    for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
      const a=nodes[i],b=nodes[j],dx=b.x-a.x,dy=b.y-a.y;
-     const d=Math.max(.01,Math.hypot(dx,dy)),gap=a.r+b.r+8-d;
+     const d=Math.max(.01,Math.hypot(dx,dy)),gap=a.r+b.r+14-d;
      if(gap<=0)continue;
      overlap=Math.max(overlap,gap);
      const move=gap*.52,ux=dx/d,uy=dy/d;
@@ -1394,9 +1398,9 @@ function layoutEmotionMap(graph){
      b.x+=ux*move;b.y+=uy*move
    }
    for(const n of nodes){
-     const pad=n.r+6;
-     n.x=Math.max(pad,Math.min(360-pad,n.x));
-     n.y=Math.max(pad,Math.min(345-pad,n.y))
+     const pad=n.r+10;
+     n.x=Math.max(pad,Math.min(mapW-pad,n.x));
+     n.y=Math.max(pad,Math.min(mapH-pad,n.y))
    }
    if(overlap<.5)break
  }
@@ -1747,7 +1751,8 @@ renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixBut
 const viewName=new URLSearchParams(window.location.search).get('view');
 // V35: let design reviews land on the actual settings control immediately.
 if(viewName==='settings')setScreen('settings');
-if(viewName==='dictionary'||viewName==='map')setScreen('dictionary');
+if(viewName==='dictionary')setScreen('dictionary');
+if(viewName==='my'||viewName==='map')setScreen('my');
 const zoomForView={month:0,quarter:1,half:2,year:3};
 if(Object.prototype.hasOwnProperty.call(zoomForView,viewName)){
  calendarZoom=zoomForView[viewName];
