@@ -362,7 +362,21 @@ function renderPreview(){
  $('today-lock-note').hidden=!locked;
  syncOrbShader()
 }
-function setScreen(id){document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));document.querySelectorAll('nav button').forEach(el=>el.classList.toggle('active',el.dataset.open===id));if(id==='archive')renderCalendar();if(id==='dictionary')renderDictionary();if(id==='my')renderEmotionMap();if(id==='settings')renderSettings();if(id==='create')startWater();else stopWater();syncOrbShader();window.scrollTo(0,0)}
+function setScreen(id){
+ document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));
+ document.querySelectorAll('#bottom-nav button').forEach(el=>{
+   const active=el.dataset.open===(id==='settings'?'my':id==='create'?'dictionary':id);
+   el.classList.toggle('active',active);
+   if(active)el.setAttribute('aria-current','page');
+   else el.removeAttribute('aria-current')
+ });
+ if(id==='archive')renderCalendar();
+ if(id==='dictionary')renderDictionary();
+ if(id==='my')renderEmotionMap();
+ if(id==='settings')renderSettings();
+ if(id==='create')startWater();else stopWater();
+ syncOrbShader();window.scrollTo(0,0)
+}
 /* V16 — one staggered bead-poster grammar at every timescale.
    Zoom uses 7/3/2/1 bead-columns PER month for 1/3/6/12 month views. */
 const CAL_SPANS=[1,3,6,12];
@@ -1448,13 +1462,16 @@ function renderEmotionMap(){
  for(const edge of graph.edges){
    const a=positions.get(edge.a),b=positions.get(edge.b);
    if(!a||!b)continue;
-   const strength=Math.sqrt(edge.count/maxLink);
+   // V40: every relationship has identical fine dots. Repetition is
+   // expressed ONLY by opacity (no changes to line width or dot size).
+   const frequency=edge.count/maxLink;
    const involved=!active||edge.a===active||edge.b===active;
    const line=elem('line',{x1:a.x.toFixed(1),y1:a.y.toFixed(1),
      x2:b.x.toFixed(1),y2:b.y.toFixed(1),
-     stroke:involved&&active?'#335a48':'#778f7d',
-     'stroke-width':(0.8+6.1*strength).toFixed(2),
-     'stroke-opacity':involved?(0.16+0.73*strength).toFixed(2):'.055',
+     stroke:'#4e6b58',
+     'stroke-width':'2.2',
+     'stroke-dasharray':'1 7',
+     'stroke-opacity':involved?(0.13+0.79*Math.pow(frequency,.9)).toFixed(3):'.045',
      'stroke-linecap':'round'});
    edgeLayer.append(line)
  }
