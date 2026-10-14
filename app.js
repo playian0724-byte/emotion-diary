@@ -1407,6 +1407,7 @@ function renderEmotionMap(){
  const graph=emotionMapStats(records,emotionMapPeriod);
  const svg=$('emotion-map-graphic'),summary=$('emotion-map-summary');
  const empty=$('emotion-map-empty');
+ $('emotion-map-demo-note').hidden=!DEMO_MODE;
  svg.replaceChildren();
  empty.hidden=graph.nodes.length>0;
  svg.hidden=graph.nodes.length===0;
