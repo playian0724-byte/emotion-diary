@@ -1404,6 +1404,18 @@ function layoutEmotionMap(graph){
    }
    if(overlap<.5)break
  }
+ // V37: make use of the extra vertical space on My. Widen the spread
+ // only after collisions have settled; no ongoing animation or layout.
+ if(nodes.length>=2){
+   const centerSpan=Math.max(...nodes.map(n=>n.y))-
+     Math.min(...nodes.map(n=>n.y));
+   const spreadY=Math.min(1.72,(mapH-140)/Math.max(1,centerSpan));
+   for(const n of nodes){
+     n.y=centerY+(n.y-centerY)*spreadY;
+     const pad=n.r+10;
+     n.y=Math.max(pad,Math.min(mapH-pad,n.y))
+   }
+ }
  return nodes
 }
 function renderEmotionMap(){
