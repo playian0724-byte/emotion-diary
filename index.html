@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#fbfbf9">
 <meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
 <title>결. — 감정 일기</title>
-<link rel="stylesheet" href="./styles.css?v=39">
+<link rel="stylesheet" href="./styles.css?v=40">
 <style id="v35-expiry-slider-style">
 /* Kept with the markup deliberately: a new HTML deploy must never show an
    unstyled blue native range while its CSS asset is still propagating. */
@@ -41,20 +41,11 @@
 }
 </style>
 <script defer src="./orb-renderer.js?v=8.2"></script>
-<script defer src="./app.js?v=38"></script>
+<script defer src="./app.js?v=40"></script>
 </head>
 <body>
 <main class="app">
-<header>
-<a class="brand" href="./" aria-label="결 홈">결.</a>
-<nav aria-label="주요 화면">
-<button type="button" data-open="today" class="active">오늘</button>
-<button type="button" data-open="archive">기록</button>
-<button type="button" data-open="dictionary">사전</button>
-<button type="button" data-open="my">마이</button>
-<button type="button" data-open="settings">설정</button>
-</nav>
-</header>
+
 <section id="today" class="screen active" aria-label="오늘의 감정 기록">
 <div class="intro"><h1>오늘의 감정</h1><p id="today-date"></p></div>
 <div class="preview"><div id="today-orb" class="orb empty" role="img" aria-label="선택한 감정의 색깔 구슬"></div><div id="selected-label" class="subline" aria-live="polite"></div></div>
@@ -71,7 +62,7 @@
 </section>
 <section id="archive" class="screen" aria-label="감정 아카이브">
 <div class="calendar-controls"><strong id="month-label"></strong><div class="arrow-buttons"><button type="button" id="month-prev" aria-label="이전 기간">‹</button><button type="button" id="month-next" aria-label="다음 기간">›</button></div></div>
-<p id="demo-note" class="demo-note" hidden>샘플 <a href="./?v=38&view=year">실제 기록 보기</a></p>
+<p id="demo-note" class="demo-note" hidden>샘플 <a href="./?v=40&view=year">실제 기록 보기</a></p>
 <div id="calendar" aria-label="감정 아카이브 달력"></div>
 <div class="entry-card" id="record-detail" hidden></div>
 
@@ -84,7 +75,7 @@
 
 </section>
 <section id="my" class="screen" aria-label="마이페이지 감정 지도">
-<div class="intro my-intro"><h1 id="emotion-map-title">나의 지도</h1></div>
+<div class="intro my-intro"><h1 id="emotion-map-title">나의 지도</h1><button type="button" class="settings-shortcut" id="my-settings" aria-label="설정 열기" title="설정"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.5 1.5 0 0 0 .3 1.7l.1.1-1.8 1.8-.1-.1a1.5 1.5 0 0 0-1.7-.3 1.5 1.5 0 0 0-.9 1.4V20H8.7v-.4A1.5 1.5 0 0 0 7.8 18a1.5 1.5 0 0 0-1.7.3l-.1.1-1.8-1.8.1-.1a1.5 1.5 0 0 0 .3-1.7 1.5 1.5 0 0 0-1.4-.9H3v-3.2h.2a1.5 1.5 0 0 0 1.4-.9 1.5 1.5 0 0 0-.3-1.7l-.1-.1 1.8-1.8.1.1a1.5 1.5 0 0 0 1.7.3 1.5 1.5 0 0 0 .9-1.4V4h6.6v.4a1.5 1.5 0 0 0 .9 1.4 1.5 1.5 0 0 0 1.7-.3l.1-.1 1.8 1.8-.1.1a1.5 1.5 0 0 0-.3 1.7 1.5 1.5 0 0 0 1.4.9h.2v3.2h-.2a1.5 1.5 0 0 0-1.4.9Z"/></svg></button></div>
 <section class="emotion-map-section" aria-labelledby="emotion-map-title">
 <div class="emotion-map-top">
 <div class="emotion-map-period" role="group" aria-label="감정 지도 기간">
@@ -95,13 +86,13 @@
 <p id="emotion-map-demo-note" class="emotion-map-demo-note" hidden>샘플</p>
 <div class="emotion-map-board" id="emotion-map-board">
 <svg id="emotion-map-graphic" role="group" aria-label="감정별 빈도와 함께 기록한 관계를 표시하는 감정 지도" viewBox="0 0 420 610" preserveAspectRatio="xMidYMid meet"></svg>
-<div id="emotion-map-empty" class="emotion-map-empty" hidden><span>기록이 쌓이면 감정들이 이곳에 연결돼요.</span><a href="./?v=38&demo=1&view=map">샘플 감정 지도 보기 ↗</a></div>
+<div id="emotion-map-empty" class="emotion-map-empty" hidden><span>기록이 쌓이면 감정들이 이곳에 연결돼요.</span><a href="./?v=40&demo=1&view=map">샘플 감정 지도 보기 ↗</a></div>
 </div>
 <div id="emotion-map-summary" class="emotion-map-summary" aria-live="polite"></div>
 </section>
 </section>
 <section id="settings" class="screen" aria-label="앱 설정">
-<div class="intro"><h1>설정</h1></div>
+<div class="intro settings-intro"><h1>설정</h1><button type="button" id="settings-back" class="settings-back">마이로 돌아가기 <span aria-hidden="true">↗</span></button></div>
 <div class="settings-group">
 <label class="settings-label" for="edit-expiry">기록 유통기한</label>
 <div class="expiry-reading" aria-hidden="true">
@@ -109,9 +100,9 @@
   </div>
 <div class="expiry-scale" id="expiry-scale">
   <div class="expiry-rail" aria-hidden="true"><span class="expiry-rail-fill"></span></div>
-  <div class="expiry-ticks" aria-hidden="true">
-    <span class="expiry-tick"></span><span class="expiry-tick selected"></span>
-    <span class="expiry-tick"></span><span class="expiry-tick"></span>
+  <div class="expiry-ticks" role="group" aria-label="유통기한 빠른 선택">
+    <button type="button" class="expiry-tick" data-expiry-index="0" aria-label="1시간 선택"></button><button type="button" class="expiry-tick selected" data-expiry-index="1" aria-label="24시간 선택"></button>
+    <button type="button" class="expiry-tick" data-expiry-index="2" aria-label="3일 선택"></button><button type="button" class="expiry-tick" data-expiry-index="3" aria-label="7일 선택"></button>
   </div>
   <input id="edit-expiry" class="expiry-range" type="range"
     min="0" max="3" step="1" value="1"
@@ -148,5 +139,11 @@
 </section>
 
 </main>
+<nav id="bottom-nav" class="bottom-island" aria-label="주요 화면">
+<button type="button" data-open="today" class="active" aria-current="page"><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 11 8.5-7 8.5 7V21H3.5Z"/><path d="M9 21v-7h6v7"/></svg><span>오늘</span></button>
+<button type="button" data-open="archive" class="" ><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 10h18M7 14h4m-4 3h7"/></svg><span>기록</span></button>
+<button type="button" data-open="dictionary" class="" ><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-3.4-2.4-7-2.3-9-1.7V19c3.3-.6 6.4.1 9 2 2.6-1.9 5.7-2.6 9-2V4.3c-2-.6-5.6-.7-9 1.7Z"/><path d="M12 6v15"/></svg><span>사전</span></button>
+<button type="button" data-open="my" class="" ><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="7" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="12" cy="18" r="2"/><path d="m6.7 8.1 3.7 7.8M17.3 8.1l-3.7 7.8M7 7h10"/></svg><span>마이</span></button>
+</nav>
 <div class="toast" id="toast" aria-live="polite"></div>
 </body></html>
