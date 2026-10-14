@@ -1816,3 +1816,173 @@ nav button.active{
 @media(prefers-reduced-motion:reduce){
   nav button{transition:none}
 }
+
+
+/* V40 — lighter-than-V39 paper, floating four-quadrant bottom island.
+   Never alter existing orb/swatch pigments, concentric rules, 4-column
+   emotion selector, year zoom or atlas node geometry. */
+:root{
+  --paper:#fdfcf8;
+  --canvas:#faf9f5;
+  --line:#f0ede6;
+}
+html,body{min-height:100%}
+body{background:#f8f7f3}
+.app{
+  background:var(--paper);
+  min-height:100dvh;
+  padding-top:22px;
+  padding-bottom:calc(148px + env(safe-area-inset-bottom));
+}
+.intro{margin-top:27px}
+.emotion,
+.dictionary-item,
+.entry-card,
+#settings .settings-group{background:#fffefb;border-color:#eeeae1}
+.emotion.active{background:#f8f6f0}
+.memo,.text-field{background:#fbfaf6;border-color:#ede8df}
+.button-outline{background:#fffefb;border-color:#eeeae1}
+#my .emotion-map-board{background:#fbfaf7}
+#my .emotion-map-period{background:#f3f1eb}
+#settings .settings-group{background:#fffefb}
+.mix-stage{background:#faf9f4;border-color:#efebe3}
+/* The four tabs stay visible while the user scrolls an archive or long diary. */
+#bottom-nav.bottom-island{
+  position:fixed;
+  z-index:170;
+  bottom:calc(9px + env(safe-area-inset-bottom));
+  left:50%;
+  transform:translateX(-50%);
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  align-items:stretch;
+  gap:3px;
+  width:calc(100% - 28px);
+  max-width:480px;
+  height:72px;
+  padding:6px;
+  margin:0;
+  border:1px solid #eae7df;
+  border-radius:26px;
+  background:rgba(255,254,250,.97);
+  box-shadow:0 8px 30px rgba(27,30,25,.10),0 2px 6px rgba(27,30,25,.035);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+}
+#bottom-nav button,
+#bottom-nav button.active{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  min-width:0;
+  min-height:58px;
+  padding:6px 2px 5px;
+  margin:0;
+  border:0;
+  border-radius:20px;
+  background:transparent;
+  color:#96978e;
+  font-size:11px;
+  font-weight:620;
+  line-height:1.1;
+  letter-spacing:-.045em;
+  -webkit-tap-highlight-color:transparent;
+  transition:background .16s ease,color .16s ease
+}
+#bottom-nav button svg{display:block;width:20px;height:20px;flex:0 0 20px}
+#bottom-nav button span{display:block;margin-top:5px}
+#bottom-nav button.active{
+  background:#262924;
+  color:#fffef9;
+  font-weight:730
+}
+#bottom-nav button:focus-visible{
+  outline:2px solid #414a3e;
+  outline-offset:2px
+}
+/* Settings is a subpage of My, not a fifth navigation destination. */
+#my .my-intro,
+#settings .settings-intro{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px
+}
+#my .my-intro h1,
+#settings .settings-intro h1{margin-bottom:0}
+#my .settings-shortcut{
+  display:grid;
+  place-items:center;
+  width:43px;
+  height:43px;
+  flex:0 0 43px;
+  border:1px solid #edeae2;
+  border-radius:15px;
+  background:#f5f3ee;
+  color:#41463e;
+  padding:0
+}
+#settings .settings-back{
+  border:0;
+  background:transparent;
+  color:#81867d;
+  font-size:12px;
+  font-weight:650;
+  padding:10px 0 10px 10px;
+  white-space:nowrap
+}
+#settings .settings-back span{margin-left:4px}
+/* Safari-safe tap/click targets around the four expiry points.
+   Override the previous inline critical CSS with higher specificity. */
+#settings .expiry-scale{touch-action:auto!important}
+#settings .expiry-ticks{
+  left:-11px!important;
+  right:-11px!important;
+  top:5px!important;
+  z-index:5!important;
+  pointer-events:auto!important
+}
+#settings .expiry-tick{
+  position:relative!important;
+  display:block!important;
+  flex:0 0 42px!important;
+  width:42px!important;
+  height:42px!important;
+  border:0!important;
+  border-radius:50%!important;
+  padding:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  pointer-events:auto!important;
+  -webkit-tap-highlight-color:transparent
+}
+#settings .expiry-tick::before{
+  pointer-events:none!important
+}
+#settings .expiry-tick:focus-visible{
+  outline:2px solid #4a6956!important;
+  outline-offset:1px
+}
+#settings .expiry-range{
+  touch-action:auto!important
+}
+#settings .expiry-tick:disabled{pointer-events:none!important}
+@media(max-width:420px){
+ .app{padding-bottom:calc(138px + env(safe-area-inset-bottom))}
+ #bottom-nav.bottom-island{
+   height:70px;
+   bottom:calc(8px + env(safe-area-inset-bottom));
+   width:calc(100% - 24px);
+   border-radius:25px
+ }
+ #bottom-nav button,#bottom-nav button.active{min-height:56px;border-radius:19px;font-size:11px;padding:5px 1px}
+}
+@media(max-width:350px){
+ #bottom-nav.bottom-island{width:calc(100% - 18px);padding:5px;gap:2px}
+ #bottom-nav button,#bottom-nav button.active{font-size:10.5px;min-height:54px}
+ #bottom-nav button svg{width:19px;height:19px}
+}
+@media(prefers-reduced-motion:reduce){
+ #bottom-nav button{transition:none}
+}
