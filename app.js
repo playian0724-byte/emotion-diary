@@ -618,7 +618,7 @@ function dateInk(rec){
  }
  return best
 }
-function calendarDayMarkup(y,m,day,captionBelow=false){
+function calendarDayMarkup(y,m,day){
  const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
  const rec=previewRecord(key);
  const cls=(rec?' recorded':'')+(key===isoDay()?' today':'')+(key===calendarSelected?' selected':'');
@@ -635,16 +635,17 @@ function calendarDayMarkup(y,m,day,captionBelow=false){
  return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'" aria-label="'+key+
    (rec?' 감정 기록':' 기록 없음')+'"><span class="'+miniClass+'"'+style+'>'+center+
    '<span class="daynum" style="color:'+ink+'">'+day+'</span></span>'+
-   (captionBelow?'<span class="date-caption" aria-hidden="true">'+String(day).padStart(2,'0')+'</span>':'')+
+   '<span class="date-caption" aria-hidden="true">'+String(day).padStart(2,'0')+'</span>'+
    '</button>'
 }
 function calendarMonthMarkup(date,span){
  const y=date.getFullYear(),m=date.getMonth(),n=new Date(y,m+1,0).getDate();
- // Each zoom step divides a month's dates into more/fewer adjacent bead stacks.
- const cols=span===1?7:span===3?3:span===6?2:1;
+ // Same product-gallery date identity at all zoom levels; each period
+ // adjusts grid density with CSS while every bead keeps its caption.
+ const cols=span===1?4:span===3?3:span===6?4:3;
  const dates=Array.from({length:n},(_,i)=>{
   const col=i%cols;
-  return calendarDayMarkup(y,m,i+1,span===1).replace('class="cal-day','class="cal-day'+(col%2?' bead-offset':''))
+  return calendarDayMarkup(y,m,i+1).replace('class="cal-day','class="cal-day'+(col%2?' bead-offset':''))
  }).join('');
  return '<section class="poster-month" aria-label="'+y+' '+numericMonth(date)+'">'+
   (span===1?'':'<h3 class="poster-month-label">'+numericMonth(date)+'</h3>')+
@@ -656,7 +657,7 @@ function calendarYearPoster(year){
   const dates=Array.from({length:n},(_,i)=>calendarDayMarkup(year,m,i+1)).join('');
   return '<section class="poster-month" aria-label="'+year+' / '+String(m+1).padStart(2,'0')+'">'+
    '<h3 class="poster-month-label">'+String(m+1).padStart(2,'0')+'</h3>'+
-   '<div class="poster-days">'+dates+'</div></section>'
+   '<div class="poster-days" style="--bead-cols:3">'+dates+'</div></section>'
  }).join('');
  return '<div class="poster-months" role="group" aria-label="'+year+' 감정 연감">'+columns+'</div>'
 }
@@ -1334,10 +1335,9 @@ function setupCalendarGestures(){
      const a=touchSingle,b=e.changedTouches[0];touchSingle=null;
      if(!b)return;
      const dx=b.clientX-a.x,dy=b.clientY-a.y;
-     if(Math.abs(dy)>105&&Math.abs(dy)>Math.abs(dx)*1.3){
-       calendarIgnoreClickUntil=performance.now()+350;
-       animateSwipeZoom(dy>0?-1:1,{x:b.clientX,y:b.clientY})
-     }else if(Math.abs(dx)>95&&Math.abs(dx)>Math.abs(dy)*1.3){
+     // A one-finger vertical movement is ALWAYS page scrolling, never
+     // a zoom gesture. Only an actual 2-finger pinch changes zoom.
+     if(Math.abs(dx)>95&&Math.abs(dx)>Math.abs(dy)*1.3){
        calendarIgnoreClickUntil=performance.now()+350;
        shiftMonth(dx>0?-1:1)
      }
@@ -1356,10 +1356,8 @@ function setupCalendarGestures(){
    if(!mouseDrag||e.pointerId!==mouseDrag.id)return;
    const dx=e.clientX-mouseDrag.x,dy=e.clientY-mouseDrag.y;
    mouseDrag=null;
-   if(Math.abs(dy)>85&&Math.abs(dy)>Math.abs(dx)*1.2){
-     calendarIgnoreClickUntil=performance.now()+350;
-     animateSwipeZoom(dy>0?-1:1,{x:e.clientX,y:e.clientY})
-   }else if(Math.abs(dx)>95&&Math.abs(dx)>Math.abs(dy)*1.2){
+   // Vertical drag/scroll must not zoom the archive.
+   if(Math.abs(dx)>95&&Math.abs(dx)>Math.abs(dy)*1.2){
      calendarIgnoreClickUntil=performance.now()+350;
      shiftMonth(dx>0?-1:1)
    }
