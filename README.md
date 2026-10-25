@@ -6,6 +6,15 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
+## V52 — Save 위치 바로잡기
+
+- Today의 `Save ↗`를 상단 헤더 위가 아니라 **구슬 아래의 감정 목록 맨 첫 항목, `Basic emotion` 바로 위**에 배치.
+- `Basic emotion`과 동일한 SUIT 굵기·크기·정렬·행 간격을 쓰고 파란색 텍스트로 표시. 화살표는 오른쪽에 배치.
+- 기존 기록 저장 이벤트와 비활성화 상태, V49 핀치 애니메이션, 감정 선택 기능은 변경하지 않음.
+- 캐시 회피용 별도 페이지 `v52.html` 제공.
+
+[V52 웹앱](https://playian0724-byte.github.io/emotion-diary/v52.html)
+
 ## V51 — Today 상단 Save와 감정 메뉴 축소
 
 - Today의 `Basic emotion`, `Custom emotion`, `Emotion lab` 글자 크기와 행 높이를 줄여 여백을 정돈.

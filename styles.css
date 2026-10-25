@@ -3996,3 +3996,53 @@ body.drawer-open #menu-toggle.menu-toggle{
 @media(prefers-reduced-motion:reduce){
  #today .today-save-bar #save-day{transition:none}
 }
+
+
+/* V52 — Save belongs to the catalogue itself, immediately above
+   Basic emotion, not above the Emotion recoder heading and orb. */
+#today .today-catalog > #save-day.today-save-link{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ width:100%;
+ margin:0;
+ padding:10px 2px;
+ min-height:68px;
+ border:0;
+ border-radius:0;
+ background:transparent;
+ box-shadow:none;
+ color:#2455C4;
+ font-family:var(--gyeol-font);
+ font-weight:790;
+ letter-spacing:-.078em;
+}
+#today .today-catalog > #save-day.today-save-link .catalog-title{
+ color:inherit;
+}
+#today .today-catalog > #save-day.today-save-link .catalog-symbol{
+ color:inherit;
+ font-size:29px;
+ font-weight:470;
+}
+#today .today-catalog > #save-day.today-save-link:disabled{
+ background:transparent;
+ color:#8CA7D6;
+ cursor:default;
+}
+#today .today-catalog > #save-day.today-save-link:not(:disabled):active{
+ color:#173B8A;
+}
+#today .today-catalog > #save-day.today-save-link:focus-visible{
+ outline:1px solid #2455C4;
+ outline-offset:-2px;
+}
+@media(max-width:420px){
+ #today .today-catalog > #save-day.today-save-link{
+  min-height:64px;
+  padding:9px 2px;
+ }
+}
+@media(max-width:350px){
+ #today .today-catalog > #save-day.today-save-link{min-height:60px}
+}
