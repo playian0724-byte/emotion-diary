@@ -369,10 +369,30 @@ function paintArchiveOrb(node,rec){
    .map(id=>byId(id).color);
  paintDisc(node,colors)
 }
+/* V42 — studio accordion: the bead is always on display while the two
+   pickers behave like product catalogue shelves. Only one expands at once. */
+let activeEmotionPanel=null;
+function setEmotionPanel(name,forceOpen){
+ const next=forceOpen===true?name:activeEmotionPanel===name?null:name;
+ activeEmotionPanel=next;
+ for(const [key,toggle,panel,section] of [
+   ['basic','basic-toggle','base-panel','basic-section'],
+   ['custom','custom-toggle','custom-panel','custom-section']
+ ]){
+   const opened=next===key;
+   const head=$(toggle),body=$(panel),wrapper=$(section);
+   head.setAttribute('aria-expanded',String(opened));
+   head.querySelector('.catalog-symbol').textContent=opened?'−':'+';
+   body.setAttribute('aria-hidden',String(!opened));
+   body.inert=!opened;
+   wrapper.classList.toggle('is-open',opened);
+ }
+}
 function renderChoices(){
 const selected=new Set(selection);
 $('base-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion '+(selected.has(e.id)?'active':'')+'" data-select="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+e.name+(selected.has(e.id)?'<span class="checkmark">✓</span>':'')+'</button>').join('');
 const mine=[...SAMPLES,...db.custom];
+$('custom-empty').hidden=mine.length>0;
 $('my-emotions').innerHTML=mine.map(e=>'<button type="button" class="emotion '+(selected.has(e.id)?'active':'')+'" data-select="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+escapeHTML(e.name||'이름 미정')+(selected.has(e.id)?'<span class="checkmark">✓</span>':'')+'</button>').join('');
 document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.select;if(selection.includes(id))selection=selection.filter(x=>x!==id);else if(selection.length<4)selection.push(id);else toast('최대 4개까지 선택할 수 있습니다.');renderChoices();renderPreview()}))
 }
@@ -399,6 +419,7 @@ function renderPreview(){
  paintOrb($('today-orb'),selection);
  $('today-orb').classList.toggle('empty',selection.length===0);
  $('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'';
+ $('reset-select').hidden=selection.length===0;
  const locked=Boolean(db.records[isoDay()]&&!canEditRecord(isoDay(),db.records[isoDay()]));
  $('save-day').disabled=selection.length===0||saving||locked||DEMO_MODE;
  $('today-lock-note').hidden=!locked;
@@ -1596,7 +1617,7 @@ function renderEmotionMap(){
 function renderDictionary(){const data=[...db.custom];const host=$('dictionary-list');if(!data.length){host.innerHTML='<div class="empty-state">저장된 감정이 없습니다.</div>';return}
 host.innerHTML=data.slice().reverse().map(e=>'<div class="dictionary-item"><span class="swatch" style="background:'+e.color+'"></span><div class="copy"><strong>'+escapeHTML(e.name||'이름 미정')+'</strong><p>'+escapeHTML(e.definition||e.components.map(c=>byId(c.id)?.name+' '+Math.round(c.ratio*100)+'%').join(' · '))+'</p></div><button type="button" class="subtle-button" data-use="'+escapeHTML(e.id)+'">사용</button></div>').join('');
 host.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{useEmotion(b.dataset.use)})}
-function useEmotion(id){if(!selection.includes(id)){if(selection.length>=4){toast('감정 하나를 해제하세요.');setScreen('today');return}selection.push(id)}renderChoices();renderPreview();setScreen('today');toast('오늘에 추가됨')}
+function useEmotion(id){if(!selection.includes(id)){if(selection.length>=4){toast('감정 하나를 해제하세요.');setScreen('today');return}selection.push(id)}renderChoices();renderPreview();setEmotionPanel('custom',true);setScreen('today');toast('오늘에 추가됨')}
 function positionFlightStart(rect){const w=168,h=168;return rect.top>=10&&rect.bottom<window.innerHeight-10?{left:rect.left,top:rect.top,width:rect.width,height:rect.height}:{left:(innerWidth-w)/2,top:Math.max(70,(innerHeight-h)/2-40),width:w,height:h}}
 async function saveDay(){
 if(saving||!selection.length)return;
@@ -1802,7 +1823,7 @@ function createEmotion(addToDay){
 if(!mixed)return;const name=$('mix-name').value.trim(),definition=$('mix-definition').value.trim(),id='custom-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
 const e={id,name,color:mixed.color,definition,components:mixed.components,visibility:'private',createdAt:new Date().toISOString()};
 db.custom.push(e);saveDB();orbCache.clear();if(addToDay){if(selection.length>=4)selection.pop();selection.push(id)}
-renderChoices();renderPreview();resetMix();setScreen(addToDay?'today':'dictionary');toast(addToDay?'오늘에 추가됨':'사전에 저장됨')}
+renderChoices();renderPreview();resetMix();if(addToDay)setEmotionPanel('custom',true);setScreen(addToDay?'today':'dictionary');toast(addToDay?'오늘에 추가됨':'사전에 저장됨')}
 function init(){
 loadDB();
 if(DEMO_MODE){
@@ -1827,6 +1848,8 @@ document.addEventListener('keydown',event=>{
  }
 });
 $('reset-select').onclick=()=>{selection=[];renderChoices();renderPreview()};
+$('basic-toggle').onclick=()=>setEmotionPanel('basic');
+$('custom-toggle').onclick=()=>setEmotionPanel('custom');
 $('add-custom').onclick=()=>{resetMix();setScreen('create')};$('start-create').onclick=()=>{resetMix();setScreen('create')};
 $('create-back').onclick=()=>setScreen('today');
 $('save-day').onclick=saveDay;
