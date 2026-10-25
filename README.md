@@ -6,6 +6,15 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
+## V53 — Dictionary에 Emotion lab 바로가기
+
+- Dictionary 화면의 **Customized emotions** 위에 Today의 `Emotion lab →`와 동일한 SUIT 타이포 메뉴 행 추가.
+- 누르면 기존 Emotion lab으로 이동. 사전에서 들어갔다면 BACK 버튼도 Dictionary로 돌아오도록 개선.
+- 감정 저장 방식, 달력 구슬, 기존 자료 유지.
+- [V53 수정 기록](./docs/V53_DICTIONARY_LAB_ROUTE.md)
+
+[V53 웹앱](https://playian0724-byte.github.io/emotion-diary/v53.html) · [Dictionary](https://playian0724-byte.github.io/emotion-diary/v53.html?view=dictionary)
+
 ## V52 — Save 위치 바로잡기
 
 - Today의 `Save ↗`를 상단 헤더 위가 아니라 **구슬 아래의 감정 목록 맨 첫 항목, `Basic emotion` 바로 위**에 배치.

@@ -4046,3 +4046,71 @@ body.drawer-open #menu-toggle.menu-toggle{
 @media(max-width:350px){
  #today .today-catalog > #save-day.today-save-link{min-height:60px}
 }
+
+
+/* V53 — Dictionary uses Today's exact editorial Emotion lab entry.
+   Keep the book-like empty line between the creation route and objects. */
+#dictionary .dictionary-lab-nav{
+ width:100%;
+ margin:3px 0 0;
+}
+#dictionary .dictionary-lab-route{
+ display:flex;
+ width:100%;
+ min-height:68px;
+ align-items:center;
+ justify-content:space-between;
+ text-align:left;
+ gap:12px;
+ margin:0;
+ padding:10px 2px;
+ background:transparent;
+ border:0;
+ border-radius:0;
+ box-shadow:none;
+ color:#111311;
+ cursor:pointer;
+ -webkit-tap-highlight-color:transparent;
+ font-family:var(--gyeol-font);
+}
+#dictionary .dictionary-lab-route .catalog-title{
+ min-width:0;
+ font-family:var(--gyeol-font);
+ font-size:clamp(21px,5.8vw,29px);
+ font-weight:790;
+ letter-spacing:-.078em;
+ line-height:1.04;
+ white-space:nowrap;
+}
+#dictionary .dictionary-lab-route .catalog-symbol{
+ flex:none;
+ min-width:31px;
+ font-family:var(--gyeol-font);
+ font-size:29px;
+ font-weight:470;
+ line-height:.8;
+ text-align:right;
+ transition:transform .28s cubic-bezier(.22,.86,.22,1);
+}
+#dictionary .dictionary-lab-route:active .catalog-symbol{transform:translateX(3px)}
+#dictionary .dictionary-lab-route:focus-visible{
+ outline:2px solid #404940;
+ outline-offset:-2px;
+}
+#dictionary .dictionary-lab-nav + .heading-row{
+ margin-top:21px;
+ margin-bottom:14px;
+}
+@media(max-width:420px){
+ #dictionary .dictionary-lab-route{min-height:64px;padding:9px 2px}
+ #dictionary .dictionary-lab-route .catalog-title{font-size:clamp(21px,5.8vw,27px)}
+ #dictionary .dictionary-lab-route .catalog-symbol{font-size:29px;min-width:29px}
+}
+@media(max-width:350px){
+ #dictionary .dictionary-lab-route{min-height:60px}
+ #dictionary .dictionary-lab-route .catalog-title{font-size:20px}
+ #dictionary .dictionary-lab-route .catalog-symbol{font-size:28px;min-width:27px}
+}
+@media(prefers-reduced-motion:reduce){
+ #dictionary .dictionary-lab-route .catalog-symbol{transition:none}
+}

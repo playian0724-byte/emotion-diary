@@ -2292,10 +2292,17 @@ document.addEventListener('keydown',event=>{
 $('reset-select').onclick=()=>{selection=[];renderChoices();renderPreview()};
 $('basic-toggle').onclick=()=>setEmotionPanel('basic');
 $('custom-toggle').onclick=()=>setEmotionPanel('custom');
-$('add-custom').onclick=()=>{resetMix();setScreen('create')};
+let emotionLabReturn='today';
+const openEmotionLab=source=>{
+ emotionLabReturn=source;
+ resetMix();
+ setScreen('create')
+};
+$('add-custom').onclick=()=>openEmotionLab('today');
+$('dictionary-add-custom').onclick=()=>openEmotionLab('dictionary');
 $('emotion-detail-back').onclick=()=>setScreen('dictionary');
 $('emotion-detail-use').onclick=()=>{if(activeEmotionId)useEmotion(activeEmotionId)};
-$('create-back').onclick=()=>setScreen('today');
+$('create-back').onclick=()=>setScreen(emotionLabReturn);
 $('save-day').onclick=saveDay;
 // V40: persist on INPUT too, not only on CHANGE. Mobile Safari may
 // dispatch a final change only after the gesture (or not before leaving).
