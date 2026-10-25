@@ -2885,3 +2885,42 @@ body{background:#F4F5F2;color:#1F211F;letter-spacing:-.035em}
    --gallery-orb-max:34px
  }
 }
+
+
+/* V43.1 specificity bridge: older V16 zoom rules explicitly set 3 and 6
+   month-COLUMNS. Override those, including staged/pre-rendered layers. */
+#archive .calendar-archive.zoom-1 .poster-months,
+#archive .calendar-archive.zoom-3 .poster-months,
+#archive .calendar-archive.zoom-6 .poster-months,
+#archive .calendar-archive.zoom-12 .poster-months,
+#archive > .zoom-next-layer.zoom-1 .poster-months,
+#archive > .zoom-next-layer.zoom-3 .poster-months,
+#archive > .zoom-next-layer.zoom-6 .poster-months,
+#archive > .zoom-next-layer.zoom-12 .poster-months{
+  grid-template-columns:repeat(var(--gallery-month-columns),minmax(0,1fr))!important;
+  gap:var(--gallery-month-gap) clamp(9px,2.6vw,19px)!important;
+}
+#archive .calendar-archive.zoom-3 .poster-month-label,
+#archive .calendar-archive.zoom-6 .poster-month-label,
+#archive .calendar-archive.zoom-12 .poster-month-label,
+#archive > .zoom-next-layer.zoom-3 .poster-month-label,
+#archive > .zoom-next-layer.zoom-6 .poster-month-label,
+#archive > .zoom-next-layer.zoom-12 .poster-month-label{
+  font-size:var(--gallery-month-type)!important;
+  font-weight:560!important;
+  min-height:0!important;
+  height:auto!important;
+  justify-content:flex-start!important;
+  align-items:center!important;
+  letter-spacing:-.05em!important
+}
+@media(min-width:381px){
+ #archive .calendar-archive.zoom-12,
+ #archive > .zoom-next-layer.zoom-12{
+   --gallery-month-columns:4;
+   --gallery-orb-max:30px;
+   --gallery-date-size:9px;
+   --gallery-day-y:10px;
+   --gallery-month-type:11px;
+ }
+}
