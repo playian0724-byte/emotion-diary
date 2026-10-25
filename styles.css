@@ -2139,3 +2139,339 @@ body.drawer-open{overflow:hidden}
   transition-duration:.01ms!important
  }
 }
+
+
+/* V42 — emotion as an object, not an illustrated diary.
+   Inspired by contemporary product catalogues: big factual type, generous
+   white-space, quiet neutral backgrounds, no ornamental serif font. */
+:root{
+ --paper:#FDFDFA;
+ --canvas:#F6F7F4;
+ --ink:#1F211F;
+ --muted:#888B85;
+ --line:#E8EAE5;
+ --gyeol-font:"SUIT Variable","Helvetica Neue",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
+}
+body,button,input,textarea{font-family:var(--gyeol-font)}
+body{background:#F4F5F2;color:#1F211F;letter-spacing:-.035em}
+.app{background:var(--paper)}
+/* Roll back V41's overtly sentimental Mincho. */
+.intro h1,#my .my-intro h1,
+.heading-row h2,.calendar-controls strong,
+.dictionary-item .copy strong,.drawer-title,
+#settings .settings-label,
+#my .emotion-map-summary strong{
+ font-family:var(--gyeol-font);
+ font-weight:650;
+ letter-spacing:-.06em
+}
+.intro h1,#my .my-intro h1{font-size:30px;line-height:1.2}
+.heading-row h2{font-size:15px}
+.calendar-controls strong{font-size:20px}
+#side-drawer .drawer-title{font-size:26px;font-weight:720}
+#side-drawer.side-drawer{background:var(--paper)}
+#side-drawer .drawer-nav button.active{background:#EDEFE9}
+/* Product-stage: original orb dimensions, CSS materials and palette are intact.
+   Only its neutral surrounding surface is changed. */
+#today .today-intro{margin:8px 0 21px}
+#today .object-kicker{
+ color:#8C8F88;
+ font-size:10px;
+ font-weight:650;
+ line-height:1.3;
+ letter-spacing:.16em;
+ margin:0 0 12px
+}
+#today .today-intro h1{
+ margin:0 0 8px;
+ font-size:29px;
+ font-weight:700;
+ letter-spacing:-.07em;
+ line-height:1.25
+}
+#today .today-intro #today-date{
+ color:#82847E;
+ font-size:12px;
+ font-weight:450;
+ margin:0
+}
+#today .today-showcase{
+ display:flex;
+ flex-direction:column;
+ min-height:0;
+ width:100%;
+ gap:0;
+ margin:0;
+ align-items:stretch;
+ justify-content:flex-start
+}
+#today .object-stage{
+ display:grid;
+ place-items:center;
+ width:100%;
+ min-height:235px;
+ background:#F5F6F3;
+ border-radius:3px;
+ overflow:hidden
+}
+#today .object-stage #today-orb{flex:none}
+#today .preview-caption{
+ display:none;
+ align-items:center;
+ justify-content:space-between;
+ gap:14px;
+ width:100%;
+ min-height:43px;
+ padding:8px 1px 0;
+}
+#today.has-emotion-selection .preview-caption{display:flex}
+#today .preview-caption #selected-label{
+ color:#3E423D;
+ font-size:12px;
+ font-weight:650;
+ text-align:left;
+ line-height:1.35;
+ flex:1
+}
+#today .preview-caption #reset-select{
+ padding:7px 2px;
+ border:0;
+ background:transparent;
+ color:#90948D;
+ font-size:11px;
+ font-weight:520;
+ white-space:nowrap
+}
+/* Category titles echo the supplied collaboration / season reference.
+   No card chrome and no hairlines between large typographic controls. */
+#today .today-catalog{
+ margin:15px 0 0;
+ display:flex;
+ flex-direction:column;
+ gap:2px
+}
+#today .catalog-section{min-width:0}
+#today .catalog-row{
+ width:100%;
+ min-height:88px;
+ margin:0;
+ padding:15px 2px;
+ border:0;
+ border-radius:0;
+ background:transparent;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ text-align:left;
+ gap:12px;
+ cursor:pointer;
+ -webkit-tap-highlight-color:transparent;
+ color:#111311;
+}
+#today .catalog-title{
+ min-width:0;
+ font-family:var(--gyeol-font);
+ font-size:clamp(27px,7.6vw,40px);
+ line-height:1.04;
+ font-weight:790;
+ letter-spacing:-.078em;
+ white-space:nowrap
+}
+#today .catalog-symbol{
+ font-family:var(--gyeol-font);
+ font-size:clamp(35px,8vw,45px);
+ line-height:.8;
+ font-weight:470;
+ text-align:right;
+ flex:none;
+ min-width:39px;
+ transform-origin:center;
+ transition:transform .28s cubic-bezier(.22,.86,.22,1)
+}
+#today .catalog-row:active .catalog-symbol{transform:translateX(3px)}
+#today .catalog-row:focus-visible{
+ outline:2px solid #404940;
+ outline-offset:-2px
+}
+#today .catalog-section.is-open .catalog-title{color:#383E37}
+#today .catalog-section.is-open .catalog-symbol{font-size:40px}
+#today .catalog-panel{
+ display:grid;
+ grid-template-rows:0fr;
+ opacity:0;
+ transition:grid-template-rows .43s cubic-bezier(.2,.81,.2,1),opacity .25s ease;
+}
+#today .catalog-section.is-open .catalog-panel{
+ grid-template-rows:1fr;
+ opacity:1
+}
+#today .catalog-panel-inner{
+ min-height:0;
+ overflow:hidden
+}
+#today .catalog-panel .grid-emotions{
+ display:grid;
+ grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:8px;
+ padding:5px 0 20px;
+ margin:0
+}
+#today .catalog-panel .emotion{
+ min-width:0;
+ min-height:93px;
+ padding:12px 4px 10px;
+ border-radius:3px;
+ border:1px solid transparent;
+ background:#F4F5F2;
+ color:#4F544E;
+ font-size:12px;
+ font-weight:550;
+ gap:11px;
+ letter-spacing:-.035em;
+}
+#today .catalog-panel .emotion.active{
+ background:#ECEEE8;
+ border:1px solid #4B5049;
+ color:#232722
+}
+#today .catalog-panel .emotion .swatch{
+ width:35px;
+ height:35px;
+ flex:0 0 35px
+}
+#today .catalog-panel .emotion .checkmark{
+ color:#333B32;
+ font-weight:750
+}
+#today .custom-empty{
+ margin:0;
+ padding:10px 2px 22px;
+ color:#898C86;
+ font-size:12px;
+ line-height:1.6
+}
+#today .catalog-route .catalog-symbol{font-size:35px}
+#today .today-details{
+ margin:23px 0 0;
+ border-top:1px solid #E4E6E0;
+ padding-top:13px
+}
+#today .today-details .heading-row{
+ margin:0 0 12px
+}
+#today .today-details .heading-row h2{
+ font-family:var(--gyeol-font);
+ font-size:13px;
+ font-weight:650;
+ letter-spacing:-.01em
+}
+#today .optional-label{
+ font-size:10px;
+ color:#9A9E96;
+ font-weight:450;
+ letter-spacing:0
+}
+#today .today-details .memo{
+ width:100%;
+ min-height:84px;
+ padding:13px 14px;
+ margin:0;
+ border:1px solid #E8EAE4;
+ border-radius:3px;
+ background:#F8F9F6;
+ font-size:13px;
+ resize:vertical
+}
+#today .today-details .button-primary{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ margin-top:17px;
+ padding:17px 21px;
+ border-radius:3px;
+ min-height:58px;
+ font-size:14px;
+ font-weight:700;
+ letter-spacing:-.015em
+}
+#today .today-details .button-primary span{
+ font-size:20px;
+ font-weight:400
+}
+/* Dictionary becomes a quiet collection shelf of named color objects. */
+#dictionary .dictionary-list{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:12px;
+ margin-top:15px;
+}
+#dictionary .dictionary-item{
+ display:flex;
+ flex-direction:column;
+ align-items:stretch;
+ min-height:226px;
+ border:0;
+ border-radius:3px;
+ padding:17px 14px 13px;
+ background:#F5F6F3;
+ gap:10px;
+}
+#dictionary .dictionary-item .swatch{
+ display:block;
+ width:79px;
+ height:79px;
+ flex:0 0 79px;
+ margin:12px auto 8px;
+ border-radius:50%
+}
+#dictionary .dictionary-item .copy{
+ flex:1;
+ min-width:0;
+ width:100%
+}
+#dictionary .dictionary-item .copy strong{
+ display:block;
+ color:#2D322C;
+ font-size:15px;
+ font-weight:650;
+}
+#dictionary .dictionary-item .copy p{
+ color:#868B83;
+ font-size:11px;
+ line-height:1.45;
+ margin:5px 0 0;
+ overflow-wrap:anywhere
+}
+#dictionary .dictionary-item [data-use]{
+ align-self:flex-start;
+ color:#414840;
+ padding:8px 0 0;
+ font-size:11px;
+ font-weight:650
+}
+#dictionary .dictionary-list .empty-state{grid-column:1/-1}
+#dictionary .secondary-action{
+ border:1px solid #E6E9E3;
+ border-radius:3px;
+ background:transparent
+}
+@media(max-width:420px){
+ #today .today-intro h1{font-size:27px}
+ #today .object-stage{min-height:218px}
+ #today .catalog-row{min-height:80px;padding:12px 2px}
+ #today .catalog-title{font-size:clamp(24px,7.3vw,34px)}
+ #today .catalog-symbol{font-size:37px;min-width:34px}
+ #today .catalog-panel .emotion{min-height:85px;font-size:11px}
+}
+@media(max-width:350px){
+ #today .catalog-row{min-height:74px}
+ #today .catalog-title{font-size:23px;letter-spacing:-.07em}
+ #today .catalog-symbol{min-width:27px;font-size:34px}
+ #today .object-stage{min-height:208px}
+ #dictionary .dictionary-list{gap:8px}
+ #dictionary .dictionary-item{padding:12px 10px;min-height:210px}
+ #dictionary .dictionary-item .swatch{width:64px;height:64px;flex-basis:64px}
+}
+@media(prefers-reduced-motion:reduce){
+ #today .catalog-panel,#today .catalog-symbol{transition:none}
+}
