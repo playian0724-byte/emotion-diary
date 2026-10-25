@@ -722,7 +722,8 @@ function calendarWallMarkup(first,span){
  for(let date=new Date(first);date<end;date.setMonth(date.getMonth()+1)){
    const year=date.getFullYear(),m=date.getMonth();
    if(span!==1){
-     items.push('<span class="wall-month-number" role="note" aria-label="'+
+     items.push('<span class="wall-month-number" data-month="'+year+'-'+
+       String(m+1).padStart(2,'0')+'" role="note" aria-label="'+
        (m+1)+'월">'+String(m+1).padStart(2,'0')+'</span>')
    }
    const days=new Date(year,m+1,0).getDate();
@@ -945,6 +946,19 @@ function setupCalendarGestures(){
      return
    }
    for(const item of stage.morphs)item.source.style.removeProperty('transform');
+   for(const item of [...(stage.monthMorphs||[]),...(stage.monthDepartures||[])]){
+     item.source.style.removeProperty('transform');
+     item.source.style.removeProperty('opacity')
+   }
+   for(const item of stage.monthArrivals||[]){
+     item.target.style.removeProperty('transform');
+     item.target.style.removeProperty('opacity')
+   }
+   el.querySelectorAll('.zoom-month-dest-hidden').forEach(node=>node.classList.remove('zoom-month-dest-hidden'));
+   stage.layer?.querySelectorAll('.zoom-month-dest-hidden,.zoom-month-incoming')
+     .forEach(node=>node.classList.remove('zoom-month-dest-hidden','zoom-month-incoming'));
+   stage.oldGroup?.style.removeProperty('--v49-caption-opacity');
+   stage.layer?.style.removeProperty('--v49-caption-opacity');
    stage.oldGroup?.style.removeProperty('--v48-old-opacity');
    stage.layer?.style.removeProperty('--v48-new-opacity');
    el.querySelectorAll('.cal-day.zoom-departing').forEach(button=>
@@ -1120,6 +1134,58 @@ function setupCalendarGestures(){
    }
    incoming.sort((a,b)=>a.distance-b.distance);
    const visibleIncoming=incoming.map(item=>item.button);
+   // Month tokens are first-class moving objects, not static labels.
+   // Matched tokens follow their own new centers and diameters. Tokens
+   // leaving a zoom dissolve toward their month's day-one bead; incoming
+   // ones emerge from that bead as the user pinches.
+   const monthSources=[...el.querySelectorAll('.wall-month-number[data-month]')];
+   const monthTargets=new Map([...layer.querySelectorAll('.wall-month-number[data-month]')]
+     .map(node=>[node.dataset.month,node]));
+   const monthSourceKeys=new Set(monthSources.map(node=>node.dataset.month));
+   const monthMorphs=[],monthDepartures=[],monthArrivals=[];
+   const movement=(from,to)=>{
+     const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();
+     if(!a.width||!b.width)return null;
+     return {
+       dx:b.left+b.width/2-a.left-a.width/2,
+       dy:b.top+b.height/2-a.top-a.height/2,
+       ratio:clamp(b.width/a.width,.15,7)
+     }
+   };
+   for(const source of monthSources){
+     const key=source.dataset.month,target=monthTargets.get(key);
+     const dayOne=targetMap.get(key+'-01')?.querySelector('.mini');
+     // A month outside the incoming period still has to move/fade:
+     // use its original first-day circle as the exit destination.
+     const oldDayOne=el.querySelector('[data-date="'+key+'-01"] .mini');
+     const end=target||dayOne||oldDayOne;
+     if(!end)continue;
+     const position=movement(source,end);
+     if(!position)continue;
+     if(!target&&!dayOne)position.ratio=Math.min(position.ratio,.65);
+     if(target){
+       target.classList.add('zoom-month-dest-hidden');
+       monthMorphs.push({source,target,...position})
+     }else{
+       monthDepartures.push({source,end,endRect:end.getBoundingClientRect(),...position})
+     }
+   }
+   for(const [key,target] of monthTargets){
+     if(monthSourceKeys.has(key))continue;
+     const origin=el.querySelector('[data-date="'+key+'-01"] .mini');
+     const from=origin?.getBoundingClientRect(),to=target.getBoundingClientRect();
+     const size=from?.width||to.width;
+     const initial={
+       dx:from?(from.left+from.width/2-to.left-to.width/2):0,
+       dy:from?(from.top+from.height/2-to.top-to.height/2):0,
+       ratio:from?clamp(size/to.width,.15,7):.72
+     };
+     target.classList.add('zoom-month-incoming');
+     target.style.opacity='0';
+     target.style.transform='translate3d('+initial.dx.toFixed(2)+'px,'+
+       initial.dy.toFixed(2)+'px,0) scale('+initial.ratio.toFixed(4)+')';
+     monthArrivals.push({target,...initial})
+   }
    const oldLabels=[...el.querySelectorAll('.poster-month-label')];
    const newLabels=[...layer.querySelectorAll('.poster-month-label')];
    for(const label of newLabels)label.style.opacity='0';
@@ -1136,7 +1202,9 @@ function setupCalendarGestures(){
    currentHeading.parentElement.appendChild(nextHeading);
    el.classList.add('zoom-staging');
    return {next,first,layer,nextHeading,morphs,oldOnly,incoming:visibleIncoming,
-     oldLabels,newLabels,oldGroup:el.querySelector('.poster-months'),progress:0,point};
+     monthMorphs,monthDepartures,monthArrivals,
+     oldLabels,newLabels,oldGroup:el.querySelector('.poster-months'),
+     oldSpan:CAL_SPANS[calendarZoom],progress:0,point};
  }
  function drawStage(p){
    if(!stage)return;
@@ -1162,6 +1230,28 @@ function setupCalendarGestures(){
    // Only entering/leaving dates change opacity; shared beads stay solid.
    stage.oldGroup.style.setProperty('--v48-old-opacity',String(inv));
    stage.layer.style.setProperty('--v48-new-opacity',String(p));
+   // Pigment tokens move with the same continuous gesture progress
+   // as real date beads; no static old-size labels.
+   for(const {source,dx,dy,ratio} of stage.monthMorphs){
+     source.style.transform='translate3d('+(dx*p).toFixed(2)+'px,'+
+       (dy*p).toFixed(2)+'px,0) scale('+(1+(ratio-1)*p).toFixed(4)+')'
+   }
+   for(const {source,dx,dy,ratio} of stage.monthDepartures){
+     source.style.transform='translate3d('+(dx*p).toFixed(2)+'px,'+
+       (dy*p).toFixed(2)+'px,0) scale('+(1+(ratio-1)*p).toFixed(4)+')';
+     source.style.opacity=String(inv)
+   }
+   for(const {target,dx,dy,ratio} of stage.monthArrivals){
+     target.style.transform='translate3d('+(dx*inv).toFixed(2)+'px,'+
+       (dy*inv).toFixed(2)+'px,0) scale('+(1+(ratio-1)*inv).toFixed(4)+')';
+     target.style.opacity=String(p)
+   }
+   // Date captions are not bead numerals. Fade them while fingers move,
+   // and preserve that opacity until the new month view has settled.
+   if(CAL_SPANS[calendarZoom]===1)
+     stage.oldGroup.style.setProperty('--v49-caption-opacity',String(inv));
+   if(CAL_SPANS[stage.next]===1)
+     stage.layer.style.setProperty('--v49-caption-opacity',String(p));
    for(const label of stage.oldLabels)label.style.opacity=String(inv);
    for(const label of stage.newLabels)label.style.opacity=String(p);
    // V22: title dissolves DURING pinch, not only after touchend.
@@ -1357,10 +1447,38 @@ function setupCalendarGestures(){
    const moving=data.morphs.map(({source,key,dest})=>({
      key,dest,from:source.getBoundingClientRect()
    }));
+   const monthIncomingSettles=data.monthArrivals.map(({target})=>({
+     target,from:target.getBoundingClientRect(),opacity:Math.max(0,Math.min(1,
+       Number(target.style.opacity||'0')))
+   }));
+   const monthMatchedSettles=data.monthMorphs.map(({source,target})=>({
+     target,from:source.getBoundingClientRect(),opacity:1
+   }));
+   const monthExitSettles=data.monthDepartures.map(({source,end,endRect})=>({
+     source,end,endRect,from:source.getBoundingClientRect(),
+     opacity:Math.max(0,Math.min(1,Number(source.style.opacity||'1'))),
+     fontSize:(parseFloat(window.getComputedStyle(source).fontSize)*
+       (source.offsetWidth?source.getBoundingClientRect().width/source.offsetWidth:1))+'px'
+   }));
+   // A one-month caption fades with the finger, then its remaining
+   // opacity finishes disappearing after the source grid is replaced.
+   // Capture only date text (not colored beads) as tiny fixed ghosts.
+   const captionExits=data.oldSpan===1&&CAL_SPANS[data.next]!==1?
+     [...data.oldGroup.querySelectorAll('.cal-day .date-caption')].map(node=>{
+       const rect=node.getBoundingClientRect(),styles=window.getComputedStyle(node);
+       return {text:node.textContent,rect,font:styles.font,color:styles.color,
+         opacity:Math.max(0,Math.min(1,1-data.progress))}
+     }).filter(item=>item.rect.width>0&&item.opacity>.01):[];
    const layer=data.layer,group=layer.querySelector('.poster-months');
    const arriving=group?[...group.querySelectorAll('.cal-day.zoom-arriving')]:[];
    group?.querySelectorAll('.zoom-dest-hidden').forEach(button=>
      button.classList.remove('zoom-dest-hidden'));
+   group?.querySelectorAll('.zoom-month-dest-hidden,.zoom-month-incoming')
+     .forEach(node=>{
+       node.classList.remove('zoom-month-dest-hidden','zoom-month-incoming');
+       node.style.removeProperty('transform');
+       node.style.removeProperty('opacity')
+     });
    // Release makes the NEXT view current immediately: allows another pinch
    // on the very next touchstart while small per-bead settles play.
    calendarZoom=data.next;
@@ -1380,6 +1498,13 @@ function setupCalendarGestures(){
      button.style.setProperty('--v48-arrival-opacity',String(data.progress))
    }
    for(const label of data.newLabels)label.style.removeProperty('opacity');
+   const captionsArriving=span===1&&data.oldSpan!==1;
+   // The staged destination has no caption property of its own after
+   // moving into the live calendar; animate directly from finger progress.
+   if(captionsArriving){
+     group.style.setProperty('--v49-caption-start',String(data.progress));
+     group.classList.add('zoom-caption-settle')
+   }
    // Cancel prior bead animations before starting the NEW title crossfade.
    stopCalendarMotion();
    updatePeriodHeader(month,calendarZoom,data);
@@ -1387,13 +1512,93 @@ function setupCalendarGestures(){
    calendarIgnoreClickUntil=performance.now()+230;
    $('record-detail').hidden=true;
    showDate(calendarSelected,false);
-   if(reduced())return true;
+   if(reduced()){
+     if(captionsArriving){
+       group.classList.remove('zoom-caption-settle');
+       group.style.removeProperty('--v49-caption-start')
+     }
+     return true
+   }
    if(arriving.length)setTimeout(()=>{
      for(const button of arriving){
        button.classList.remove('zoom-arrival-settle');
        button.style.removeProperty('--v48-arrival-opacity')
      }
    },320);
+   // One-month day captions survive the DOM swap as text-only fading
+   // ghosts. They no longer pop out suddenly on finger release.
+   for(const {text,rect,font,color,opacity} of captionExits){
+     const ghost=document.createElement('span');
+     ghost.className='zoom-caption-exit-ghost';
+     ghost.textContent=text;
+     ghost.style.left=rect.left+'px';
+     ghost.style.top=rect.top+'px';
+     ghost.style.width=rect.width+'px';
+     ghost.style.height=rect.height+'px';
+     ghost.style.font=font;
+     ghost.style.color=color;
+     ghost.style.opacity=String(opacity);
+     document.body.appendChild(ghost);
+     if(!ghost.animate){ghost.remove();continue}
+     const animation=ghost.animate([
+       {opacity,transform:'translate3d(0,0,0)'},
+       {opacity:0,transform:'translate3d(0,-4px,0)'}
+     ],{duration:235,easing:'ease-out'});
+     animation.onfinish=()=>ghost.remove();
+     animation.oncancel=()=>ghost.remove();
+     calendarMotion.push(animation)
+   }
+   // Continue each month marker from its actual pinch-frame geometry,
+   // rather than popping into a new position or remaining at old diameter.
+   const settleDuration=245,settleEase='cubic-bezier(.16,1,.3,1)';
+   for(const {target,from,opacity} of [...monthMatchedSettles,...monthIncomingSettles]){
+     if(!target?.isConnected||!target.animate||from.width<1)continue;
+     const end=target.getBoundingClientRect();
+     if(!end.width)continue;
+     const dx=from.left+from.width/2-end.left-end.width/2;
+     const dy=from.top+from.height/2-end.top-end.height/2;
+     const scale=clamp(from.width/end.width,.15,7);
+     const animation=target.animate([
+       {transform:'translate3d('+dx.toFixed(2)+'px,'+dy.toFixed(2)+'px,0) scale('+
+         scale.toFixed(4)+')',opacity},
+       {transform:'translate3d(0px,0px,0) scale(1)',opacity:1}
+     ],{duration:settleDuration,easing:settleEase});
+     calendarMotion.push(animation)
+   }
+   // A disappearing month marker keeps moving/fading after the old grid
+   // unmounts: a lightweight, 12-or-fewer, fixed-position last-frame clone.
+   for(const {source,end,endRect,from,opacity,fontSize} of monthExitSettles){
+     if(!opacity||from.width<1)continue;
+     const destination=end?.isConnected?end.getBoundingClientRect():endRect;
+     const ghost=document.createElement('span');
+     ghost.className='zoom-month-exit-ghost';
+     ghost.textContent=source.textContent;
+     ghost.style.left=from.left+'px';
+     ghost.style.top=from.top+'px';
+     ghost.style.width=from.width+'px';
+     ghost.style.height=from.height+'px';
+     ghost.style.fontSize=fontSize;
+     ghost.style.opacity=String(opacity);
+     document.body.appendChild(ghost);
+     const dx=destination?destination.left+destination.width/2-from.left-from.width/2:0;
+     const dy=destination?destination.top+destination.height/2-from.top-from.height/2:0;
+     const ratio=destination?clamp(destination.width/from.width,.15,7):.7;
+     if(!ghost.animate){ghost.remove();continue}
+     const motion=ghost.animate([
+       {transform:'translate3d(0px,0px,0) scale(1)',opacity},
+       {transform:'translate3d('+dx.toFixed(2)+'px,'+dy.toFixed(2)+
+         'px,0) scale('+ratio.toFixed(4)+')',opacity:0}
+     ],{duration:settleDuration,easing:settleEase});
+     motion.onfinish=()=>ghost.remove();
+     motion.oncancel=()=>ghost.remove();
+     calendarMotion.push(motion)
+   }
+   if(captionsArriving){
+     setTimeout(()=>{
+       group.classList.remove('zoom-caption-settle');
+       group.style.removeProperty('--v49-caption-start')
+     },300)
+   }
    // All shared beads continue their actual motion as the new DOM takes over.
    for(const {dest,from} of moving){
      if(!dest.animate||from.width<1)continue;

@@ -3807,3 +3807,87 @@ body.drawer-open #menu-toggle.menu-toggle{
  #archive .calendar-controls .arrow-buttons button svg{transition:none!important}
  #my .emotion-map-period button{transition:none!important}
 }
+
+
+/* V49 — Month discs are real participants in the same date-identity pinch
+   choreography. Shared IDs transform in place; incoming month circles
+   emerge from the first-day bead; outgoing tokens leave toward that day. */
+#archive > .zoom-next-layer.zoom-direct-stage .bead-wall-grid > .wall-month-number.zoom-month-dest-hidden{
+ visibility:hidden!important;
+}
+#archive .calendar-archive.zoom-staging .bead-wall-grid > .wall-month-number,
+#archive > .zoom-next-layer.zoom-direct-stage .bead-wall-grid > .wall-month-number{
+ transform-origin:center center;
+ will-change:transform,opacity;
+}
+#archive > .zoom-next-layer.zoom-direct-stage .bead-wall-grid > .wall-month-number.zoom-month-incoming{
+ visibility:visible!important;
+}
+/* Only the one-month captions fade, exactly with finger progress. Full
+   colored beads never fade and the grid stays continuously present. */
+#archive .calendar-archive.zoom-staging.zoom-1 .bead-wall-grid > .cal-day .date-caption{
+ opacity:var(--v49-caption-opacity,1)!important;
+}
+#archive > .zoom-next-layer.zoom-direct-stage.zoom-1 .bead-wall-grid > .cal-day .date-caption{
+ opacity:var(--v49-caption-opacity,0)!important;
+}
+#archive .calendar-archive.zoom-1 .poster-months.zoom-caption-settle .bead-wall-grid > .cal-day .date-caption{
+ animation:v49-caption-appear .255s ease-out both;
+}
+@keyframes v49-caption-appear{
+ from{opacity:var(--v49-caption-start,0)}
+ to{opacity:1}
+}
+/* When an outgoing month does not exist in the destination (3 months
+   => 1 month), the last frame survives as a tiny fixed-position clone. */
+.zoom-month-exit-ghost{
+ position:fixed!important;
+ z-index:304;
+ display:grid!important;
+ place-items:center!important;
+ box-sizing:border-box!important;
+ padding:0!important;
+ margin:0!important;
+ border:0!important;
+ border-radius:50%!important;
+ background:#ECEEEA!important;
+ color:#424841!important;
+ font-family:var(--gyeol-font);
+ font-weight:740;
+ letter-spacing:-.075em;
+ line-height:1;
+ font-variant-numeric:tabular-nums;
+ pointer-events:none!important;
+ transform-origin:center center;
+ will-change:transform,opacity;
+}
+@media(prefers-reduced-motion:reduce){
+ #archive .calendar-archive.zoom-1 .poster-months.zoom-caption-settle .bead-wall-grid > .cal-day .date-caption{
+   animation:none!important
+ }
+ .zoom-month-exit-ghost{will-change:auto}
+}
+
+
+/* Caption-only exit layer, kept for 235ms after a 1-to-3 month pinch.
+   Its tiny labels fade to transparent without a calendar-wide white flash. */
+.zoom-caption-exit-ghost{
+ position:fixed!important;
+ z-index:303;
+ display:block!important;
+ box-sizing:border-box;
+ padding:0;
+ margin:0;
+ border:0;
+ background:transparent!important;
+ font-family:var(--gyeol-font);
+ line-height:1;
+ text-align:center;
+ white-space:nowrap;
+ font-variant-numeric:tabular-nums;
+ pointer-events:none!important;
+ will-change:opacity,transform;
+}
+@media(prefers-reduced-motion:reduce){
+ .zoom-caption-exit-ghost{display:none!important}
+}
