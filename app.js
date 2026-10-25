@@ -648,7 +648,7 @@ function calendarMonthMarkup(date,span){
   return calendarDayMarkup(y,m,i+1).replace('class="cal-day','class="cal-day'+(col%2?' bead-offset':''))
  }).join('');
  return '<section class="poster-month" aria-label="'+y+' '+numericMonth(date)+'">'+
-  (span===1?'':'<h3 class="poster-month-label">'+numericMonth(date)+'</h3>')+
+  (span===1?'':'<h3 class="poster-month-label">'+GALLERY_MONTH_NAMES[m]+'</h3>')+
   '<div class="poster-days" style="--bead-cols:'+cols+'">'+dates+'</div></section>'
 }
 function calendarYearPoster(year){
@@ -656,7 +656,7 @@ function calendarYearPoster(year){
   const n=new Date(year,m+1,0).getDate();
   const dates=Array.from({length:n},(_,i)=>calendarDayMarkup(year,m,i+1)).join('');
   return '<section class="poster-month" aria-label="'+year+' / '+String(m+1).padStart(2,'0')+'">'+
-   '<h3 class="poster-month-label">'+String(m+1).padStart(2,'0')+'</h3>'+
+   '<h3 class="poster-month-label">'+GALLERY_MONTH_NAMES[m]+'</h3>'+
    '<div class="poster-days" style="--bead-cols:3">'+dates+'</div></section>'
  }).join('');
  return '<div class="poster-months" role="group" aria-label="'+year+' 감정 연감">'+columns+'</div>'
