@@ -72,19 +72,20 @@ function buildDemoRecords(today=new Date()){
  let previousMood='calm',missed=0;
  const pickMood=()=>DEMO_EMOTION_POOL[Math.floor(random()*DEMO_EMOTION_POOL.length)];
  for(let i=0;i<days.length;i++){
-   if(missed>0){missed--;continue}
+   const isLatestDay=i===days.length-1;
+   if(missed>0&&!isLatestDay){missed--;continue}
    // Recording habits: scattered one-day omissions, 2–3-day forgetful
    // spells, plus rarer 4–7-day lapses. A missing date stays an empty bead.
    const roll=random();
-   if(i!==0&&roll<.024){
+   if(i!==0&&!isLatestDay&&roll<.017){
      missed=3+Math.floor(random()*4);
      continue
    }
-   if(i!==0&&roll<.104){
+   if(i!==0&&!isLatestDay&&roll<.087){
      missed=1+Math.floor(random()*2);
      continue
    }
-   if(i!==0&&roll<.204)continue;
+   if(i!==0&&!isLatestDay&&roll<.174)continue;
    const mood=random()<.54?previousMood:pickMood();
    previousMood=mood;
    // Approximately a quarter of recorded dates have mixed emotion
