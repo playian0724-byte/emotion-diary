@@ -2924,3 +2924,17 @@ body{background:#F4F5F2;color:#1F211F;letter-spacing:-.035em}
    --gallery-month-type:11px;
  }
 }
+
+
+/* Demo mode must obey the same object spacing as real records; older V24
+   collage rules had higher-specificity 1px gaps. */
+#archive .calendar-archive.mosaic-demo .poster-days,
+#archive > .zoom-next-layer.mosaic-demo .poster-days{
+  row-gap:var(--gallery-day-y)!important;
+  column-gap:var(--gallery-day-x)!important
+}
+#archive .calendar-archive.mosaic-demo.zoom-1 .poster-days,
+#archive > .zoom-next-layer.mosaic-demo.zoom-1 .poster-days{
+  row-gap:clamp(22px,6vw,33px)!important;
+  column-gap:clamp(10px,3vw,17px)!important
+}
