@@ -3891,3 +3891,22 @@ body.drawer-open #menu-toggle.menu-toggle{
 @media(prefers-reduced-motion:reduce){
  .zoom-caption-exit-ghost{display:none!important}
 }
+
+
+/* V50 — subdued editorial hierarchy for Settings.
+   Keep the saved-expiry number legible; only the category heading becomes
+   smaller and quieter, in the same SUIT product-catalogue vocabulary. */
+#settings .settings-group .settings-label{
+ font-family:var(--gyeol-font);
+ font-size:13px;
+ font-weight:500;
+ line-height:1.45;
+ letter-spacing:-.012em;
+ color:#545B54;
+}
+/* Allow the longer English page heading to breathe on narrow phones. */
+#today .today-intro h1{
+ font-size:clamp(26px,7.6vw,34px);
+ font-weight:650;
+ letter-spacing:-.065em;
+}

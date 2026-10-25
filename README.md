@@ -6,6 +6,16 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
+## V50 — 페이지 명칭 및 Settings 서체 정리
+
+- **Today:** 화면 제목을 `Emotion recoder`로 변경.
+- **Dictionary:** 제목을 `Dictionary`, 감정 목록 제목을 `Customized emotions`로 변경.
+- **My:** 지도 페이지 제목을 `Map`으로 변경.
+- **Settings:** 페이지 제목을 `Settings`로 변경하고 `기록 유통기한` 소제목을 SUIT 13px / 500 weight로 작고 가볍게 조정.
+- **기능 유지:** V49 핀치 이동 및 월 구슬·날짜 페이드, 감정 데이터와 UI 기능 수정 없음.
+
+[V50 웹앱](https://playian0724-byte.github.io/emotion-diary/?v=50) · [Settings](https://playian0724-byte.github.io/emotion-diary/?v=50&view=settings) · [Dictionary](https://playian0724-byte.github.io/emotion-diary/?v=50&view=dictionary)
+
 ## V49 — 달력 날짜 페이드와 월 구슬 핀치 모핑
 
 - **1개월 날짜:** 1개월에서 3개월로 핀치 축소할 때 구슬 아래 날짜 숫자가 손가락 진행률과 함께 투명해진다. 손을 떼고 나서도 남은 숫자 투명화가 짧게 마무리되어 갑자기 사라지지 않는다. 3개월에서 1개월로 확대하면 반대로 날짜가 부드럽게 나타난다.
