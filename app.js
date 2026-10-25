@@ -578,11 +578,14 @@ function changeCalendarZoom(delta,point){
  return true
 }
 function numericMonth(date){return String(date.getMonth()+1).padStart(2,'0')}
+const GALLERY_MONTH_NAMES=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE',
+ 'JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
 function periodHeaderMarkup(date,span){
  const year='<span class="period-year">'+date.getFullYear()+'</span>';
- // Month range belongs only to the single-month archive. Multi-month poster
- // views use their own bold month labels, like the 12-month year view.
- return span===1?year+'<span class="period-month">'+numericMonth(date)+'</span>':year
+ // Single-month view reads as a product catalogue; 3/6/12-month views
+ // keep the existing year-poster typography and all zoom mechanics.
+ return span===1?'<span class="period-month-name">'+GALLERY_MONTH_NAMES[date.getMonth()]+
+   '</span>'+year:year
 }
 function periodHeaderLabel(date,span){
  const last=new Date(date.getFullYear(),date.getMonth()+span-1,1);
@@ -615,7 +618,7 @@ function dateInk(rec){
  }
  return best
 }
-function calendarDayMarkup(y,m,day){
+function calendarDayMarkup(y,m,day,captionBelow=false){
  const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
  const rec=previewRecord(key);
  const cls=(rec?' recorded':'')+(key===isoDay()?' today':'')+(key===calendarSelected?' selected':'');
@@ -631,7 +634,9 @@ function calendarDayMarkup(y,m,day){
  const center=layered?'<span class="orb-center" aria-hidden="true" style="background:'+layers.inner+'"></span>':'';
  return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'" aria-label="'+key+
    (rec?' 감정 기록':' 기록 없음')+'"><span class="'+miniClass+'"'+style+'>'+center+
-   '<span class="daynum" style="color:'+ink+'">'+day+'</span></span></button>'
+   '<span class="daynum" style="color:'+ink+'">'+day+'</span></span>'+
+   (captionBelow?'<span class="date-caption" aria-hidden="true">'+String(day).padStart(2,'0')+'</span>':'')+
+   '</button>'
 }
 function calendarMonthMarkup(date,span){
  const y=date.getFullYear(),m=date.getMonth(),n=new Date(y,m+1,0).getDate();
@@ -639,7 +644,7 @@ function calendarMonthMarkup(date,span){
  const cols=span===1?7:span===3?3:span===6?2:1;
  const dates=Array.from({length:n},(_,i)=>{
   const col=i%cols;
-  return calendarDayMarkup(y,m,i+1).replace('class="cal-day','class="cal-day'+(col%2?' bead-offset':''))
+  return calendarDayMarkup(y,m,i+1,span===1).replace('class="cal-day','class="cal-day'+(col%2?' bead-offset':''))
  }).join('');
  return '<section class="poster-month" aria-label="'+y+' '+numericMonth(date)+'">'+
   (span===1?'':'<h3 class="poster-month-label">'+numericMonth(date)+'</h3>')+
