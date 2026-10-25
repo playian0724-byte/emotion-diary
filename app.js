@@ -945,8 +945,12 @@ function setupCalendarGestures(){
      return
    }
    for(const item of stage.morphs)item.source.style.removeProperty('transform');
-   for(const button of stage.oldOnly)button.style.removeProperty('opacity');
-   for(const button of stage.incoming)button.style.removeProperty('opacity');
+   stage.oldGroup?.style.removeProperty('--v48-old-opacity');
+   stage.layer?.style.removeProperty('--v48-new-opacity');
+   el.querySelectorAll('.cal-day.zoom-departing').forEach(button=>
+     button.classList.remove('zoom-departing'));
+   stage.layer?.querySelectorAll('.zoom-dest-hidden,.zoom-arriving').forEach(button=>
+     button.classList.remove('zoom-dest-hidden','zoom-arriving'));
    for(const item of stage.oldLabels)item.style.removeProperty('opacity');
    for(const item of stage.newLabels)item.style.removeProperty('opacity');
    $('month-label').style.removeProperty('opacity');
@@ -1064,11 +1068,9 @@ function setupCalendarGestures(){
    layer.style.width=gridRect.width+'px';
    layer.style.opacity='1';
    host.appendChild(layer);
-   // Month-to-year (and the reverse): a bounded ghost set rides over two
-   // opacity-composited poster fields so untracked dates never snap.
-   return stagePoster(first,next,layer,targetMap,point);
-   // V21: only animate beads near the viewport. On a year grid hundreds
-   // of off-screen transforms were needlessly updated on every animation frame.
+   // V48: move the original dated beads into their own new grid positions.
+   // No white-fading complete poster. Shared destination cells remain hidden.
+   layer.classList.add('zoom-direct-stage');
    const morphs=[],oldOnly=[],incoming=[],shared=new Set();
    const screenH=window.innerHeight||document.documentElement.clientHeight;
    const screenW=window.innerWidth||document.documentElement.clientWidth||400;
@@ -1078,6 +1080,15 @@ function setupCalendarGestures(){
    const distance=rect=>Math.hypot((rect.left+rect.width/2-middle.x)*.7,
      rect.top+rect.height/2-middle.y);
    const oldButtons=el.querySelectorAll('[data-date]');
+   const oldIds=new Set(Array.from(oldButtons,button=>button.dataset.date));
+   for(const button of oldButtons){
+     const destination=targetMap.get(button.dataset.date);
+     if(destination)destination.classList.add('zoom-dest-hidden');
+     else button.classList.add('zoom-departing')
+   }
+   for(const [key,button] of targetMap){
+     if(!oldIds.has(key))button.classList.add('zoom-arriving')
+   }
    for(const button of oldButtons){
      const key=button.dataset.date,to=targetMap.get(key);
      const source=button.querySelector('.mini');
@@ -1101,14 +1112,14 @@ function setupCalendarGestures(){
      })
    }
    morphs.sort((a,b)=>a.distance-b.distance);
-   morphs.length=Math.min(morphs.length,76);
+   morphs.length=Math.min(morphs.length,380);
    for(const [key,button] of targetMap){
      if(shared.has(key))continue;
      const rect=button.getBoundingClientRect();
      if(visible(rect))incoming.push({button,distance:distance(rect)})
    }
    incoming.sort((a,b)=>a.distance-b.distance);
-   const visibleIncoming=incoming.slice(0,70).map(item=>item.button);
+   const visibleIncoming=incoming.map(item=>item.button);
    const oldLabels=[...el.querySelectorAll('.poster-month-label')];
    const newLabels=[...layer.querySelectorAll('.poster-month-label')];
    for(const label of newLabels)label.style.opacity='0';
@@ -1124,7 +1135,8 @@ function setupCalendarGestures(){
    nextHeading.style.opacity='0';
    currentHeading.parentElement.appendChild(nextHeading);
    el.classList.add('zoom-staging');
-   return {next,first,layer,nextHeading,morphs,oldOnly,incoming:visibleIncoming,oldLabels,newLabels,progress:0,point};
+   return {next,first,layer,nextHeading,morphs,oldOnly,incoming:visibleIncoming,
+     oldLabels,newLabels,oldGroup:el.querySelector('.poster-months'),progress:0,point};
  }
  function drawStage(p){
    if(!stage)return;
@@ -1147,8 +1159,9 @@ function setupCalendarGestures(){
      const x=dx*p,y=dy*p,scale=1+(ratio-1)*p;
      source.style.transform='translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0) scale('+scale.toFixed(4)+')'
    }
-   for(const button of stage.oldOnly)button.style.opacity=String(inv);
-   for(const button of stage.incoming)button.style.opacity=String(p);
+   // Only entering/leaving dates change opacity; shared beads stay solid.
+   stage.oldGroup.style.setProperty('--v48-old-opacity',String(inv));
+   stage.layer.style.setProperty('--v48-new-opacity',String(p));
    for(const label of stage.oldLabels)label.style.opacity=String(inv);
    for(const label of stage.newLabels)label.style.opacity=String(p);
    // V22: title dissolves DURING pinch, not only after touchend.
@@ -1344,8 +1357,10 @@ function setupCalendarGestures(){
    const moving=data.morphs.map(({source,key,dest})=>({
      key,dest,from:source.getBoundingClientRect()
    }));
-   const incomingOpacity=new Map(data.incoming.map(button=>[button,button.style.opacity||'0']));
    const layer=data.layer,group=layer.querySelector('.poster-months');
+   const arriving=group?[...group.querySelectorAll('.cal-day.zoom-arriving')]:[];
+   group?.querySelectorAll('.zoom-dest-hidden').forEach(button=>
+     button.classList.remove('zoom-dest-hidden'));
    // Release makes the NEXT view current immediately: allows another pinch
    // on the very next touchstart while small per-bead settles play.
    calendarZoom=data.next;
@@ -1359,7 +1374,11 @@ function setupCalendarGestures(){
      layer.remove();
      renderCalendar()
    }
-   for(const button of data.incoming)button.style.removeProperty('opacity');
+   for(const button of arriving){
+     button.classList.remove('zoom-arriving');
+     button.classList.add('zoom-arrival-settle');
+     button.style.setProperty('--v48-arrival-opacity',String(data.progress))
+   }
    for(const label of data.newLabels)label.style.removeProperty('opacity');
    // Cancel prior bead animations before starting the NEW title crossfade.
    stopCalendarMotion();
@@ -1369,8 +1388,13 @@ function setupCalendarGestures(){
    $('record-detail').hidden=true;
    showDate(calendarSelected,false);
    if(reduced())return true;
-   // Visible beads continue their journey on the next screen via WAAPI.
-   // There is no extra release-to-screen delay.
+   if(arriving.length)setTimeout(()=>{
+     for(const button of arriving){
+       button.classList.remove('zoom-arrival-settle');
+       button.style.removeProperty('--v48-arrival-opacity')
+     }
+   },320);
+   // All shared beads continue their actual motion as the new DOM takes over.
    for(const {dest,from} of moving){
      if(!dest.animate||from.width<1)continue;
      const end=dest.getBoundingClientRect();
@@ -1383,14 +1407,6 @@ function setupCalendarGestures(){
        {transform:'translate3d('+dx.toFixed(1)+'px,'+dy.toFixed(1)+'px,0) scale('+scale.toFixed(3)+')'},
        {transform:'translate3d(0px,0px,0) scale(1)'}
      ],{duration:245,easing:'cubic-bezier(.16,1,.3,1)'}))
-   }
-   for(const [button,opacity] of incomingOpacity){
-     if(!button.animate)continue;
-     const from=clamp(Number(opacity),0,1);
-     if(from>=.99)continue;
-     calendarMotion.push(button.animate([
-       {opacity:from},{opacity:1}
-     ],{duration:190,easing:'ease-out'}))
    }
    return true
  }
@@ -1776,12 +1792,10 @@ function renderDictionary(){
    const color=/^#[0-9a-f]{6}$/i.test(emotion.color)?emotion.color:'#ECEFEB';
    const name=escapeHTML(emotion.name||'이름 미정');
    const definition=escapeHTML(emotion.definition||'');
-   const serial=String(db.custom.length-i).padStart(2,'0');
    return '<button type="button" class="dictionary-item dictionary-card" data-emotion-id="'+
      escapeHTML(emotion.id)+'" aria-label="'+name+' 감정 상세 보기">'+
      '<span class="swatch" style="background:'+color+'"></span>'+
-     '<span class="copy"><span class="dictionary-index">OBJECT / '+serial+'</span>'+
-     '<strong>'+name+'</strong>'+
+     '<span class="copy"><strong>'+name+'</strong>'+
      (definition?'<span class="dictionary-card-definition">'+definition+'</span>':'')+
      '</span><span class="dictionary-card-arrow" aria-hidden="true">↗</span></button>'
  }).join('');
@@ -2091,7 +2105,6 @@ $('edit-expiry').onchange=()=>{
 document.querySelectorAll('[data-expiry-index]').forEach(btn=>{
  btn.onclick=()=>persistExpiryHours(sliderHoursForIndex(btn.dataset.expiryIndex),true)
 });
-$('my-settings').onclick=()=>setScreen('settings');
 $('settings-back').onclick=()=>setScreen('my');
 document.addEventListener('visibilitychange',()=>{
  if(!document.hidden)refreshExpiryLocks()

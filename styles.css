@@ -3685,3 +3685,125 @@ body.drawer-open #menu-toggle.menu-toggle{
 @media(prefers-reduced-motion:reduce){
  #dictionary .dictionary-card,#dictionary .dictionary-card-arrow{transition:none!important}
 }
+
+
+/* V48 — all shared emotion beads travel from their exact original positions
+   toward their matching date in the incoming wall. The original poster is
+   never faded out: only dates outside the shared range change opacity. */
+#archive > .zoom-next-layer.zoom-direct-stage{
+ opacity:1!important;
+ background:transparent!important;
+}
+#archive > .zoom-next-layer.zoom-direct-stage .bead-wall-grid > .cal-day.zoom-dest-hidden{
+ visibility:hidden!important;
+}
+#archive > .zoom-next-layer.zoom-direct-stage .bead-wall-grid > .cal-day.zoom-arriving{
+ opacity:var(--v48-new-opacity,0)!important;
+}
+#archive .calendar-archive.zoom-staging > .poster-months .bead-wall-grid > .cal-day.zoom-departing{
+ opacity:var(--v48-old-opacity,1)!important;
+}
+#archive .calendar-archive.zoom-staging > .poster-months{
+ opacity:1!important;
+}
+#archive .calendar-archive.zoom-staging .bead-wall-grid > .cal-day .mini{
+ will-change:transform;
+ transform-origin:center center;
+}
+#archive .bead-wall-grid > .cal-day.zoom-arrival-settle{
+ animation:v48-bead-arrive .27s cubic-bezier(.18,.8,.23,1) both;
+}
+@keyframes v48-bead-arrive{
+ from{opacity:var(--v48-arrival-opacity,0)}
+ to{opacity:1}
+}
+
+/* A single fine hairline, with almost no outer clearance. */
+#archive .calendar-archive .bead-wall-grid > .cal-day.selected:not(.inspected) .mini,
+#archive .calendar-archive.zoom-1 .bead-wall-grid > .cal-day.selected:not(.inspected) .mini{
+ outline:0!important;
+ outline-offset:0!important;
+ box-shadow:none!important;
+}
+#archive .calendar-archive .bead-wall-grid > .cal-day.inspected .mini,
+#archive .calendar-archive.zoom-1 .bead-wall-grid > .cal-day.inspected .mini,
+#archive .calendar-archive.zoom-3 .bead-wall-grid > .cal-day.inspected .mini,
+#archive .calendar-archive.zoom-6 .bead-wall-grid > .cal-day.inspected .mini,
+#archive .calendar-archive.zoom-12 .bead-wall-grid > .cal-day.inspected .mini{
+ outline:1px solid #29332B!important;
+ outline-offset:1px!important;
+ box-shadow:none!important;
+}
+
+/* Editorial chevrons instead of rounded, shaded archive buttons. */
+#archive .calendar-controls .arrow-buttons{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:flex-end!important;
+ gap:clamp(8px,2vw,15px)!important;
+}
+#archive .calendar-controls .arrow-buttons button,
+#archive:not(.poster-year) .calendar-controls .arrow-buttons button{
+ display:grid!important;place-items:center!important;
+ width:31px!important;height:36px!important;min-width:31px!important;
+ margin:0!important;padding:5px!important;
+ border:0!important;border-radius:0!important;
+ color:#252C26!important;background:transparent!important;box-shadow:none!important;
+}
+#archive .calendar-controls .arrow-buttons button svg{
+ display:block;width:16px;height:19px;
+ fill:none;stroke:currentColor;stroke-width:1.65;
+ stroke-linecap:round;stroke-linejoin:round;
+ transition:transform .22s ease;
+}
+#archive .calendar-controls .arrow-buttons button:active:first-child svg{transform:translateX(-2px)}
+#archive .calendar-controls .arrow-buttons button:active:last-child svg{transform:translateX(2px)}
+#archive .calendar-controls .arrow-buttons button:focus-visible{
+ outline:1px solid #404940;outline-offset:1px
+}
+
+/* Dictionary cards display only named emotions, not object serial numbers. */
+#dictionary .dictionary-card .dictionary-index{display:none!important}
+#dictionary .dictionary-card .copy{gap:6px}
+
+/* My page is a collection display; Settings lives in the main drawer.
+   Period controls become bare typographic tabs rather than filled pills. */
+#my .my-intro{display:block!important}
+#my .emotion-map-top{
+ display:flex!important;justify-content:flex-end!important;
+ padding:0;margin-bottom:16px
+}
+#my .emotion-map-period{
+ display:flex!important;align-items:center!important;
+ justify-content:flex-end!important;
+ gap:24px!important;padding:0!important;
+ border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;
+}
+#my .emotion-map-period button{
+ display:block;position:relative;
+ min-width:0!important;min-height:35px!important;
+ padding:5px 0 9px!important;
+ border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;
+ color:#9B9F98!important;font-family:var(--gyeol-font);
+ font-size:12px!important;font-weight:650!important;
+ letter-spacing:.015em!important;line-height:1.25;
+ transition:color .22s ease
+}
+#my .emotion-map-period button.active{
+ background:transparent!important;color:#1B211D!important;
+ font-weight:750!important;box-shadow:none!important;
+}
+#my .emotion-map-period button.active::after{
+ content:"";position:absolute;
+ bottom:0;left:0;right:0;height:1.5px;background:#1F2720;
+}
+#my .emotion-map-period button:focus-visible{
+ outline:1px solid #333C33;outline-offset:2px
+}
+@media(prefers-reduced-motion:reduce){
+ #archive .bead-wall-grid > .cal-day.zoom-arrival-settle{animation:none!important}
+ #archive .calendar-controls .arrow-buttons button svg{transition:none!important}
+ #my .emotion-map-period button{transition:none!important}
+}
