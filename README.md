@@ -6,6 +6,16 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
+## V54 — 1월 1일부터 오늘까지 감정 구슬 샘플 아카이브
+
+- **2026년 1월 1일~10월 25일** 구간을 기준으로 감정 일기를 기록한 모습을 미리 보는 샘플 모드. 이후 접속 시에는 해당 연도 1월 1일부터 접속일까지만 샘플을 생성.
+- 매일 전부 채우지 않고 하루 단위, 2~3일, 드문 4~7일 공백을 배치하여 잊고 기록하지 않은 날은 빈 구슬로 남김.
+- 기본 여덟 감정 색상으로 일부 기분이 이어지는 구간과 혼합 구슬(2~4색)을 배치. 확대·축소 중에도 색과 비어 있는 날짜가 고정됨.
+- **기존 개인 기록은 변경하지 않음.** 미리보기 데이터는 메모리에만 있고 샘플 모드는 저장 비활성화.
+- [V54 샘플 아카이브 구현 기록](./docs/V54_REALISTIC_YEAR_ARCHIVE.md)
+
+[V54 1년 샘플](https://playian0724-byte.github.io/emotion-diary/v54.html?demo=1&view=year) · [6개월 샘플](https://playian0724-byte.github.io/emotion-diary/v54.html?demo=1&view=half) · [실제 기록](https://playian0724-byte.github.io/emotion-diary/v54.html?view=year)
+
 ## V53 — Dictionary에 Emotion lab 바로가기
 
 - Dictionary 화면의 **Customized emotions** 위에 Today의 `Emotion lab →`와 동일한 SUIT 타이포 메뉴 행 추가.

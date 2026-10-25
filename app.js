@@ -51,29 +51,55 @@ const DEMO_GRADIENTS=[
  ['calm','sad','anxious','disgust'],
  ['sad','expectation','anger','joy']
 ];
+/* V54 — realistic, reproducible recording rhythm.
+   A saved object does not exist on every date. Some breaks are scattered
+   single misses; others form short runs or occasional longer stretches.
+   This preview is in-memory only and never touches gyeol-v2. */
 function buildDemoRecords(today=new Date()){
- const year=today.getFullYear(),dates=[];
- for(let day=new Date(year,0,1);day<=today;day.setDate(day.getDate()+1))dates.push(isoDay(day));
+ const end=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+ const year=end.getFullYear();
+ const days=[];
+ for(let d=new Date(year,0,1);d<=end;d.setDate(d.getDate()+1))
+   days.push(isoDay(d));
  let seed=(Math.imul(year,2654435761)^0x137A2B49)>>>0;
  const random=()=>{
    seed=(Math.imul(seed,1664525)+1013904223)>>>0;
    return seed/4294967296
  };
- // Choose exactly 30% gradient dates, randomly scattered across the year.
- const shuffled=dates.map((_,i)=>i);
- for(let i=shuffled.length-1;i>0;i--){
-   const j=Math.floor(random()*(i+1));
-   [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]]
- }
- const gradientDays=new Set(shuffled.slice(0,Math.round(dates.length*.30)));
  const samples={};
- for(let i=0;i<dates.length;i++){
-   const isGradient=gradientDays.has(i);
-   const colorway=isGradient?DEMO_GRADIENTS[Math.floor(random()*DEMO_GRADIENTS.length)]:null;
-   const choices=colorway?[...colorway]:
-     [DEMO_EMOTION_POOL[Math.floor(random()*DEMO_EMOTION_POOL.length)]];
-   const demoColors=choices.map(id=>BASIC_PALETTE.get(id).color);
-   samples[dates[i]]={emotions:[...choices],demoColors,note:'',demo:true}
+ // Carry a predominant mood across consecutive recorded days, with
+ // occasional shifts; the archive looks like a diary, not confetti.
+ let previousMood='calm',missed=0;
+ const pickMood=()=>DEMO_EMOTION_POOL[Math.floor(random()*DEMO_EMOTION_POOL.length)];
+ for(let i=0;i<days.length;i++){
+   if(missed>0){missed--;continue}
+   // Recording habits: scattered one-day omissions, 2–3-day forgetful
+   // spells, plus rarer 4–7-day lapses. A missing date stays an empty bead.
+   const roll=random();
+   if(i!==0&&roll<.024){
+     missed=3+Math.floor(random()*4);
+     continue
+   }
+   if(i!==0&&roll<.104){
+     missed=1+Math.floor(random()*2);
+     continue
+   }
+   if(i!==0&&roll<.204)continue;
+   const mood=random()<.54?previousMood:pickMood();
+   previousMood=mood;
+   // Approximately a quarter of recorded dates have mixed emotion
+   // recipes; two-, three- and four-colour concentric objects all appear.
+   let choices=[mood];
+   if(random()<.29){
+     const recipe=DEMO_GRADIENTS[Math.floor(random()*DEMO_GRADIENTS.length)];
+     choices=[mood,...recipe.filter(id=>id!==mood)].slice(0,4);
+   }
+   samples[days[i]]={
+     emotions:choices,
+     demoColors:choices.map(id=>BASIC_PALETTE.get(id).color),
+     note:'',
+     demo:true
+   }
  }
  return samples
 }
