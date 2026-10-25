@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fbfbf9">
+<meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
+<title>결. — 감정 일기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
+<link rel="stylesheet" href="./styles.css?v=51-fresh1">
+<style id="v35-expiry-slider-style">
+/* Kept with the markup deliberately: a new HTML deploy must never show an
+   unstyled blue native range while its CSS asset is still propagating. */
+#settings .expiry-reading{display:flex;align-items:baseline;gap:11px;margin:19px 0 22px;}
+#settings .expiry-reading strong{font-size:37px;font-weight:550;letter-spacing:-.075em;line-height:1.14;color:#263d32;font-variant-numeric:tabular-nums;}
+#settings .expiry-reading span{font-size:12px;color:#91988f;}
+#settings .expiry-scale{--expiry-progress:33.333333%;position:relative;width:100%;height:52px;touch-action:pan-y;}
+#settings .expiry-rail{position:absolute;top:25px;left:10px;right:10px;height:2px;border-radius:2px;background:#dadeD8;pointer-events:none;}
+#settings .expiry-rail-fill{display:block;width:var(--expiry-progress);height:100%;background:#315c48;border-radius:2px;transition:width .1s linear;}
+#settings .expiry-ticks{position:absolute;left:0;right:0;top:16px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;z-index:2;}
+#settings .expiry-tick{display:block;position:relative;flex:0 0 20px;width:20px;height:20px;border:0!important;background:transparent!important;box-shadow:none!important;transform:none!important;}
+#settings .expiry-tick::before{content:"";position:absolute;left:50%;top:50%;width:9px;height:9px;transform:translate(-50%,-50%);border:1.5px solid #a8b3aa;border-radius:50%;background:#fbfbf9;transition:background .14s ease,width .14s ease,height .14s ease,border-color .14s ease;}
+#settings .expiry-tick.selected::before{width:17px;height:17px;background:#315c48;border:3px solid #fbfbf9;box-shadow:0 0 0 1px #315c48;}
+/* The transparent native range supplies native drag/tap/keyboard/VoiceOver
+   interaction. Only the hand-drawn four-dot scale is visible. */
+#settings #edit-expiry.expiry-range{position:absolute;left:0;top:0;z-index:3;display:block;box-sizing:border-box;width:100%;height:52px;padding:0;margin:0;border:0;background:transparent!important;opacity:0!important;-webkit-appearance:none!important;appearance:none!important;cursor:pointer;}
+#settings #edit-expiry.expiry-range::-webkit-slider-runnable-track{height:2px;background:transparent!important;border:0;}
+#settings #edit-expiry.expiry-range::-webkit-slider-thumb{-webkit-appearance:none!important;width:20px;height:20px;margin-top:-9px;border:0;border-radius:50%;background:transparent;}
+#settings #edit-expiry.expiry-range::-moz-range-track{height:2px;background:transparent!important;border:0;}
+#settings #edit-expiry.expiry-range::-moz-range-thumb{width:20px;height:20px;border:0;border-radius:50%;background:transparent;}
+#settings .expiry-scale:focus-within .expiry-tick.selected::before{box-shadow:0 0 0 1px #315c48,0 0 0 5px rgba(49,92,72,.09);}
+#settings .expiry-labels{display:block;position:relative;width:auto;height:30px;margin:2px 10px 0;}
+#settings .expiry-labels span{display:block;position:absolute;top:0;color:#8f978e;font-size:12px;font-weight:470;line-height:1.5;letter-spacing:-.035em;white-space:nowrap;transform:translateX(-50%);}
+#settings .expiry-labels span:nth-child(1){left:0;}
+#settings .expiry-labels span:nth-child(2){left:33.333333%;}
+#settings .expiry-labels span:nth-child(3){left:66.666667%;}
+#settings .expiry-labels span:nth-child(4){left:100%;}
+#settings .expiry-labels span.selected{color:#315c48;font-weight:720;}
+#settings .settings-summary{margin:12px 0 0;font-size:12px;line-height:1.7;color:#506558;}
+@media(prefers-reduced-motion:reduce){
+ #settings .expiry-rail-fill,#settings .expiry-tick::before{transition:none;}
+}
+</style>
+<script defer src="./orb-renderer.js?v=8.2"></script>
+<script defer src="./app.js?v=51-fresh1"></script>
+<meta name="gyeol-build" content="v51-fresh1"></head>
+<body>
+<button type="button" id="menu-toggle" class="menu-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="side-drawer"><span></span><span></span><span></span></button>
+<div id="drawer-overlay" class="drawer-overlay" aria-hidden="true"></div>
+<aside id="side-drawer" class="side-drawer" aria-label="페이지 메뉴" aria-hidden="true" inert>
+ <button type="button" id="menu-close" aria-label="메뉴 닫기">×</button>
+ <nav id="drawer-nav" class="drawer-nav" aria-label="페이지 이동">
+  <button type="button" data-open="today" class="active" aria-current="page" style="--nav-index:0"><span>TODAY</span></button>
+  <button type="button" data-open="archive" style="--nav-index:1"><span>ARCHIVE</span></button>
+  <button type="button" data-open="dictionary" style="--nav-index:2"><span>DICTIONARY</span></button>
+  <button type="button" data-open="my" style="--nav-index:3"><span>MY</span></button>
+  <button type="button" data-open="settings" style="--nav-index:4"><span>SETTINGS</span></button>
+  <span id="drawer-marker" class="drawer-current-marker" aria-hidden="true"></span>
+ </nav>
+</aside>
+<main class="app">
+
+<section id="today" class="screen active" aria-label="오늘의 감정 기록">
+<div class="today-save-bar">
+  <button id="save-day" class="today-save-link" type="button" aria-label="오늘의 감정 구슬 저장" disabled>Save <span aria-hidden="true">↗</span></button>
+</div>
+<div class="intro today-intro">
+  <p class="object-kicker">GYEOL / DAILY OBJECT</p>
+  <h1>Emotion recoder</h1>
+  <p id="today-date"></p>
+</div>
+<div class="preview today-showcase">
+  <div class="object-stage"><div id="today-orb" class="orb empty" role="img" aria-label="선택한 감정의 색깔 구슬"></div></div>
+  <div class="preview-caption">
+    <div id="selected-label" class="subline" aria-live="polite"></div>
+    <button class="subtle-button" type="button" id="reset-select" hidden>선택 초기화 ↗</button>
+  </div>
+</div>
+<div class="today-catalog" aria-label="오늘의 감정 선택">
+  <section class="catalog-section" id="basic-section">
+    <button type="button" class="catalog-row" id="basic-toggle" aria-controls="base-panel" aria-expanded="false">
+      <span class="catalog-title">Basic emotion</span><span class="catalog-symbol" aria-hidden="true">+</span>
+    </button>
+    <div class="catalog-panel" id="base-panel" aria-hidden="true" inert>
+      <div class="catalog-panel-inner"><div class="grid-emotions" id="base-emotions"></div></div>
+    </div>
+  </section>
+  <section class="catalog-section" id="custom-section">
+    <button type="button" class="catalog-row" id="custom-toggle" aria-controls="custom-panel" aria-expanded="false">
+      <span class="catalog-title">Custom emotion</span><span class="catalog-symbol" aria-hidden="true">+</span>
+    </button>
+    <div class="catalog-panel" id="custom-panel" aria-hidden="true" inert>
+      <div class="catalog-panel-inner">
+        <div class="grid-emotions" id="my-emotions"></div>
+        <p class="custom-empty" id="custom-empty" hidden>아직 만든 감정이 없어요. Emotion lab에서 첫 감정을 만들어보세요.</p>
+      </div>
+    </div>
+  </section>
+  <button type="button" class="catalog-row catalog-route" id="add-custom">
+    <span class="catalog-title">Emotion lab</span><span class="catalog-symbol" aria-hidden="true">→</span>
+  </button>
+</div>
+<div class="today-details">
+  <label class="heading-row" for="memo"><h2>Note <span class="optional-label">(optional)</span></h2></label>
+  <textarea id="memo" class="memo" maxlength="1000" aria-label="오늘의 감정 메모"></textarea>
+  <p id="today-lock-note" class="hintbox today-lock-note" hidden>기록 유통기한이 지나 오늘의 기록을 수정할 수 없어요.</p>
+</div>
+</section>
+<section id="archive" class="screen" aria-label="감정 아카이브">
+<div class="calendar-controls"><strong id="month-label"></strong><div class="arrow-buttons"><button type="button" id="month-prev" aria-label="이전 기간"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3 6 12l9 9"/></svg></button><button type="button" id="month-next" aria-label="다음 기간"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3 9 9-9 9"/></svg></button></div></div>
+<p id="demo-note" class="demo-note" hidden>샘플 <a href="./?v=51&view=year">실제 기록 보기</a></p>
+<div id="calendar" aria-label="감정 아카이브 달력"></div>
+
+
+</section>
+<section id="dictionary" class="screen" aria-label="나의 감정 사전">
+<div class="intro"><h1>Dictionary</h1></div>
+<div class="heading-row"><h2>Customized emotions</h2></div>
+<div id="dictionary-list" class="dictionary-list"></div>
+
+</section>
+<section id="emotion" class="screen" aria-label="감정 상세 페이지">
+ <button id="emotion-detail-back" type="button" class="emotion-back">← DICTIONARY</button>
+ <div class="emotion-product-stage">
+  <span class="emotion-product-overline">GYEOL / CUSTOM OBJECT</span>
+  <div id="emotion-product-orb" class="orb emotion-product-orb" role="img"></div>
+ </div>
+ <article class="emotion-product-info">
+  <p id="emotion-product-series" class="emotion-product-series"></p>
+  <h1 id="emotion-product-name" class="emotion-product-name"></h1>
+  <p id="emotion-product-hex" class="emotion-product-hex"></p>
+  <section id="emotion-product-definition-section" class="emotion-product-description" hidden>
+   <h2>Definition</h2>
+   <p id="emotion-product-definition"></p>
+  </section>
+  <section id="emotion-product-components-section" class="emotion-product-components" hidden>
+   <h2>Composition</h2><div id="emotion-product-components"></div>
+  </section>
+  <section class="emotion-product-details">
+   <div><span>Created</span><strong id="emotion-product-created"></strong></div>
+   <div><span>Visibility</span><strong id="emotion-product-visibility"></strong></div>
+  </section>
+  <button id="emotion-detail-use" class="emotion-product-use" type="button">Use this emotion <span aria-hidden="true">↗</span></button>
+ </article>
+</section>
+<section id="my" class="screen" aria-label="마이페이지 감정 지도">
+<div class="intro my-intro"><h1 id="emotion-map-title">Map</h1></div>
+<section class="emotion-map-section" aria-labelledby="emotion-map-title">
+<div class="emotion-map-top">
+<div class="emotion-map-period" role="group" aria-label="감정 지도 기간">
+<button type="button" class="active" data-map-period="all" aria-pressed="true">ALL TIME</button>
+<button type="button" data-map-period="30" aria-pressed="false">30 DAYS</button>
+</div>
+</div>
+<p id="emotion-map-demo-note" class="emotion-map-demo-note" hidden>샘플</p>
+<div class="emotion-map-board" id="emotion-map-board">
+<svg id="emotion-map-graphic" role="group" aria-label="감정별 빈도와 함께 기록한 관계를 표시하는 감정 지도" viewBox="0 0 420 610" preserveAspectRatio="xMidYMid meet"></svg>
+<div id="emotion-map-empty" class="emotion-map-empty" hidden><span>기록이 쌓이면 감정들이 이곳에 연결돼요.</span><a href="./?v=51&demo=1&view=map">샘플 감정 지도 보기 ↗</a></div>
+</div>
+<div id="emotion-map-summary" class="emotion-map-summary" aria-live="polite"></div>
+</section>
+</section>
+<section id="settings" class="screen" aria-label="앱 설정">
+<div class="intro settings-intro"><h1>Settings</h1><button type="button" id="settings-back" class="settings-back">마이로 돌아가기 <span aria-hidden="true">↗</span></button></div>
+<div class="settings-group">
+<label class="settings-label" for="edit-expiry">기록 유통기한</label>
+<div class="expiry-reading" aria-hidden="true">
+  <strong id="expiry-value">24시간</strong>
+  </div>
+<div class="expiry-scale" id="expiry-scale">
+  <div class="expiry-rail" aria-hidden="true"><span class="expiry-rail-fill"></span></div>
+  <div class="expiry-ticks" role="group" aria-label="유통기한 빠른 선택">
+    <button type="button" class="expiry-tick" data-expiry-index="0" aria-label="1시간 선택"></button><button type="button" class="expiry-tick selected" data-expiry-index="1" aria-label="24시간 선택"></button>
+    <button type="button" class="expiry-tick" data-expiry-index="2" aria-label="3일 선택"></button><button type="button" class="expiry-tick" data-expiry-index="3" aria-label="7일 선택"></button>
+  </div>
+  <input id="edit-expiry" class="expiry-range" type="range"
+    min="0" max="3" step="1" value="1"
+    aria-valuetext="24시간"
+    aria-describedby="edit-expiry-summary"
+    style="opacity:0;-webkit-appearance:none;appearance:none;">
+</div>
+<div class="expiry-labels" aria-hidden="true">
+  <span>1시간</span><span class="selected">24시간</span><span>3일</span><span>7일</span>
+</div>
+<p id="edit-expiry-summary" class="sr-only" aria-live="polite"></p>
+</div>
+</section>
+<section id="create" class="screen" aria-label="Emotion lab">
+<button id="create-back" type="button" class="back">← BACK</button>
+<div class="intro lab-intro">
+<p class="lab-kicker">GYEOL / EMOTION STUDIO</p>
+<h1>Emotion lab</h1>
+</div>
+<div class="mix-stage" id="mix-stage">
+<div id="water" class="water" aria-label="감정 방울이 퍼지는 자유로운 수면"><canvas id="water-canvas"></canvas></div>
+<div id="mixresult" class="mixresult" aria-live="polite"><div id="mix-stats" class="mixstats"></div></div>
+</div>
+<div class="drop-hint" id="mix-summary" aria-live="polite"></div>
+<div class="heading-row lab-palette-heading"><h2>Basic emotion</h2></div>
+<div class="grid-emotions mix-buttons" id="drop-emotions"></div>
+<div class="mix-controls"><button type="button" id="mix-undo" class="button-outline">한 방울 빼기</button><button type="button" id="mix-reset" class="button-outline">다시 만들기</button></div>
+<button type="button" id="mix-button" class="button-primary" disabled>Mix emotion <span class="button-arrow" aria-hidden="true">↗</span></button>
+<div id="blend-panel" hidden>
+<label class="input-label" for="mix-name">Emotion name</label>
+<input id="mix-name" class="text-field" maxlength="40" autocomplete="off">
+<label class="input-label" for="mix-definition">Definition <span class="optional-label">(optional)</span></label>
+<textarea id="mix-definition" class="memo" maxlength="500"></textarea>
+
+<div class="result-actions"><button id="save-word" type="button" class="button-outline">Save to dictionary</button><button id="use-word" type="button" class="button-primary">Use today ↗</button></div>
+</div>
+</section>
+
+</main>
+
+<div id="record-modal" class="record-modal" role="dialog" aria-modal="true" aria-label="감정 기록 상세" hidden>
+ <button type="button" id="record-modal-backdrop" class="record-modal-backdrop" aria-label="상세 창 닫기"></button>
+ <div class="record-modal-panel">
+  <button type="button" id="record-modal-close" class="record-modal-close" aria-label="닫기">×</button>
+  <div class="entry-card" id="record-detail" hidden></div>
+ </div>
+</div>
+<div class="toast" id="toast" aria-live="polite"></div>
+</body></html>
