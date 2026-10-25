@@ -404,9 +404,34 @@ function renderPreview(){
  $('today-lock-note').hidden=!locked;
  syncOrbShader()
 }
+// V41: right slide-in menu, light backdrop, Escape/backdrop dismissal.
+let menuOpen=false,menuPriorFocus=null;
+function openMenu(){
+ if(menuOpen)return;
+ menuPriorFocus=document.activeElement;
+ menuOpen=true;
+ document.body.classList.add('drawer-open');
+ $('side-drawer').inert=false;
+ $('side-drawer').setAttribute('aria-hidden','false');
+ $('menu-toggle').setAttribute('aria-expanded','true');
+ $('menu-toggle').setAttribute('aria-label','메뉴 닫기');
+ $('menu-close').focus({preventScroll:true});
+}
+function closeMenu(){
+ if(!menuOpen)return;
+ menuOpen=false;
+ document.body.classList.remove('drawer-open');
+ $('side-drawer').inert=true;
+ $('side-drawer').setAttribute('aria-hidden','true');
+ $('menu-toggle').setAttribute('aria-expanded','false');
+ $('menu-toggle').setAttribute('aria-label','메뉴 열기');
+ if(menuPriorFocus&&typeof menuPriorFocus.focus==='function')
+   menuPriorFocus.focus({preventScroll:true});
+}
+function toggleMenu(){if(menuOpen)closeMenu();else openMenu()}
 function setScreen(id){
  document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));
- document.querySelectorAll('#bottom-nav button').forEach(el=>{
+ document.querySelectorAll('#drawer-nav button[data-open]').forEach(el=>{
    const active=el.dataset.open===(id==='settings'?'my':id==='create'?'dictionary':id);
    el.classList.toggle('active',active);
    if(active)el.setAttribute('aria-current','page');
@@ -417,7 +442,7 @@ function setScreen(id){
  if(id==='my')renderEmotionMap();
  if(id==='settings')renderSettings();
  if(id==='create')startWater();else stopWater();
- syncOrbShader();window.scrollTo(0,0)
+ closeMenu();syncOrbShader();window.scrollTo(0,0)
 }
 /* V16 — one staggered bead-poster grammar at every timescale.
    Zoom uses 7/3/2/1 bead-columns PER month for 1/3/6/12 month views. */
@@ -1787,6 +1812,20 @@ if(DEMO_MODE){
 }const old=db.records[isoDay()];if(old){selection=old.emotions.filter(id=>byId(id)).slice(0,4);$('memo').value=old.note||''}
 $('today-date').textContent=new Intl.DateTimeFormat('ko-KR',{month:'long',day:'numeric',weekday:'long'}).format(new Date());
 document.querySelectorAll('[data-open]').forEach(btn=>btn.onclick=()=>setScreen(btn.dataset.open));
+$('menu-toggle').onclick=toggleMenu;
+$('menu-close').onclick=closeMenu;
+$('drawer-overlay').onclick=closeMenu;
+$('drawer-settings').onclick=()=>setScreen('settings');
+document.addEventListener('keydown',event=>{
+ if(!menuOpen)return;
+ if(event.key==='Escape'){event.preventDefault();closeMenu();return}
+ if(event.key==='Tab'){
+   const focusable=[...$('side-drawer').querySelectorAll('button:not(:disabled)')];
+   const first=focusable[0],last=focusable[focusable.length-1];
+   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+ }
+});
 $('reset-select').onclick=()=>{selection=[];renderChoices();renderPreview()};
 $('add-custom').onclick=()=>{resetMix();setScreen('create')};$('start-create').onclick=()=>{resetMix();setScreen('create')};
 $('create-back').onclick=()=>setScreen('today');
