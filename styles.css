@@ -3507,7 +3507,7 @@ body.drawer-open #menu-toggle.menu-toggle{
  border:0!important;
  color:#414640!important;
  font-family:var(--gyeol-font)!important;
- font-size:clamp(8px,calc(var(--wall-bead) * .61),28px)!important;
+ font-size:var(--wall-month-type,14px)!important;
  font-weight:740!important;
  letter-spacing:-.075em!important;
  line-height:1!important;

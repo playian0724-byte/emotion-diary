@@ -683,7 +683,7 @@ function wallGeometry(first,span){
  const measuredTop=host.getBoundingClientRect().top;
  const top=measuredTop>34?measuredTop:135;
  const viewport=window.visualViewport?.height||window.innerHeight||730;
- const height=Math.max(260,viewport-top-14);
+ const height=Math.max(220,viewport-top-24);
  const maximum=span===1?86:span===3?60:span===6?46:34;
  const minimumColumns=span===1?4:span===3?7:span===6?9:13;
  const maxColumns=Math.min(50,total);
@@ -695,7 +695,7 @@ function wallGeometry(first,span){
    const byHeight=(height-gap*(rows-1))/rows;
    // Date captions are positioned beneath one-month orbs; reserve their
    // height while optimizing one-screen fit.
-   let size=span===1?Math.min(byWidth,byHeight-18,maximum):
+   let size=span===1?Math.min(byWidth,byHeight-23,maximum):
      Math.min(byWidth,byHeight,maximum);
    size=Math.max(0,size);
    if(!best||size>best.size+.06||
@@ -730,7 +730,8 @@ function calendarWallMarkup(first,span){
  const g=wallGeometry(first,span);
  const vars='--wall-columns:'+g.columns+';--wall-bead:'+g.size+
    'px;--wall-gap:'+g.gap+'px;--wall-label:'+g.label+
-   'px;--wall-date-size:'+g.dateSize+'px';
+   'px;--wall-date-size:'+g.dateSize+'px;--wall-month-type:'+
+   Math.max(8,Math.min(28,g.size*.61)).toFixed(1)+'px';
  return '<div class="poster-months bead-wall" role="group" aria-label="'+
    first.getFullYear()+'년 '+span+'개월 감정 구슬">'+
    '<section class="poster-month bead-wall-month">'+
