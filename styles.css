@@ -3369,3 +3369,184 @@ body.drawer-open #menu-toggle.menu-toggle{
 @media(prefers-reduced-motion:reduce){
  #side-drawer .drawer-nav button > span{transition:none!important}
 }
+
+
+/* V46 — four scales, one uninterrupted one-screen gallery.
+   Month indexes are grid items with the same footprint as each object.
+   Date captions exist only at one month and fade with the poster during
+   pinch; the old separated month columns / dividers no longer render. */
+#archive .calendar-archive .poster-months.bead-wall,
+#archive > .zoom-next-layer .poster-months.bead-wall,
+#archive > .zoom-old-layer .poster-months.bead-wall{
+ display:block!important;
+ width:100%!important;
+ margin:0!important;
+ padding:0!important;
+ gap:0!important;
+ grid-template-columns:none!important;
+}
+#archive .calendar-archive .poster-months.bead-wall .poster-month.bead-wall-month,
+#archive > .zoom-next-layer .poster-months.bead-wall .poster-month.bead-wall-month,
+#archive > .zoom-old-layer .poster-months.bead-wall .poster-month.bead-wall-month{
+ display:block!important;
+ width:100%!important;
+ min-width:0!important;
+ margin:0!important;
+ padding:0!important;
+ gap:0!important;
+}
+#archive .calendar-archive .poster-months.bead-wall .poster-month::after,
+#archive > .zoom-next-layer .poster-months.bead-wall .poster-month::after,
+#archive > .zoom-old-layer .poster-months.bead-wall .poster-month::after{
+ display:none!important;
+ content:none!important;
+}
+#archive .calendar-archive .poster-months.bead-wall .bead-wall-grid,
+#archive > .zoom-next-layer .poster-months.bead-wall .bead-wall-grid,
+#archive > .zoom-old-layer .poster-months.bead-wall .bead-wall-grid{
+ display:grid!important;
+ box-sizing:border-box!important;
+ grid-template-columns:repeat(var(--wall-columns),minmax(0,1fr))!important;
+ grid-auto-rows:calc(var(--wall-bead) + var(--wall-label))!important;
+ grid-auto-flow:row!important;
+ align-items:start!important;
+ justify-items:center!important;
+ align-content:start!important;
+ width:100%!important;
+ min-width:0!important;
+ height:auto!important;
+ margin:0!important;
+ padding:0!important;
+ gap:var(--wall-gap)!important;
+ row-gap:var(--wall-gap)!important;
+ column-gap:var(--wall-gap)!important;
+}
+#archive .calendar-archive .bead-wall-grid > .cal-day,
+#archive > .zoom-next-layer .bead-wall-grid > .cal-day,
+#archive > .zoom-old-layer .bead-wall-grid > .cal-day{
+ position:relative!important;
+ display:flex!important;
+ flex-direction:column!important;
+ align-items:center!important;
+ justify-content:flex-start!important;
+ box-sizing:border-box!important;
+ width:100%!important;
+ height:calc(var(--wall-bead) + var(--wall-label))!important;
+ min-height:0!important;
+ min-width:0!important;
+ margin:0!important;
+ padding:0!important;
+ gap:0!important;
+ transform:none!important;
+ background:transparent!important;
+ border:0!important;
+ border-radius:0!important;
+ touch-action:manipulation;
+}
+#archive .calendar-archive .bead-wall-grid > .cal-day .mini,
+#archive > .zoom-next-layer .bead-wall-grid > .cal-day .mini,
+#archive > .zoom-old-layer .bead-wall-grid > .cal-day .mini{
+ box-sizing:border-box!important;
+ position:relative!important;
+ display:grid!important;
+ flex:0 0 var(--wall-bead)!important;
+ width:var(--wall-bead)!important;
+ height:var(--wall-bead)!important;
+ max-width:var(--wall-bead)!important;
+ min-height:0!important;
+ aspect-ratio:1!important;
+ margin:0 auto!important;
+ border:0!important;
+ border-radius:50%!important;
+ overflow:hidden!important;
+ background-size:cover;
+}
+#archive .calendar-archive .bead-wall-grid .date-caption,
+#archive > .zoom-next-layer .bead-wall-grid .date-caption,
+#archive > .zoom-old-layer .bead-wall-grid .date-caption{
+ display:block!important;
+ position:absolute!important;
+ top:calc(var(--wall-bead) + 4px)!important;
+ left:0!important;
+ width:100%!important;
+ margin:0!important;
+ padding:0!important;
+ line-height:1!important;
+ font-family:var(--gyeol-font)!important;
+ font-size:var(--wall-date-size)!important;
+ font-weight:450!important;
+ font-variant-numeric:tabular-nums!important;
+ text-align:center!important;
+ pointer-events:none!important;
+}
+#archive .calendar-archive.zoom-3 .bead-wall-grid .date-caption,
+#archive .calendar-archive.zoom-6 .bead-wall-grid .date-caption,
+#archive .calendar-archive.zoom-12 .bead-wall-grid .date-caption,
+#archive > .zoom-next-layer.zoom-3 .bead-wall-grid .date-caption,
+#archive > .zoom-next-layer.zoom-6 .bead-wall-grid .date-caption,
+#archive > .zoom-next-layer.zoom-12 .bead-wall-grid .date-caption,
+#archive > .zoom-old-layer.zoom-3 .bead-wall-grid .date-caption,
+#archive > .zoom-old-layer.zoom-6 .bead-wall-grid .date-caption,
+#archive > .zoom-old-layer.zoom-12 .bead-wall-grid .date-caption{
+ display:none!important;
+}
+#archive .calendar-archive .bead-wall-grid > .wall-month-number,
+#archive > .zoom-next-layer .bead-wall-grid > .wall-month-number,
+#archive > .zoom-old-layer .bead-wall-grid > .wall-month-number{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ box-sizing:border-box!important;
+ width:var(--wall-bead)!important;
+ height:var(--wall-bead)!important;
+ min-width:0!important;
+ min-height:0!important;
+ margin:0!important;
+ padding:0!important;
+ background:transparent!important;
+ border:0!important;
+ color:#414640!important;
+ font-family:var(--gyeol-font)!important;
+ font-size:clamp(8px,calc(var(--wall-bead) * .61),28px)!important;
+ font-weight:740!important;
+ letter-spacing:-.075em!important;
+ line-height:1!important;
+ font-variant-numeric:tabular-nums;
+ pointer-events:none;
+ user-select:none;
+}
+#archive .calendar-archive .bead-wall-grid > .cal-day .mini .daynum,
+#archive > .zoom-next-layer .bead-wall-grid > .cal-day .mini .daynum{
+ opacity:0!important;
+ visibility:hidden!important;
+}
+/* During the two-poster pinch the date labels must remain attached to
+   their fading background field even when a moving orb becomes a ghost. */
+#archive .calendar-archive .bead-wall-grid .cal-day.zoom-morph-hidden,
+#archive > .zoom-next-layer .bead-wall-grid .cal-day.zoom-morph-hidden,
+#archive > .zoom-old-layer .bead-wall-grid .cal-day.zoom-morph-hidden{
+ visibility:visible!important;
+}
+#archive .calendar-archive .bead-wall-grid .cal-day.zoom-morph-hidden .mini,
+#archive > .zoom-next-layer .bead-wall-grid .cal-day.zoom-morph-hidden .mini,
+#archive > .zoom-old-layer .bead-wall-grid .cal-day.zoom-morph-hidden .mini{
+ visibility:hidden!important;
+}
+/* Allow a quiet background palette; remove selected rings at dense scales. */
+#archive .calendar-archive.zoom-3 .bead-wall-grid .cal-day.selected .mini,
+#archive .calendar-archive.zoom-6 .bead-wall-grid .cal-day.selected .mini,
+#archive .calendar-archive.zoom-12 .bead-wall-grid .cal-day.selected .mini{
+ outline:0!important;
+}
+#archive .calendar-controls{
+ margin-top:4px!important;
+ margin-bottom:18px!important;
+}
+#archive .calendar-archive{
+ grid-template-columns:minmax(0,1fr)!important;
+ min-height:0!important;
+ gap:0!important;
+}
+@media(max-width:400px){
+ #archive .calendar-controls{margin-bottom:15px!important}
+}

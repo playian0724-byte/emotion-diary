@@ -472,17 +472,13 @@ function syncMenuSelection(id){
  positionMenuMarker()
 }
 function navigateFromMenu(id){
- if(!menuOpen){setScreen(id);return}
- if(menuNavigationTimer)clearTimeout(menuNavigationTimer);
- syncMenuSelection(id);
- // Let the selection dot travel to the requested row before the page changes.
- menuNavigationTimer=setTimeout(()=>{
-   menuNavigationTimer=0;
-   setScreen(id)
- },230)
+ if(menuNavigationTimer){clearTimeout(menuNavigationTimer);menuNavigationTimer=0}
+ // Change the content behind the sheet, but leave the sheet present. The
+ // animated active marker/indented label respond immediately.
+ setScreen(id,true)
 }
 function toggleMenu(){if(menuOpen)closeMenu();else openMenu()}
-function setScreen(id){
+function setScreen(id,keepMenuOpen=false){
  if(id!=='archive')closeRecordPopup();
  document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));
  syncMenuSelection(id);
@@ -491,7 +487,8 @@ function setScreen(id){
  if(id==='my')renderEmotionMap();
  if(id==='settings')renderSettings();
  if(id==='create')startWater();else stopWater();
- closeMenu();syncOrbShader();window.scrollTo(0,0)
+ if(!keepMenuOpen)closeMenu();
+ syncOrbShader();window.scrollTo(0,0)
 }
 /* V16 — one staggered bead-poster grammar at every timescale.
    Zoom uses 7/3/2/1 bead-columns PER month for 1/3/6/12 month views. */
@@ -667,28 +664,78 @@ function calendarDayMarkup(y,m,day){
    '<span class="date-caption" aria-hidden="true">'+String(day).padStart(2,'0')+'</span>'+
    '</button>'
 }
-function calendarMonthMarkup(date,span){
- const y=date.getFullYear(),m=date.getMonth(),n=new Date(y,m+1,0).getDate();
- // Same product-gallery date identity at all zoom levels; each period
- // adjusts grid density with CSS while every bead keeps its caption.
- const cols=span===1?4:span===3?3:span===6?4:3;
- const dates=Array.from({length:n},(_,i)=>{
-  const col=i%cols;
-  return calendarDayMarkup(y,m,i+1).replace('class="cal-day','class="cal-day'+(col%2?' bead-offset':''))
- }).join('');
- return '<section class="poster-month" aria-label="'+y+' '+numericMonth(date)+'">'+
-  (span===1?'':'<h3 class="poster-month-label">'+GALLERY_MONTH_NAMES[m]+'</h3>')+
-  '<div class="poster-days" style="--bead-cols:'+cols+'">'+dates+'</div></section>'
+/* V46 — one uninterrupted dated object field at all scales.
+   Month indexes sit IN the chronological flow, not in separate columns. */
+function wallItems(first,span){
+ let count=span===1?0:span;
+ for(let i=0;i<span;i++){
+   const date=new Date(first.getFullYear(),first.getMonth()+i,1);
+   count+=new Date(date.getFullYear(),date.getMonth()+1,0).getDate()
+ }
+ return count
 }
-function calendarYearPoster(year){
- const columns=Array.from({length:12},(_,m)=>{
-  const n=new Date(year,m+1,0).getDate();
-  const dates=Array.from({length:n},(_,i)=>calendarDayMarkup(year,m,i+1)).join('');
-  return '<section class="poster-month" aria-label="'+year+' / '+String(m+1).padStart(2,'0')+'">'+
-   '<h3 class="poster-month-label">'+GALLERY_MONTH_NAMES[m]+'</h3>'+
-   '<div class="poster-days" style="--bead-cols:3">'+dates+'</div></section>'
- }).join('');
- return '<div class="poster-months" role="group" aria-label="'+year+' 감정 연감">'+columns+'</div>'
+function wallGeometry(first,span){
+ const total=wallItems(first,span);
+ const host=$('calendar');
+ const availableWidth=Math.max(210,
+   host.clientWidth||$('archive').clientWidth||Math.min(window.innerWidth-44,475));
+ // Respect iPhone safe areas and the actual location of the archive field.
+ const measuredTop=host.getBoundingClientRect().top;
+ const top=measuredTop>34?measuredTop:135;
+ const viewport=window.visualViewport?.height||window.innerHeight||730;
+ const height=Math.max(260,viewport-top-14);
+ const maximum=span===1?86:span===3?60:span===6?46:34;
+ const minimumColumns=span===1?4:span===3?7:span===6?9:13;
+ const maxColumns=Math.min(50,total);
+ const gap=span===1?8:span===3?5:span===6?3:2;
+ let best=null;
+ for(let columns=minimumColumns;columns<=maxColumns;columns++){
+   const rows=Math.ceil(total/columns);
+   const byWidth=(availableWidth-gap*(columns-1))/columns;
+   const byHeight=(height-gap*(rows-1))/rows;
+   // Date captions are positioned beneath one-month orbs; reserve their
+   // height while optimizing one-screen fit.
+   let size=span===1?Math.min(byWidth,byHeight-18,maximum):
+     Math.min(byWidth,byHeight,maximum);
+   size=Math.max(0,size);
+   if(!best||size>best.size+.06||
+     (Math.abs(size-best.size)<.06&&rows<best.rows)){
+     best={size,columns,rows,gap}
+   }
+ }
+ // A tiny year layout stays genuinely one-screen instead of requiring
+ // scrolling; individual bead buttons still occupy their full grid cell.
+ const size=Math.max(5,Math.floor(best.size*10)/10);
+ const dateSize=span===1?Math.max(11,Math.min(17,size*.24)):0;
+ return {
+   columns:best.columns,
+   rows:best.rows,
+   size,
+   gap:best.gap,
+   label:span===1?dateSize+5:0,
+   dateSize
+ }
+}
+function calendarWallMarkup(first,span){
+ const items=[],end=new Date(first.getFullYear(),first.getMonth()+span,1);
+ for(let date=new Date(first);date<end;date.setMonth(date.getMonth()+1)){
+   const year=date.getFullYear(),m=date.getMonth();
+   if(span!==1){
+     items.push('<span class="wall-month-number" role="note" aria-label="'+
+       (m+1)+'월">'+String(m+1).padStart(2,'0')+'</span>')
+   }
+   const days=new Date(year,m+1,0).getDate();
+   for(let day=1;day<=days;day++)items.push(calendarDayMarkup(year,m,day))
+ }
+ const g=wallGeometry(first,span);
+ const vars='--wall-columns:'+g.columns+';--wall-bead:'+g.size+
+   'px;--wall-gap:'+g.gap+'px;--wall-label:'+g.label+
+   'px;--wall-date-size:'+g.dateSize+'px';
+ return '<div class="poster-months bead-wall" role="group" aria-label="'+
+   first.getFullYear()+'년 '+span+'개월 감정 구슬">'+
+   '<section class="poster-month bead-wall-month">'+
+   '<div class="poster-days bead-wall-grid" style="'+vars+'">'+
+   items.join('')+'</div></section></div>'
 }
 function renderCalendar(){
  const span=CAL_SPANS[calendarZoom];
@@ -701,9 +748,7 @@ function renderCalendar(){
  archive.classList.toggle('poster-month-view',span!==12);
  const target=$('calendar');
  target.className='calendar-archive zoom-'+span+(DEMO_MODE?' mosaic-demo':'');
- target.innerHTML=span===12?calendarYearPoster(yr):
-  '<div class="poster-months" role="group" aria-label="'+yr+'년 '+span+'개월 감정 기록">'+
-  Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(yr,month.getMonth()+i,1),span)).join('')+'</div>';
+ target.innerHTML=calendarWallMarkup(month,span);
  // Date backgrounds and inner circles are already present in the HTML.
  // Avoid a second full poster traversal and hundreds of inline style writes.
  showDate(calendarSelected,false)
@@ -993,9 +1038,7 @@ function setupCalendarGestures(){
    const nearest=before.nearest?new Date(before.nearest+'T12:00:00'):month;
    const span=CAL_SPANS[next];
    const first=new Date(nearest.getFullYear(),Math.floor(nearest.getMonth()/span)*span,1);
-   const sourceMarkup=span===12?calendarYearPoster(first.getFullYear()):
-     '<div class="poster-months" role="group" aria-label="감정 기록 미리보기">'+
-     Array.from({length:span},(_,i)=>calendarMonthMarkup(new Date(first.getFullYear(),first.getMonth()+i,1),span)).join('')+'</div>';
+   const sourceMarkup=calendarWallMarkup(first,span);
    const layer=document.createElement('div');
    layer.className='calendar-archive zoom-'+span+(DEMO_MODE?' mosaic-demo':'')+' zoom-next-layer';
    layer.setAttribute('aria-hidden','true');
@@ -1015,8 +1058,7 @@ function setupCalendarGestures(){
    host.appendChild(layer);
    // Month-to-year (and the reverse): a bounded ghost set rides over two
    // opacity-composited poster fields so untracked dates never snap.
-   if(span===12||CAL_SPANS[calendarZoom]===12)
-     return stagePoster(first,next,layer,targetMap,point);
+   return stagePoster(first,next,layer,targetMap,point);
    // V21: only animate beads near the viewport. On a year grid hundreds
    // of off-screen transforms were needlessly updated on every animation frame.
    const morphs=[],oldOnly=[],incoming=[],shared=new Set();
@@ -1994,7 +2036,10 @@ document.querySelectorAll('[data-map-period]').forEach(btn=>btn.onclick=()=>{
 $('month-prev').onclick=()=>shiftMonth(-1);$('month-next').onclick=()=>shiftMonth(1);setupCalendarGestures();
 $('mix-button').onclick=blendMix;$('mix-undo').onclick=undoDrop;$('mix-reset').onclick=resetMix;
 $('save-word').onclick=()=>createEmotion(false);$('use-word').onclick=()=>createEmotion(true);
-window.addEventListener('resize',()=>drawWater());
+window.addEventListener('resize',()=>{
+ drawWater();
+ if($('archive').classList.contains('active'))renderCalendar()
+});
 renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixButtons();renderSettings();
 const viewName=new URLSearchParams(window.location.search).get('view');
 // V35: let design reviews land on the actual settings control immediately.
