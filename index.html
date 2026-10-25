@@ -7,7 +7,7 @@
 <meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
 <title>결. — 감정 일기</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
-<link rel="stylesheet" href="./styles.css?v=54">
+<link rel="stylesheet" href="./styles.css?v=55">
 <style id="v35-expiry-slider-style">
 /* Kept with the markup deliberately: a new HTML deploy must never show an
    unstyled blue native range while its CSS asset is still propagating. */
@@ -42,7 +42,7 @@
 }
 </style>
 <script defer src="./orb-renderer.js?v=8.2"></script>
-<script defer src="./app.js?v=54.1"></script>
+<script defer src="./app.js?v=55"></script>
 </head>
 <body>
 <button type="button" id="menu-toggle" class="menu-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="side-drawer"><span></span><span></span><span></span></button>
@@ -160,7 +160,7 @@
 <p id="emotion-map-demo-note" class="emotion-map-demo-note" hidden>샘플</p>
 <div class="emotion-map-board" id="emotion-map-board">
 <svg id="emotion-map-graphic" role="group" aria-label="감정별 빈도와 함께 기록한 관계를 표시하는 감정 지도" viewBox="0 0 420 610" preserveAspectRatio="xMidYMid meet"></svg>
-<div id="emotion-map-empty" class="emotion-map-empty" hidden><span>기록이 쌓이면 감정들이 이곳에 연결돼요.</span><a href="./?v=54&demo=1&view=map">샘플 감정 지도 보기 ↗</a></div>
+<div id="emotion-map-empty" class="emotion-map-empty" hidden><span>기록이 쌓이면 감정들이 이곳에 연결돼요.</span><a href="./?v=55&demo=1&view=map">샘플 감정 지도 보기 ↗</a></div>
 </div>
 <div id="emotion-map-summary" class="emotion-map-summary" aria-live="polite"></div>
 </section>
@@ -203,7 +203,10 @@
 <div class="drop-hint" id="mix-summary" aria-live="polite"></div>
 <div class="heading-row lab-palette-heading"><h2>Basic emotion</h2></div>
 <div class="grid-emotions mix-buttons" id="drop-emotions"></div>
-<div class="mix-controls"><button type="button" id="mix-undo" class="button-outline">한 방울 빼기</button><button type="button" id="mix-reset" class="button-outline">다시 만들기</button></div>
+<div class="mix-controls" role="group" aria-label="감정 혼합 조작">
+  <button type="button" id="mix-undo" class="mix-icon-button" aria-label="한 방울 빼기" title="한 방울 빼기"><span class="mix-minus-icon" aria-hidden="true">−</span></button>
+  <button type="button" id="mix-reset" class="mix-icon-button" aria-label="다시 만들기" title="다시 만들기"><svg class="mix-reset-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.7 6.4"/><path d="M3 4v7h7"/></svg></button>
+</div>
 <button type="button" id="mix-button" class="button-primary" disabled>Mix emotion <span class="button-arrow" aria-hidden="true">↗</span></button>
 <div id="blend-panel" hidden>
 <label class="input-label" for="mix-name">Emotion name</label>

@@ -4114,3 +4114,61 @@ body.drawer-open #menu-toggle.menu-toggle{
 @media(prefers-reduced-motion:reduce){
  #dictionary .dictionary-lab-route .catalog-symbol{transition:none}
 }
+
+
+/* V55 — Emotion lab operations become unboxed, accessible studio icons.
+   Keep a 44px touch target; only icon ink is visible. */
+#create .mix-controls{
+ display:flex;
+ align-items:center;
+ justify-content:flex-end;
+ gap:7px;
+ margin:12px 0 0;
+}
+#create .mix-controls .mix-icon-button{
+ display:grid;
+ place-items:center;
+ flex:0 0 44px;
+ width:44px;
+ height:44px;
+ min-width:44px;
+ min-height:44px;
+ margin:0;
+ padding:0;
+ border:0;
+ outline:0;
+ border-radius:0;
+ box-shadow:none;
+ background:transparent;
+ color:#3D453E;
+ cursor:pointer;
+ -webkit-tap-highlight-color:transparent;
+ transition:color .18s ease,opacity .18s ease;
+}
+#create .mix-controls .mix-minus-icon{
+ display:block;
+ font-family:var(--gyeol-font);
+ font-size:29px;
+ font-weight:370;
+ line-height:1;
+ transform:translateY(-1px);
+}
+#create .mix-controls .mix-reset-icon{
+ display:block;
+ width:21px;
+ height:21px;
+ stroke:currentColor;
+}
+#create .mix-controls .mix-icon-button:disabled{
+ color:#BCC0BA;
+ cursor:default;
+}
+#create .mix-controls .mix-icon-button:not(:disabled):active{color:#111B14}
+#create .mix-controls .mix-icon-button:focus-visible{
+ outline:1px solid #586B59;
+ outline-offset:-4px;
+ border-radius:2px;
+}
+@media(prefers-reduced-motion:reduce){
+ #create .mix-controls .mix-icon-button{transition:none}
+}
