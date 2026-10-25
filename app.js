@@ -2365,6 +2365,7 @@ renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixBut
 const viewName=new URLSearchParams(window.location.search).get('view');
 // V35: let design reviews land on the actual settings control immediately.
 if(viewName==='settings')setScreen('settings');
+if(viewName==='lab'||viewName==='create')setScreen('create');
 if(viewName==='dictionary')setScreen('dictionary');
 if(viewName==='emotion'){
  if(db.custom.length){activeEmotionId=db.custom[db.custom.length-1].id;setScreen('emotion')}

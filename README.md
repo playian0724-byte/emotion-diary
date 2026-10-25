@@ -12,7 +12,7 @@
 - 오른쪽에 조그만 두 아이콘으로 정렬하되 실제 터치 영역은 각각 44px 유지. 접근성 설명과 기존 동작 그대로 보존.
 - [V55 디자인 수정 기록](./docs/V55_MINIMAL_LAB_CONTROLS.md)
 
-[V55 앱 바로 열기](https://playian0724-byte.github.io/emotion-diary/v55.html?view=lab)
+[V55 Emotion lab 바로 열기](https://playian0724-byte.github.io/emotion-diary/v55.html?view=lab)
 
 ## V54 — 1월 1일부터 오늘까지 감정 구슬 샘플 아카이브
 
