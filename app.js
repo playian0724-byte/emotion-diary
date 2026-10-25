@@ -419,6 +419,7 @@ function renderPreview(){
  paintOrb($('today-orb'),selection);
  $('today-orb').classList.toggle('empty',selection.length===0);
  $('selected-label').textContent=selection.length?selection.map(id=>byId(id)?.name||'이름 미정').join(' · '):'';
+ $('today').classList.toggle('has-emotion-selection',selection.length>0);
  $('reset-select').hidden=selection.length===0;
  const locked=Boolean(db.records[isoDay()]&&!canEditRecord(isoDay(),db.records[isoDay()]));
  $('save-day').disabled=selection.length===0||saving||locked||DEMO_MODE;
