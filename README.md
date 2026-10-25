@@ -6,6 +6,18 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
+## V45 — 70% 메뉴와 Emotion lab 통일
+
+- 오른쪽 70%만 차지하는 드로어로 변경해 왼쪽에 기존 화면을 남기고, 메뉴 밖을 누르면 닫음.
+- 메뉴 폰트를 오늘의 감정 선택 제목과 같은 SUIT 굵기와 자간으로 변경.
+- 검은 활성 표시 원을 왼쪽으로 옮기고 텍스트가 오른쪽으로 부드럽게 밀리는 모션 적용.
+- 메뉴가 열리면 기존 햄버거/X를 숨겨 중복 X 버그 해결.
+- Emotion lab을 동일한 카탈로그 레이아웃으로 통일: 제품 스테이지, Basic emotion 팔레트, 입력·저장 UI.
+- V44의 구슬 상세 팝업, 아카이브, 기존 저장 형식 그대로 보존.
+- [V45 변경 내용](./docs/V45_DRAWER_AND_LAB_UNIFICATION.md)
+
+[V45 웹앱](https://playian0724-byte.github.io/emotion-diary/?v=45) · [샘플](https://playian0724-byte.github.io/emotion-diary/?v=45&demo=1&view=month)
+
 ## V44 — 풀스크린 타이포 메뉴와 구슬 상세 팝업
 
 - **메뉴:** 레퍼런스의 큰 대문자 다섯 줄(TODAY / ARCHIVE / DICTIONARY / MY / SETTINGS). 활성 배지를 제거하고 오른쪽 검은 원 하나로 선택 상태를 표시하며 위치 변화와 화면 전환을 절제된 모션으로 연결.

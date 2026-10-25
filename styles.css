@@ -3202,3 +3202,170 @@ body.record-modal-open{overflow:hidden}
  #record-modal .record-modal-panel{transition:none!important;animation:none!important}
  .screen.active{animation:none!important}
 }
+
+/* V45. Right-hand 70% menu with the original page visible on the left. */
+#side-drawer.side-drawer{
+ inset:0 0 0 auto;left:auto;right:0;top:0;bottom:0;
+ width:70vw;max-width:none;height:100dvh;
+ padding:calc(67px + env(safe-area-inset-top)) clamp(13px,3.6vw,29px) calc(16px + env(safe-area-inset-bottom));
+ border-left:1px solid #E9EBE6;
+ background:#FDFDFA;box-shadow:-13px 0 42px rgba(18,26,18,.045);
+ opacity:1;
+ transform:translate3d(104%,0,0);
+ transition:transform .48s cubic-bezier(.18,.82,.19,1),visibility .48s;
+}
+.drawer-open #side-drawer.side-drawer{
+ opacity:1;visibility:visible;transform:translate3d(0,0,0)
+}
+#drawer-overlay.drawer-overlay{background:rgba(25,29,25,.12)}
+#side-drawer #menu-close{
+ top:calc(16px + env(safe-area-inset-top));
+ right:clamp(11px,3.4vw,25px);
+ width:37px;height:37px;display:grid;place-items:center;
+ font-family:var(--gyeol-font);font-size:30px;
+ font-weight:400;line-height:1;color:#121512
+}
+/* Only the drawer close button remains visible: no duplicate X. */
+body.drawer-open #menu-toggle.menu-toggle{
+ visibility:hidden!important;opacity:0;pointer-events:none
+}
+#side-drawer .drawer-nav{
+ width:100%;height:100%;max-width:none;min-height:0;flex:1 1 auto;
+ margin:0;padding:0;gap:0;justify-content:space-between
+}
+#side-drawer .drawer-nav button,
+#side-drawer .drawer-nav button.active{
+ flex:1 1 0;display:flex;align-items:center;justify-content:flex-start;
+ min-width:0;min-height:55px;margin:0;padding:0;
+ color:#111311;background:transparent!important;border:0!important;
+ border-radius:0!important;font-family:var(--gyeol-font);
+ font-size:clamp(23px,6.8vw,39px);font-weight:790;
+ letter-spacing:-.078em;line-height:1.04;white-space:nowrap;overflow:visible
+}
+#side-drawer .drawer-nav button > span{
+ display:inline-block;transform:translate3d(0,0,0);
+ transition:transform .42s cubic-bezier(.22,.82,.2,1)
+}
+#side-drawer .drawer-nav button.active > span{transform:translate3d(19px,0,0)}
+#side-drawer .drawer-current-marker{
+ left:0;right:auto;width:9px;height:9px;border-radius:50%;background:#0D110E;
+ transition:top .42s cubic-bezier(.22,.82,.2,1),opacity .25s ease
+}
+@media(min-width:850px){
+ #side-drawer .drawer-nav button,#side-drawer .drawer-nav button.active{
+  font-size:clamp(35px,3.6vw,51px)
+ }
+}
+@media(max-width:350px){
+ #side-drawer.side-drawer{padding-right:12px;padding-left:13px}
+ #side-drawer .drawer-nav button,#side-drawer .drawer-nav button.active{
+  font-size:clamp(21px,7vw,25px)
+ }
+ #side-drawer .drawer-nav button.active > span{transform:translate3d(16px,0,0)}
+ #side-drawer .drawer-current-marker{width:8px;height:8px}
+}
+/* Emotion Lab uses the same catalogue type, pigments, panels and buttons as Today. */
+#create .lab-intro{margin:7px 0 22px}
+#create .lab-kicker{
+ margin:0 0 13px;color:#8C8F88;font-family:var(--gyeol-font);
+ font-size:10px;font-weight:650;line-height:1.3;letter-spacing:.16em
+}
+#create .lab-intro h1{
+ margin:0;color:#151915;font-family:var(--gyeol-font);
+ font-size:clamp(32px,9vw,44px);font-weight:790;
+ line-height:1.04;letter-spacing:-.078em
+}
+#create #create-back.back{
+ display:inline-flex;align-items:center;margin:5px 0 13px;padding:3px 0;
+ color:#858B82;font-family:var(--gyeol-font);
+ font-size:11px;font-weight:610;letter-spacing:.08em;text-transform:uppercase;
+ background:transparent;border:0;border-radius:0
+}
+#create .mix-stage{
+ position:relative;height:clamp(230px,58vw,294px);margin:0;
+ border:0;border-radius:3px;box-shadow:none;background:#F4F5F2
+}
+#create .mix-stage::before{
+ content:"GYEOL / COLOR STUDY";position:absolute;top:16px;left:17px;z-index:4;
+ color:#8B9189;font-family:var(--gyeol-font);font-size:9px;
+ font-weight:650;letter-spacing:.12em;pointer-events:none
+}
+#create .mixresult .mixstats{
+ font-family:var(--gyeol-font);color:#666E65;font-size:11px;
+ font-weight:530;letter-spacing:-.016em
+}
+#create #mix-summary:not(:empty){
+ display:block;margin:12px 0 0;color:#747B73;
+ font-family:var(--gyeol-font);font-size:12px;font-weight:530
+}
+#create .lab-palette-heading{
+ display:flex;align-items:center;justify-content:space-between;
+ margin:22px 0 10px;padding:0 2px
+}
+#create .lab-palette-heading h2{
+ font-family:var(--gyeol-font);color:#101310;font-size:clamp(26px,7.1vw,37px);
+ font-weight:790;line-height:1.06;letter-spacing:-.078em
+}
+#create #drop-emotions.grid-emotions{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0
+}
+#create #drop-emotions .emotion{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:11px;min-width:0;min-height:93px;padding:12px 4px 10px;
+ color:#4F544E;font-family:var(--gyeol-font);font-size:12px;font-weight:550;
+ letter-spacing:-.035em;border:1px solid transparent;border-radius:3px;
+ background:#F4F5F2;touch-action:manipulation
+}
+#create #drop-emotions .emotion:active{background:#ECEEE8;border-color:#6B7569}
+#create #drop-emotions .emotion .swatch{
+ width:35px;height:35px;flex:0 0 35px;border-radius:50%
+}
+#create #drop-emotions .emotion .drop-count{
+ top:5px;right:5px;padding:3px 5px;border-radius:3px;
+ background:#242B24;color:#FFF;font-size:10px;font-weight:650;box-shadow:none
+}
+#create .mix-controls{display:flex;gap:8px;margin:16px 0 0}
+#create .mix-controls .button-outline{
+ flex:1;min-height:47px;margin:0;padding:11px 8px;color:#424A42;
+ font-family:var(--gyeol-font);font-size:12px;font-weight:600;
+ border:1px solid #E6E9E3;border-radius:3px;background:#F8F9F6
+}
+#create #mix-button.button-primary{
+ display:flex;align-items:center;justify-content:space-between;
+ min-height:58px;margin:12px 0 0;padding:16px 20px;
+ border-radius:3px;background:#252B27;color:#FFF;
+ font-family:var(--gyeol-font);font-size:14px;
+ font-weight:700;letter-spacing:-.015em
+}
+#create #mix-button.button-primary:disabled{background:#E6E9E4;color:#A0A69F}
+#create #mix-button .button-arrow{font-size:20px;font-weight:400}
+#create #blend-panel{
+ margin:26px 0 0;padding-top:8px;border-top:1px solid #E4E6E0
+}
+#create #blend-panel .input-label{
+ margin:17px 0 10px;font-family:var(--gyeol-font);
+ color:#353A35;font-size:13px;font-weight:650;letter-spacing:-.01em
+}
+#create #mix-name,#create #mix-definition{
+ width:100%;min-height:48px;padding:13px 14px;
+ border:1px solid #E8EAE4;border-radius:3px;background:#F8F9F6;
+ font-family:var(--gyeol-font);font-size:13px;font-weight:450
+}
+#create #mix-definition{min-height:84px}
+#create .result-actions{display:flex;gap:8px;margin:18px 0 0}
+#create .result-actions .button-outline,
+#create .result-actions .button-primary{
+ min-height:54px;margin:0;padding:13px 9px;border-radius:3px;
+ font-family:var(--gyeol-font);font-size:12px;font-weight:680
+}
+#create .result-actions .button-outline{
+ background:#F8F9F6;border:1px solid #E7E9E4;color:#303730
+}
+#create .result-actions .button-primary{background:#242B25;color:#FFF}
+@media(max-width:420px){
+ #create #drop-emotions .emotion{min-height:85px;font-size:11px}
+ #create .lab-palette-heading h2{font-size:clamp(24px,7.3vw,34px)}
+}
+@media(prefers-reduced-motion:reduce){
+ #side-drawer .drawer-nav button > span{transition:none!important}
+}
