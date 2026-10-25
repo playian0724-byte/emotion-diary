@@ -3550,3 +3550,138 @@ body.drawer-open #menu-toggle.menu-toggle{
 @media(max-width:400px){
  #archive .calendar-controls{margin-bottom:15px!important}
 }
+
+
+/* V47 — restrained Berner Kühl-inspired single-object product display. */
+#dictionary .dictionary-list{margin-top:20px}
+#dictionary .dictionary-card{
+ position:relative;display:flex;flex-direction:column;
+ align-items:stretch;justify-content:flex-start;
+ width:100%;font-family:var(--gyeol-font);text-align:left;
+ color:#2D322C;cursor:pointer;
+ transition:background .2s ease,transform .25s cubic-bezier(.16,1,.3,1);
+}
+#dictionary .dictionary-card .copy{display:flex;flex-direction:column;gap:4px}
+#dictionary .dictionary-card .dictionary-index{
+ font-size:9px;line-height:1.3;letter-spacing:.09em;
+ font-weight:550;color:#A2A69F
+}
+#dictionary .dictionary-card .dictionary-card-definition{
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;
+ color:#8B9089;font-size:11px;line-height:1.55
+}
+#dictionary .dictionary-card .dictionary-card-arrow{
+ position:absolute;right:13px;top:12px;font-size:17px;font-weight:400;color:#697168;
+ opacity:.7;transition:transform .22s ease,opacity .22s ease
+}
+#dictionary .dictionary-card:hover{background:#EDF0EB}
+#dictionary .dictionary-card:hover .dictionary-card-arrow{transform:translate(2px,-2px);opacity:1}
+#dictionary .dictionary-card:focus-visible{outline:2px solid #3B453D;outline-offset:3px}
+#emotion{padding-top:0}
+#emotion .emotion-back{
+ display:inline-flex;align-items:center;min-height:32px;margin:4px 0 17px;padding:0;
+ border:0;border-radius:0;background:none;color:#757D75;
+ font:590 11px var(--gyeol-font);letter-spacing:.07em
+}
+#emotion .emotion-product-stage{
+ position:relative;display:grid;place-items:center;
+ box-sizing:border-box;height:clamp(236px,62vw,320px);
+ width:100%;overflow:hidden;background:#F0F1EE
+}
+#emotion .emotion-product-overline{
+ position:absolute;top:18px;left:18px;color:#8D928B;
+ font:610 10px var(--gyeol-font);letter-spacing:.12em
+}
+#emotion .emotion-product-orb{
+ width:clamp(130px,39vw,175px);height:clamp(130px,39vw,175px);
+ flex:0 0 auto;margin:0;border:0;box-shadow:none
+}
+#emotion .emotion-product-orb::after{display:none}
+#emotion .emotion-product-info{
+ padding:31px 1px 65px;color:#181D19;font-family:var(--gyeol-font)
+}
+#emotion .emotion-product-series{
+ margin:0 0 7px;font-size:12px;font-weight:500;color:#646A64;
+ letter-spacing:.005em;line-height:1.4
+}
+#emotion .emotion-product-name{
+ margin:0;font:580 clamp(27px,7.6vw,37px)/1.22 var(--gyeol-font);
+ letter-spacing:-.065em;overflow-wrap:anywhere
+}
+#emotion .emotion-product-hex{
+ margin:18px 0 0;color:#5D645D;font-size:13px;
+ font-weight:460;letter-spacing:.02em;font-variant-numeric:tabular-nums
+}
+#emotion .emotion-product-description{margin:65px 0 0;padding:0}
+#emotion .emotion-product-description h2,
+#emotion .emotion-product-components h2{
+ margin:0 0 13px;font-size:11px;color:#7C847B;
+ font-weight:650;letter-spacing:.11em;text-transform:uppercase
+}
+#emotion .emotion-product-description p{
+ margin:0;font-size:clamp(16px,4.8vw,20px);
+ font-weight:440;line-height:1.6;letter-spacing:-.038em;
+ overflow-wrap:anywhere;white-space:pre-wrap
+}
+#emotion .emotion-product-components{margin:38px 0 0;padding:0}
+#emotion .emotion-composition-row{
+ display:flex;align-items:center;gap:12px;padding:12px 0;
+ border-bottom:1px solid #EBEDE9;font-size:14px
+}
+#emotion .emotion-composition-swatch{
+ width:21px;height:21px;flex:0 0 21px;
+ border-radius:50%;border:0;box-shadow:none
+}
+#emotion .emotion-composition-name{flex:1;color:#333A33;font-weight:530}
+#emotion .emotion-composition-ratio{color:#5A625A;font-variant-numeric:tabular-nums}
+#emotion .emotion-product-details{
+ display:flex;flex-direction:column;gap:0;
+ margin:39px 0 0;border-top:1px solid #E9EBE6
+}
+#emotion .emotion-product-details > div{
+ display:flex;justify-content:space-between;align-items:center;gap:14px;
+ padding:13px 0;border-bottom:1px solid #E9EBE6;font-size:12px
+}
+#emotion .emotion-product-details span{color:#888E86}
+#emotion .emotion-product-details strong{color:#303831;font-weight:540}
+#emotion .emotion-product-use{
+ display:flex;width:100%;min-height:57px;justify-content:space-between;
+ align-items:center;margin:30px 0 0;padding:15px 20px;
+ border:0;border-radius:3px;background:#242B25;color:white;
+ font:700 14px var(--gyeol-font);letter-spacing:-.015em
+}
+#emotion .emotion-product-use span{font-size:20px;font-weight:400}
+#emotion [hidden]{display:none!important}
+@media(max-width:400px){
+ #emotion .emotion-product-info{padding-top:25px}
+ #emotion .emotion-product-description{margin-top:53px}
+}
+
+/* Pale grey month discs have the identical size as daily emotion beads. */
+#archive .calendar-archive .bead-wall-grid > .wall-month-number,
+#archive > .zoom-next-layer .bead-wall-grid > .wall-month-number,
+#archive > .zoom-old-layer .bead-wall-grid > .wall-month-number{
+ display:grid!important;place-items:center!important;
+ box-sizing:border-box!important;
+ width:var(--wall-bead)!important;height:var(--wall-bead)!important;
+ min-width:var(--wall-bead)!important;min-height:var(--wall-bead)!important;
+ border-radius:50%!important;background:#ECEEEA!important;
+ color:#424841!important;border:0!important;box-shadow:none!important
+}
+/* Inner day numerals are REMOVED from markup. Never show cached or ghost numerals. */
+#archive .daynum,#archive .mini .daynum,
+#archive > .zoom-next-layer .daynum,#archive > .zoom-old-layer .daynum,
+.zoom-bead-overlay .zoom-bead-ghost .daynum,.zoom-bead-overlay .daynum{
+ display:none!important;visibility:hidden!important;opacity:0!important
+}
+/* Precisely the inspected bead receives a dark selection outline. */
+#archive .calendar-archive .bead-wall-grid > .cal-day.inspected .mini,
+#archive .calendar-archive.zoom-3 .bead-wall-grid > .cal-day.inspected .mini,
+#archive .calendar-archive.zoom-6 .bead-wall-grid > .cal-day.inspected .mini,
+#archive .calendar-archive.zoom-12 .bead-wall-grid > .cal-day.inspected .mini{
+ outline:2px solid #222923!important;outline-offset:3px!important;
+ box-shadow:0 0 0 1px #FDFDFA!important
+}
+@media(prefers-reduced-motion:reduce){
+ #dictionary .dictionary-card,#dictionary .dictionary-card-arrow{transition:none!important}
+}

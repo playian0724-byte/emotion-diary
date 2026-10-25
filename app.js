@@ -462,7 +462,7 @@ function positionMenuMarker(){
  marker.style.top=(active.offsetTop+(active.offsetHeight-marker.offsetHeight)/2)+'px'
 }
 function syncMenuSelection(id){
- const shown=id==='create'?'dictionary':id;
+ const shown=(id==='create'||id==='emotion')?'dictionary':id;
  document.querySelectorAll('#drawer-nav button[data-open]').forEach(el=>{
    const active=el.dataset.open===shown;
    el.classList.toggle('active',active);
@@ -484,6 +484,7 @@ function setScreen(id,keepMenuOpen=false){
  syncMenuSelection(id);
  if(id==='archive')renderCalendar();
  if(id==='dictionary')renderDictionary();
+ if(id==='emotion')renderEmotionDetail();
  if(id==='my')renderEmotionMap();
  if(id==='settings')renderSettings();
  if(id==='create')startWater();else stopWater();
@@ -493,7 +494,7 @@ function setScreen(id,keepMenuOpen=false){
 /* V16 — one staggered bead-poster grammar at every timescale.
    Zoom uses 7/3/2/1 bead-columns PER month for 1/3/6/12 month views. */
 const CAL_SPANS=[1,3,6,12];
-let calendarZoom=0,calendarSelected=isoDay();
+let calendarZoom=0,calendarSelected=isoDay(),inspectedDate=null;
 function shiftMonth(delta){
  closeRecordPopup();
  month=new Date(month.getFullYear(),month.getMonth()+delta*CAL_SPANS[calendarZoom],1);
@@ -647,7 +648,8 @@ function dateInk(rec){
 function calendarDayMarkup(y,m,day){
  const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
  const rec=previewRecord(key);
- const cls=(rec?' recorded':'')+(key===isoDay()?' today':'')+(key===calendarSelected?' selected':'');
+ const cls=(rec?' recorded':'')+(key===isoDay()?' today':'')+(key===calendarSelected?' selected':'')+
+   (key===inspectedDate?' inspected':'');
  // V31: serialize flat pigment and its 62% center directly into markup.
  // No 365-node paintArchiveOrb() DOM pass after parsing each poster.
  const colors=rec?(rec.emotions||[]).filter(id=>byId(id)).slice(0,4)
@@ -655,12 +657,11 @@ function calendarDayMarkup(y,m,day){
  const layers=orbDiscColors(colors);
  const layered=rec&&layers.inner;
  const miniClass='mini'+(layered?' orb-layered':'');
- const ink=dateInk(rec);
  const style=rec?' style="background:'+layers.outer+'"':'';
  const center=layered?'<span class="orb-center" aria-hidden="true" style="background:'+layers.inner+'"></span>':'';
  return '<button type="button" class="cal-day'+cls+'" data-date="'+key+'" aria-label="'+key+
    (rec?' 감정 기록':' 기록 없음')+'"><span class="'+miniClass+'"'+style+'>'+center+
-   '<span class="daynum" style="color:'+ink+'">'+day+'</span></span>'+
+   '</span>'+
    '<span class="date-caption" aria-hidden="true">'+String(day).padStart(2,'0')+'</span>'+
    '</button>'
 }
@@ -805,6 +806,12 @@ function openRecordPopup(day,source){
  if(menuOpen)return;
  const popup=$('record-modal'),detail=$('record-detail');
  recordPopupPriorFocus=source||document.activeElement;
+ inspectedDate=day;
+ $('calendar').querySelectorAll('.cal-day.inspected').forEach(el=>{
+   if(el.dataset.date!==day)el.classList.remove('inspected')
+ });
+ const inspected=$('calendar').querySelector('[data-date="'+day+'"]');
+ if(inspected)inspected.classList.add('inspected');
  popup.hidden=false;detail.hidden=false;
  document.body.classList.add('record-modal-open');
  showDate(day,true);
@@ -1757,9 +1764,68 @@ function renderEmotionMap(){
  }
 }
 
-function renderDictionary(){const data=[...db.custom];const host=$('dictionary-list');if(!data.length){host.innerHTML='<div class="empty-state">저장된 감정이 없습니다.</div>';return}
-host.innerHTML=data.slice().reverse().map(e=>'<div class="dictionary-item"><span class="swatch" style="background:'+e.color+'"></span><div class="copy"><strong>'+escapeHTML(e.name||'이름 미정')+'</strong><p>'+escapeHTML(e.definition||e.components.map(c=>byId(c.id)?.name+' '+Math.round(c.ratio*100)+'%').join(' · '))+'</p></div><button type="button" class="subtle-button" data-use="'+escapeHTML(e.id)+'">사용</button></div>').join('');
-host.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{useEmotion(b.dataset.use)})}
+/* V47: tapping a dictionary object opens its own product-detail page. */
+let activeEmotionId=null;
+function renderDictionary(){
+ const data=db.custom.slice().reverse(),host=$('dictionary-list');
+ if(!data.length){
+   host.innerHTML='<div class="empty-state">오늘의 Emotion lab에서 감정을 만들어 보세요.</div>';
+   return
+ }
+ host.innerHTML=data.map((emotion,i)=>{
+   const color=/^#[0-9a-f]{6}$/i.test(emotion.color)?emotion.color:'#ECEFEB';
+   const name=escapeHTML(emotion.name||'이름 미정');
+   const definition=escapeHTML(emotion.definition||'');
+   const serial=String(db.custom.length-i).padStart(2,'0');
+   return '<button type="button" class="dictionary-item dictionary-card" data-emotion-id="'+
+     escapeHTML(emotion.id)+'" aria-label="'+name+' 감정 상세 보기">'+
+     '<span class="swatch" style="background:'+color+'"></span>'+
+     '<span class="copy"><span class="dictionary-index">OBJECT / '+serial+'</span>'+
+     '<strong>'+name+'</strong>'+
+     (definition?'<span class="dictionary-card-definition">'+definition+'</span>':'')+
+     '</span><span class="dictionary-card-arrow" aria-hidden="true">↗</span></button>'
+ }).join('');
+ host.querySelectorAll('[data-emotion-id]').forEach(button=>
+   button.onclick=()=>openEmotionDetail(button.dataset.emotionId))
+}
+function openEmotionDetail(id){
+ if(!db.custom.some(entry=>entry.id===id))return;
+ activeEmotionId=id;
+ setScreen('emotion')
+}
+function renderEmotionDetail(){
+ const entry=db.custom.find(e=>e.id===activeEmotionId);
+ if(!entry){setScreen('dictionary');return}
+ const index=db.custom.findIndex(e=>e.id===entry.id)+1;
+ $('emotion-product-series').textContent='OBJECT / '+String(index).padStart(2,'0');
+ $('emotion-product-name').textContent=entry.name||'이름 미정';
+ $('emotion-product-hex').textContent=/^#[0-9a-f]{6}$/i.test(entry.color)?
+   entry.color.toUpperCase():'';
+ const orb=$('emotion-product-orb');
+ paintOrb(orb,[entry.id]);
+ orb.setAttribute('aria-label',(entry.name||'이름 미정')+' 감정 구슬');
+ $('emotion-product-definition-section').hidden=!entry.definition?.trim();
+ $('emotion-product-definition').textContent=entry.definition||'';
+ const components=Array.isArray(entry.components)?entry.components:[];
+ $('emotion-product-components-section').hidden=!components.length;
+ const host=$('emotion-product-components');
+ host.replaceChildren();
+ for(const part of components){
+   const emotion=byId(part.id),row=document.createElement('div');
+   row.className='emotion-composition-row';
+   const swatch=document.createElement('span');swatch.className='emotion-composition-swatch';
+   swatch.style.background=/^#[0-9a-f]{6}$/i.test(emotion?.color||'')?emotion.color:'#E8EAE5';
+   const name=document.createElement('span');name.className='emotion-composition-name';
+   name.textContent=emotion?.name||'이름 미정';
+   const ratio=document.createElement('span');ratio.className='emotion-composition-ratio';
+   ratio.textContent=Math.round(Number(part.ratio||0)*100)+'%';
+   row.append(swatch,name,ratio);host.append(row)
+ }
+ const created=new Date(entry.createdAt||'');
+ $('emotion-product-created').textContent=Number.isFinite(created.getTime())?
+   new Intl.DateTimeFormat('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(created):'—';
+ $('emotion-product-visibility').textContent=entry.visibility==='public'?'Public':'Private'
+}
 function useEmotion(id){if(!selection.includes(id)){if(selection.length>=4){toast('감정 하나를 해제하세요.');setScreen('today');return}selection.push(id)}renderChoices();renderPreview();setEmotionPanel('custom',true);setScreen('today');toast('오늘에 추가됨')}
 function positionFlightStart(rect){const w=168,h=168;return rect.top>=10&&rect.bottom<window.innerHeight-10?{left:rect.left,top:rect.top,width:rect.width,height:rect.height}:{left:(innerWidth-w)/2,top:Math.max(70,(innerHeight-h)/2-40),width:w,height:h}}
 async function saveDay(){
@@ -2007,7 +2073,9 @@ document.addEventListener('keydown',event=>{
 $('reset-select').onclick=()=>{selection=[];renderChoices();renderPreview()};
 $('basic-toggle').onclick=()=>setEmotionPanel('basic');
 $('custom-toggle').onclick=()=>setEmotionPanel('custom');
-$('add-custom').onclick=()=>{resetMix();setScreen('create')};$('start-create').onclick=()=>{resetMix();setScreen('create')};
+$('add-custom').onclick=()=>{resetMix();setScreen('create')};
+$('emotion-detail-back').onclick=()=>setScreen('dictionary');
+$('emotion-detail-use').onclick=()=>{if(activeEmotionId)useEmotion(activeEmotionId)};
 $('create-back').onclick=()=>setScreen('today');
 $('save-day').onclick=saveDay;
 // V40: persist on INPUT too, not only on CHANGE. Mobile Safari may
@@ -2046,6 +2114,10 @@ const viewName=new URLSearchParams(window.location.search).get('view');
 // V35: let design reviews land on the actual settings control immediately.
 if(viewName==='settings')setScreen('settings');
 if(viewName==='dictionary')setScreen('dictionary');
+if(viewName==='emotion'){
+ if(db.custom.length){activeEmotionId=db.custom[db.custom.length-1].id;setScreen('emotion')}
+ else setScreen('dictionary')
+}
 if(viewName==='my'||viewName==='map')setScreen('my');
 const zoomForView={month:0,quarter:1,half:2,year:3};
 if(Object.prototype.hasOwnProperty.call(zoomForView,viewName)){

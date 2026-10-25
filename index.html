@@ -7,7 +7,7 @@
 <meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
 <title>결. — 감정 일기</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
-<link rel="stylesheet" href="./styles.css?v=46.1">
+<link rel="stylesheet" href="./styles.css?v=47">
 <style id="v35-expiry-slider-style">
 /* Kept with the markup deliberately: a new HTML deploy must never show an
    unstyled blue native range while its CSS asset is still propagating. */
@@ -42,7 +42,7 @@
 }
 </style>
 <script defer src="./orb-renderer.js?v=8.2"></script>
-<script defer src="./app.js?v=46.1"></script>
+<script defer src="./app.js?v=47"></script>
 </head>
 <body>
 <button type="button" id="menu-toggle" class="menu-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="side-drawer"><span></span><span></span><span></span></button>
@@ -106,17 +106,40 @@
 </section>
 <section id="archive" class="screen" aria-label="감정 아카이브">
 <div class="calendar-controls"><strong id="month-label"></strong><div class="arrow-buttons"><button type="button" id="month-prev" aria-label="이전 기간">‹</button><button type="button" id="month-next" aria-label="다음 기간">›</button></div></div>
-<p id="demo-note" class="demo-note" hidden>샘플 <a href="./?v=46&view=year">실제 기록 보기</a></p>
+<p id="demo-note" class="demo-note" hidden>샘플 <a href="./?v=47&view=year">실제 기록 보기</a></p>
 <div id="calendar" aria-label="감정 아카이브 달력"></div>
 
 
 </section>
 <section id="dictionary" class="screen" aria-label="나의 감정 사전">
 <div class="intro"><h1>사전</h1></div>
-<button type="button" class="secondary-action" id="start-create"><span class="plus-box">+</span><span>새 감정 만들기</span><span class="right-arrow">›</span></button>
 <div class="heading-row"><h2>나의 감정</h2></div>
 <div id="dictionary-list" class="dictionary-list"></div>
 
+</section>
+<section id="emotion" class="screen" aria-label="감정 상세 페이지">
+ <button id="emotion-detail-back" type="button" class="emotion-back">← DICTIONARY</button>
+ <div class="emotion-product-stage">
+  <span class="emotion-product-overline">GYEOL / CUSTOM OBJECT</span>
+  <div id="emotion-product-orb" class="orb emotion-product-orb" role="img"></div>
+ </div>
+ <article class="emotion-product-info">
+  <p id="emotion-product-series" class="emotion-product-series"></p>
+  <h1 id="emotion-product-name" class="emotion-product-name"></h1>
+  <p id="emotion-product-hex" class="emotion-product-hex"></p>
+  <section id="emotion-product-definition-section" class="emotion-product-description" hidden>
+   <h2>Definition</h2>
+   <p id="emotion-product-definition"></p>
+  </section>
+  <section id="emotion-product-components-section" class="emotion-product-components" hidden>
+   <h2>Composition</h2><div id="emotion-product-components"></div>
+  </section>
+  <section class="emotion-product-details">
+   <div><span>Created</span><strong id="emotion-product-created"></strong></div>
+   <div><span>Visibility</span><strong id="emotion-product-visibility"></strong></div>
+  </section>
+  <button id="emotion-detail-use" class="emotion-product-use" type="button">Use this emotion <span aria-hidden="true">↗</span></button>
+ </article>
 </section>
 <section id="my" class="screen" aria-label="마이페이지 감정 지도">
 <div class="intro my-intro"><h1 id="emotion-map-title">나의 지도</h1><button type="button" class="settings-shortcut" id="my-settings" aria-label="설정 열기" title="설정"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.5 1.5 0 0 0 .3 1.7l.1.1-1.8 1.8-.1-.1a1.5 1.5 0 0 0-1.7-.3 1.5 1.5 0 0 0-.9 1.4V20H8.7v-.4A1.5 1.5 0 0 0 7.8 18a1.5 1.5 0 0 0-1.7.3l-.1.1-1.8-1.8.1-.1a1.5 1.5 0 0 0 .3-1.7 1.5 1.5 0 0 0-1.4-.9H3v-3.2h.2a1.5 1.5 0 0 0 1.4-.9 1.5 1.5 0 0 0-.3-1.7l-.1-.1 1.8-1.8.1.1a1.5 1.5 0 0 0 1.7.3 1.5 1.5 0 0 0 .9-1.4V4h6.6v.4a1.5 1.5 0 0 0 .9 1.4 1.5 1.5 0 0 0 1.7-.3l.1-.1 1.8 1.8-.1.1a1.5 1.5 0 0 0-.3 1.7 1.5 1.5 0 0 0 1.4.9h.2v3.2h-.2a1.5 1.5 0 0 0-1.4.9Z"/></svg></button></div>

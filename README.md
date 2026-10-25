@@ -6,6 +6,17 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
+## V47 — 감정별 제품 상세 페이지
+
+- 사전의 새 감정 만들기 버튼을 없앴다. 오늘 화면 Emotion lab에서 새 감정을 생성하고, 사전 카드 클릭 시 개별 상세 페이지로 이동한다.
+- 감정 상세 페이지는 참고 이미지처럼 작은 구슬 한 개를 단색 스튜디오에 전시하고, 저장한 이름·정의·색·혼합 감정 비율·생성일·공개 여부를 아래 표시한다. 여러 이미지나 좌우 화살표는 사용하지 않는다.
+- 달력의 월 표시 숫자에는 구슬과 동일한 지름의 연회색 원 배경을 적용한다.
+- 핀치 전환에서 갑자기 나타나는 구슬 속 숫자를 마크업에서 제거하며, 한 달 화면의 구슬 아래 날짜는 유지한다.
+- 구슬 더블탭·더블클릭 시 선택한 구슬에 짙은 테두리를 적용해 상세 팝업을 닫아도 확인할 수 있다.
+- [V47 설계 기록](./docs/V47_EMOTION_PRODUCT_DETAIL.md)
+
+[V47 앱](https://playian0724-byte.github.io/emotion-diary/?v=47) · [사전](https://playian0724-byte.github.io/emotion-diary/?v=47&view=dictionary) · [달력](https://playian0724-byte.github.io/emotion-diary/?v=47&demo=1&view=year)
+
 ## V46 — 한 화면 안에서 이어지는 구슬 아카이브
 
 - **메뉴 유지:** 항목 클릭은 뒤쪽 화면만 전환한다. 오른쪽 70% 메뉴는 열린 상태로 남아 X, 바깥 탭 또는 Escape로 닫는다.
