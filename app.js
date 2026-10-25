@@ -427,7 +427,7 @@ function renderPreview(){
  syncOrbShader()
 }
 // V41: right slide-in menu, light backdrop, Escape/backdrop dismissal.
-let menuOpen=false,menuPriorFocus=null;
+let menuOpen=false,menuPriorFocus=null,menuNavigationTimer=0;
 function openMenu(){
  if(menuOpen)return;
  menuPriorFocus=document.activeElement;
@@ -437,10 +437,15 @@ function openMenu(){
  $('side-drawer').setAttribute('aria-hidden','false');
  $('menu-toggle').setAttribute('aria-expanded','true');
  $('menu-toggle').setAttribute('aria-label','메뉴 닫기');
+ positionMenuMarker();
  $('menu-close').focus({preventScroll:true});
 }
 function closeMenu(){
  if(!menuOpen)return;
+ if(menuNavigationTimer){
+   clearTimeout(menuNavigationTimer);menuNavigationTimer=0;
+   syncMenuSelection(document.querySelector('.screen.active')?.id||'today')
+ }
  menuOpen=false;
  document.body.classList.remove('drawer-open');
  $('side-drawer').inert=true;
@@ -450,15 +455,37 @@ function closeMenu(){
  if(menuPriorFocus&&typeof menuPriorFocus.focus==='function')
    menuPriorFocus.focus({preventScroll:true});
 }
-function toggleMenu(){if(menuOpen)closeMenu();else openMenu()}
-function setScreen(id){
- document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));
+function positionMenuMarker(){
+ const nav=$('drawer-nav'),marker=$('drawer-marker');
+ const active=nav.querySelector('button.active');
+ if(!marker||!active)return;
+ marker.style.top=(active.offsetTop+(active.offsetHeight-marker.offsetHeight)/2)+'px'
+}
+function syncMenuSelection(id){
+ const shown=id==='create'?'dictionary':id;
  document.querySelectorAll('#drawer-nav button[data-open]').forEach(el=>{
-   const active=el.dataset.open===(id==='settings'?'my':id==='create'?'dictionary':id);
+   const active=el.dataset.open===shown;
    el.classList.toggle('active',active);
    if(active)el.setAttribute('aria-current','page');
    else el.removeAttribute('aria-current')
  });
+ positionMenuMarker()
+}
+function navigateFromMenu(id){
+ if(!menuOpen){setScreen(id);return}
+ if(menuNavigationTimer)clearTimeout(menuNavigationTimer);
+ syncMenuSelection(id);
+ // Let the selection dot travel to the requested row before the page changes.
+ menuNavigationTimer=setTimeout(()=>{
+   menuNavigationTimer=0;
+   setScreen(id)
+ },230)
+}
+function toggleMenu(){if(menuOpen)closeMenu();else openMenu()}
+function setScreen(id){
+ if(id!=='archive')closeRecordPopup();
+ document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));
+ syncMenuSelection(id);
  if(id==='archive')renderCalendar();
  if(id==='dictionary')renderDictionary();
  if(id==='my')renderEmotionMap();
@@ -471,6 +498,7 @@ function setScreen(id){
 const CAL_SPANS=[1,3,6,12];
 let calendarZoom=0,calendarSelected=isoDay();
 function shiftMonth(delta){
+ closeRecordPopup();
  month=new Date(month.getFullYear(),month.getMonth()+delta*CAL_SPANS[calendarZoom],1);
  if(calendarZoom===3)month=new Date(month.getFullYear(),0,1);
  renderCalendar()
@@ -562,6 +590,7 @@ function animateCalendarLayout(before,next,zoomDelta){
  }
 }
 function changeCalendarZoom(delta,point){
+ closeRecordPopup();
  const next=Math.max(0,Math.min(CAL_SPANS.length-1,calendarZoom+delta));
  if(next===calendarZoom)return false;
  const before=snapshotCalendar(point);
@@ -682,7 +711,7 @@ function renderCalendar(){
 function showDate(day,rerender=true){
  calendarSelected=day;
  // Details belong to a selected date, not the zooming bead surface.
- if(rerender)$('record-detail').hidden=false;
+ if(rerender&&!$('record-modal').hidden)$('record-detail').hidden=false;
  if(rerender){
   $('calendar').querySelectorAll('.cal-day.selected').forEach(el=>el.classList.remove('selected'));
   const selected=$('calendar').querySelector('[data-date="'+day+'"]');
@@ -690,10 +719,17 @@ function showDate(day,rerender=true){
  }
  const e=previewRecord(day),detail=$('record-detail');
  detail.replaceChildren();
- const title=document.createElement('strong');title.textContent=day;detail.append(title);
- const p=document.createElement('p');
- p.textContent=e?(e.emotions.map(id=>byId(id)?.name||'이름 미정').join(' · ')+(e.note?'\n'+e.note:'')):'기록 없음';
- detail.append(p);
+ const kicker=document.createElement('span');kicker.className='record-kicker';
+ kicker.textContent='GYEOL / DAILY OBJECT';
+ const date=document.createElement('span');date.className='record-date';
+ date.textContent=day.replaceAll('-','.');
+ const title=document.createElement('h2');title.className='record-emotion-title';
+ title.textContent=e?(e.emotions||[]).map(id=>byId(id)?.name||'이름 미정').join(' · '):'기록 없음';
+ detail.append(kicker,date,title);
+ if(e?.note){
+   const note=document.createElement('p');note.className='record-note';
+   note.textContent=e.note;detail.append(note)
+ }
  if(!e||DEMO_MODE)return;
  const editable=canEditRecord(day,e);
  const time=expiryDeadline(day,e);
@@ -716,6 +752,27 @@ function showDate(day,rerender=true){
    locked.textContent='유통기한이 지나 수정할 수 없어요.';
    detail.append(locked)
  }
+}
+// V44: record details are modal-only; the archive never has a description below it.
+let recordPopupPriorFocus=null;
+function openRecordPopup(day,source){
+ if(menuOpen)return;
+ const popup=$('record-modal'),detail=$('record-detail');
+ recordPopupPriorFocus=source||document.activeElement;
+ popup.hidden=false;detail.hidden=false;
+ document.body.classList.add('record-modal-open');
+ showDate(day,true);
+ $('record-modal-close').focus({preventScroll:true})
+}
+function closeRecordPopup(){
+ const popup=$('record-modal');
+ if(!popup||popup.hidden)return;
+ popup.hidden=true;
+ $('record-detail').hidden=true;
+ document.body.classList.remove('record-modal-open');
+ const source=recordPopupPriorFocus;recordPopupPriorFocus=null;
+ if(source?.isConnected&&typeof source.focus==='function')
+   source.focus({preventScroll:true})
 }
 function openRecordEditor(day){
  const record=db.records[day];
@@ -1382,6 +1439,45 @@ function setupCalendarGestures(){
      wheelScale=1
    },165)
  },{passive:false});
+ // V44: preserve two-finger archive zoom while opening details only on
+ // double-click / double-tap (Enter/Space remain accessible by keyboard).
+ let tapOrigin=null,lastTap=null,lastManualOpen=0;
+ el.addEventListener('dblclick',event=>{
+   const button=event.target.closest('.cal-day[data-date]');
+   const now=performance.now();
+   if(!button||!el.contains(button)||now<calendarIgnoreClickUntil||now-lastManualOpen<650)return;
+   event.preventDefault();
+   openRecordPopup(button.dataset.date,button)
+ });
+ el.addEventListener('touchstart',event=>{
+   if(event.touches.length!==1){tapOrigin=null;lastTap=null;return}
+   const button=event.target.closest('.cal-day[data-date]');
+   const finger=event.touches[0];
+   tapOrigin=button?{button,date:button.dataset.date,x:finger.clientX,y:finger.clientY}:null
+ },{passive:true});
+ el.addEventListener('touchend',event=>{
+   if(!tapOrigin||event.touches.length!==0)return;
+   const origin=tapOrigin;tapOrigin=null;
+   const finger=event.changedTouches[0],now=performance.now();
+   if(!finger||Math.hypot(finger.clientX-origin.x,finger.clientY-origin.y)>15||
+      now<calendarIgnoreClickUntil){lastTap=null;return}
+   if(lastTap&&lastTap.date===origin.date&&now-lastTap.when<380&&
+      Math.hypot(origin.x-lastTap.x,origin.y-lastTap.y)<30){
+     if(event.cancelable)event.preventDefault();
+     lastTap=null;lastManualOpen=now;
+     openRecordPopup(origin.date,origin.button)
+   }else{
+     lastTap={date:origin.date,x:origin.x,y:origin.y,when:now}
+   }
+ },{passive:false});
+ el.addEventListener('touchcancel',()=>{tapOrigin=null;lastTap=null},{passive:true});
+ el.addEventListener('keydown',event=>{
+   const button=event.target.closest('.cal-day[data-date]');
+   if(button&&(event.key==='Enter'||event.key===' ')){
+     event.preventDefault();
+     openRecordPopup(button.dataset.date,button)
+   }
+ });
  el.addEventListener('click',e=>{
    if(performance.now()<calendarIgnoreClickUntil){
      e.preventDefault();e.stopImmediatePropagation()
@@ -1836,11 +1932,25 @@ if(DEMO_MODE){
  if(banner)banner.hidden=false
 }const old=db.records[isoDay()];if(old){selection=old.emotions.filter(id=>byId(id)).slice(0,4);$('memo').value=old.note||''}
 $('today-date').textContent=new Intl.DateTimeFormat('ko-KR',{month:'long',day:'numeric',weekday:'long'}).format(new Date());
-document.querySelectorAll('[data-open]').forEach(btn=>btn.onclick=()=>setScreen(btn.dataset.open));
+document.querySelectorAll('[data-open]').forEach(btn=>btn.onclick=()=>
+  btn.closest('#drawer-nav')?navigateFromMenu(btn.dataset.open):setScreen(btn.dataset.open));
 $('menu-toggle').onclick=toggleMenu;
 $('menu-close').onclick=closeMenu;
 $('drawer-overlay').onclick=closeMenu;
-$('drawer-settings').onclick=()=>setScreen('settings');
+$('record-modal-close').onclick=closeRecordPopup;
+$('record-modal-backdrop').onclick=closeRecordPopup;
+document.addEventListener('keydown',event=>{
+ const popup=$('record-modal');
+ if(popup.hidden)return;
+ if(event.key==='Escape'){event.preventDefault();closeRecordPopup();return}
+ if(event.key==='Tab'){
+   const controls=[...popup.querySelectorAll('button:not(:disabled),textarea:not(:disabled),input:not(:disabled)')]
+     .filter(node=>node.getClientRects().length>0);
+   const first=controls[0],last=controls[controls.length-1];
+   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}
+   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}
+ }
+});
 document.addEventListener('keydown',event=>{
  if(!menuOpen)return;
  if(event.key==='Escape'){event.preventDefault();closeMenu();return}

@@ -6,6 +6,16 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
+## V44 — 풀스크린 타이포 메뉴와 구슬 상세 팝업
+
+- **메뉴:** 레퍼런스의 큰 대문자 다섯 줄(TODAY / ARCHIVE / DICTIONARY / MY / SETTINGS). 활성 배지를 제거하고 오른쪽 검은 원 하나로 선택 상태를 표시하며 위치 변화와 화면 전환을 절제된 모션으로 연결.
+- **아카이브:** 1개월에서는 구슬 아래 날짜를 유지, 3/6/12개월은 월 제목과 구슬만 표시. 기존 1~12개월 핀치·FLIP 모션 보존.
+- **기록 팝업:** 모든 줌 단계에서 구슬 더블클릭 / 모바일 더블탭으로 날짜·감정 이름·메모를 모달 표시. 키보드·Escape·바깥 탭 지원. 기존 수정 기능과 기한 잠금 유지.
+- **하단 설명 제거:** 달력 아래 고정 상세 카드 삭제, 팝업으로 이동. 기록 데이터 \`gyeol-v2\` 유지.
+- [V44 변경 설계 및 확인](./docs/V44_TYPO_MENU_AND_RECORD_MODAL.md)
+
+[V44 앱](https://playian0724-byte.github.io/emotion-diary/?v=44) · [V44 샘플 달력](https://playian0724-byte.github.io/emotion-diary/?v=44&demo=1&view=month) · [V44 샘플 연감](https://playian0724-byte.github.io/emotion-diary/?v=44&demo=1&view=year)
+
 ## V43.1 — 스크롤 확대·축소 오류 수정, 모든 기간의 갤러리 통일
 
 - **스크롤 오류 수정:** 이전에는 한 손가락으로 달력을 위아래로 스크롤하면 일정 거리 이상 움직였을 때 기간 확대·축소가 실행됐음. 해당 세로 스와이프/마우스 세로 드래그 줌을 제거해 일반 페이지 스크롤로 동작하도록 변경. 확대·축소는 두 손가락 핀치(PC에서는 Ctrl+휠)로만 실행. 좌우 스와이프로 기간 이동은 유지.
