@@ -6,6 +6,15 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
+## V51 — Today 상단 Save와 감정 메뉴 축소
+
+- Today의 `Basic emotion`, `Custom emotion`, `Emotion lab` 글자 크기와 행 높이를 줄여 여백을 정돈.
+- `Save object` 하단 버튼을 제거하고 Today의 **맨 위 우측**에 파란색 `Save ↗` 텍스트 버튼을 배치. 메뉴 제목과 동일한 SUIT 서체, 굵기, 자간, 크기를 적용.
+- 기존 저장 기능·선택 여부에 따른 비활성화·기록·구슬·핀치 애니메이션 유지.
+- [V51 설계 기록](./docs/V51_TODAY_SAVE_AND_CATALOG.md)
+
+[V51 웹앱](https://playian0724-byte.github.io/emotion-diary/?v=51)
+
 ## V50 — 페이지 명칭 및 Settings 서체 정리
 
 - **Today:** 화면 제목을 `Emotion recoder`로 변경.

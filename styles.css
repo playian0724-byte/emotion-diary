@@ -3910,3 +3910,89 @@ body.drawer-open #menu-toggle.menu-toggle{
  font-weight:650;
  letter-spacing:-.065em;
 }
+
+
+/* V51 — quieter Today catalogue; Save becomes its own top-line action.
+   Same SUIT type hierarchy as category names, with blue text rather than
+   the old full-width filled CTA. No data or save semantics change. */
+#today .today-save-bar{
+ display:flex;
+ align-items:center;
+ justify-content:flex-end;
+ min-height:43px;
+ margin:0 0 11px;
+ padding:0 2px;
+}
+#today .today-save-bar #save-day{
+ display:inline-flex;
+ align-items:center;
+ justify-content:flex-end;
+ gap:9px;
+ min-height:43px;
+ width:auto;
+ margin:0;
+ padding:4px 0 6px 12px;
+ border:0;
+ border-radius:0;
+ box-shadow:none;
+ background:transparent;
+ color:#2455C4;
+ font-family:var(--gyeol-font);
+ font-size:clamp(21px,5.8vw,29px);
+ font-weight:790;
+ line-height:1.08;
+ letter-spacing:-.078em;
+ text-align:right;
+ white-space:nowrap;
+ cursor:pointer;
+ transition:color .18s ease;
+}
+#today .today-save-bar #save-day span{
+ display:inline-block;
+ font-size:.84em;
+ font-weight:470;
+ letter-spacing:0;
+}
+#today .today-save-bar #save-day:disabled{
+ background:transparent;
+ color:#8CA7D6;
+ cursor:default;
+}
+#today .today-save-bar #save-day:not(:disabled):active{
+ color:#173B8A;
+}
+#today .today-save-bar #save-day:focus-visible{
+ outline:1px solid #2455C4;
+ outline-offset:2px;
+}
+#today .today-catalog{margin-top:13px}
+#today .catalog-row{
+ min-height:68px;
+ padding:10px 2px;
+}
+#today .catalog-title{
+ font-size:clamp(21px,5.8vw,29px);
+ font-weight:790;
+ letter-spacing:-.078em;
+}
+#today .catalog-symbol{
+ font-size:clamp(28px,7vw,34px);
+ min-width:31px;
+}
+#today .catalog-section.is-open .catalog-symbol{font-size:32px}
+#today .catalog-route .catalog-symbol{font-size:29px}
+@media(max-width:420px){
+ #today .catalog-row{min-height:64px;padding:9px 2px}
+ #today .catalog-title{font-size:clamp(21px,5.8vw,27px)}
+ #today .catalog-symbol{font-size:31px;min-width:29px}
+ #today .today-save-bar #save-day{font-size:clamp(21px,5.8vw,27px)}
+}
+@media(max-width:350px){
+ #today .catalog-row{min-height:60px}
+ #today .catalog-title{font-size:20px}
+ #today .catalog-symbol{font-size:28px;min-width:27px}
+ #today .today-save-bar #save-day{font-size:20px}
+}
+@media(prefers-reduced-motion:reduce){
+ #today .today-save-bar #save-day{transition:none}
+}
