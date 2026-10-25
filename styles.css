@@ -2639,3 +2639,249 @@ body{background:#F4F5F2;color:#1F211F;letter-spacing:-.035em}
    width:25px
  }
 }
+
+
+/* V43.1 — one shared "pigment object + date" catalogue grammar at 1/3/6/12
+   months. Month group counts, swatch sizes and typographic scale respond to
+   density. Vertical touch scrolling is native; only pinches change zoom. */
+#archive .calendar-archive,
+#archive > .zoom-next-layer{
+  --gallery-month-columns:1;
+  --gallery-days-columns:4;
+  --gallery-month-gap:22px;
+  --gallery-day-x:11px;
+  --gallery-day-y:23px;
+  --gallery-orb-max:86px;
+  --gallery-date-size:20px;
+  --gallery-day-gap:8px;
+  --gallery-month-type:18px;
+  touch-action:pan-y;
+}
+#archive .calendar-archive.zoom-3,
+#archive > .zoom-next-layer.zoom-3{
+  --gallery-month-columns:2;
+  --gallery-days-columns:3;
+  --gallery-month-gap:23px;
+  --gallery-day-x:8px;
+  --gallery-day-y:18px;
+  --gallery-orb-max:52px;
+  --gallery-date-size:13px;
+  --gallery-day-gap:6px;
+  --gallery-month-type:19px;
+}
+#archive .calendar-archive.zoom-6,
+#archive > .zoom-next-layer.zoom-6{
+  --gallery-month-columns:2;
+  --gallery-days-columns:4;
+  --gallery-month-gap:25px;
+  --gallery-day-x:5px;
+  --gallery-day-y:14px;
+  --gallery-orb-max:40px;
+  --gallery-date-size:11px;
+  --gallery-day-gap:5px;
+  --gallery-month-type:18px;
+}
+#archive .calendar-archive.zoom-12,
+#archive > .zoom-next-layer.zoom-12{
+  --gallery-month-columns:3;
+  --gallery-days-columns:3;
+  --gallery-month-gap:23px;
+  --gallery-day-x:4px;
+  --gallery-day-y:11px;
+  --gallery-orb-max:36px;
+  --gallery-date-size:10px;
+  --gallery-day-gap:4px;
+  --gallery-month-type:12px;
+}
+#archive .calendar-archive .poster-months,
+#archive > .zoom-next-layer .poster-months{
+  display:grid;
+  grid-template-columns:repeat(var(--gallery-month-columns),minmax(0,1fr));
+  column-gap:clamp(11px,3vw,20px);
+  row-gap:var(--gallery-month-gap);
+  align-items:start;
+  width:100%;
+}
+#archive .calendar-archive .poster-month,
+#archive > .zoom-next-layer .poster-month{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  min-width:0;
+  gap:clamp(8px,2vw,15px);
+  padding-top:0!important;
+  margin:0;
+}
+#archive .calendar-archive.zoom-1 .poster-month:after{
+  margin-top:36px;
+}
+#archive .calendar-archive .poster-month-label,
+#archive > .zoom-next-layer .poster-month-label{
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+  height:auto;
+  min-height:0;
+  margin:0;
+  padding:0;
+  font-family:var(--gyeol-font);
+  font-size:var(--gallery-month-type);
+  line-height:1.25;
+  letter-spacing:-.045em;
+  font-weight:560;
+  color:#343834;
+  white-space:nowrap;
+}
+/* Preserve 1-month auto-fit from V43; the other periods have fewer, smaller
+   month tiles. Every month still contains the exact same bead+label card. */
+#archive .calendar-archive.zoom-1 .poster-days,
+#archive > .zoom-next-layer.zoom-1 .poster-days{
+  grid-template-columns:repeat(auto-fit,minmax(76px,1fr));
+}
+#archive .calendar-archive.zoom-3 .poster-days,
+#archive > .zoom-next-layer.zoom-3 .poster-days,
+#archive .calendar-archive.zoom-6 .poster-days,
+#archive > .zoom-next-layer.zoom-6 .poster-days,
+#archive .calendar-archive.zoom-12 .poster-days,
+#archive > .zoom-next-layer.zoom-12 .poster-days{
+  display:grid;
+  grid-template-columns:repeat(var(--gallery-days-columns),minmax(0,1fr));
+  grid-auto-rows:min-content;
+  align-content:start;
+  align-items:start;
+  justify-items:center;
+  column-gap:var(--gallery-day-x);
+  row-gap:var(--gallery-day-y);
+  min-width:0;
+  width:100%;
+  margin:0;
+  padding:0 0 4px;
+}
+#archive .calendar-archive .poster-days .cal-day,
+#archive > .zoom-next-layer .poster-days .cal-day{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  align-items:center;
+  width:100%;
+  height:auto!important;
+  min-height:0;
+  min-width:0;
+  aspect-ratio:auto!important;
+  padding:0;
+  border:0;
+  background:transparent;
+  gap:var(--gallery-day-gap);
+  transform:none!important;
+}
+#archive .calendar-archive .poster-days .cal-day.bead-offset,
+#archive > .zoom-next-layer .poster-days .cal-day.bead-offset{
+  transform:none!important;
+}
+#archive .calendar-archive .poster-days .cal-day .mini,
+#archive > .zoom-next-layer .poster-days .cal-day .mini{
+  display:grid;
+  place-items:center;
+  position:relative;
+  flex:0 0 auto;
+  box-sizing:border-box;
+  width:min(100%,var(--gallery-orb-max));
+  height:auto!important;
+  max-width:var(--gallery-orb-max);
+  min-width:0;
+  min-height:0;
+  aspect-ratio:1/1;
+  border-radius:50%;
+  overflow:hidden;
+}
+#archive .calendar-archive .poster-days .cal-day .mini .daynum,
+#archive > .zoom-next-layer .poster-days .cal-day .mini .daynum{
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+#archive .calendar-archive .poster-days .cal-day .date-caption,
+#archive > .zoom-next-layer .poster-days .cal-day .date-caption{
+  display:block;
+  font-family:var(--gyeol-font);
+  font-size:var(--gallery-date-size);
+  font-weight:450;
+  line-height:1.2;
+  letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;
+  text-align:center;
+  white-space:nowrap;
+  color:#9C9F99;
+  pointer-events:none;
+}
+#archive .calendar-archive .poster-days .cal-day.today .date-caption{
+  color:#5F6960;
+  font-weight:560;
+}
+#archive .calendar-archive .poster-days .cal-day.selected .date-caption{
+  color:#29312A;
+  font-weight:690;
+}
+#archive .calendar-archive .poster-days .cal-day.selected .mini{
+  outline:1px solid #616A60!important;
+  outline-offset:2px;
+}
+/* At each zoom, preserve the single-month understated catalogue heading.
+   The period year is a section label, not an oversized poster numeral. */
+#archive.poster-year .calendar-controls .period-year{
+  font-family:var(--gyeol-font);
+  font-size:clamp(29px,7.6vw,37px)!important;
+  line-height:1.16;
+  letter-spacing:-.06em;
+  font-weight:490;
+}
+#archive .calendar-controls .calendar-heading-next.heading-year-view .period-year{
+  font-size:clamp(29px,7.6vw,37px)!important;
+  line-height:1.16!important;
+  letter-spacing:-.06em!important;
+  font-weight:490!important;
+}
+#archive.poster-year .calendar-controls{
+  margin:6px 0 27px;
+  min-height:44px;
+  align-items:center;
+}
+/* Do not override the month-header CSS when transitioning back to zoom-1. */
+#archive .calendar-archive.zoom-3 .poster-month:after,
+#archive .calendar-archive.zoom-6 .poster-month:after,
+#archive .calendar-archive.zoom-12 .poster-month:after{
+  content:"";
+  height:1px;
+  display:block;
+  width:100%;
+  margin-top:4px;
+  background:#E8EAE5;
+}
+@media(max-width:370px){
+ #archive .calendar-archive.zoom-3,
+ #archive > .zoom-next-layer.zoom-3{
+   --gallery-day-x:5px;
+   --gallery-orb-max:48px;
+   --gallery-month-type:17px;
+ }
+ #archive .calendar-archive.zoom-6,
+ #archive > .zoom-next-layer.zoom-6{
+   --gallery-day-x:3px;
+   --gallery-orb-max:35px;
+   --gallery-month-type:16px;
+ }
+ #archive .calendar-archive.zoom-12,
+ #archive > .zoom-next-layer.zoom-12{
+   --gallery-day-x:2px;
+   --gallery-orb-max:31px;
+   --gallery-date-size:9px;
+   --gallery-month-type:11px
+ }
+}
+@media(min-width:460px){
+ #archive .calendar-archive.zoom-12,
+ #archive > .zoom-next-layer.zoom-12{
+   --gallery-month-columns:4;
+   --gallery-orb-max:34px
+ }
+}
