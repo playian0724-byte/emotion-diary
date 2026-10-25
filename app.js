@@ -2100,8 +2100,24 @@ dest.classList.remove('arriving');dest.classList.add('landed');setTimeout(()=>de
 ghost.remove();saving=false;renderPreview();try{navigator.vibrate?.(12)}catch(e){}toast('저장됨')
 }
 function resetMix(){if(v8Shader)v8Shader.detach();amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;$('water').style.opacity='1';$('mix-stats').style.opacity='0';$('blend-panel').hidden=true;$('mix-button').disabled=true;$('mix-undo').disabled=false;$('mix-name').value='';$('mix-definition').value='';$('mix-summary').textContent='';renderMixButtons();drawWater();startWater()}
-function renderMixButtons(){$('drop-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion" data-drop="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+e.name+(amounts[e.id]?'<span class="drop-count">×'+amounts[e.id]+'</span>':'')+'</button>').join('');
-document.querySelectorAll('[data-drop]').forEach(btn=>{
+/* V56: badges are always present, so adding drops does not add nodes. */
+function refreshMixCounts(){
+ document.querySelectorAll('#drop-emotions [data-drop]').forEach(btn=>{
+   const id=btn.dataset.drop,n=amounts[id]||0;
+   const badge=btn.querySelector('.drop-count');
+   if(!badge)return;
+   badge.textContent=n?'×'+n:'';
+   badge.hidden=n===0;
+   const emotion=BASIC_PALETTE.get(id);
+   if(emotion)btn.setAttribute('aria-label',emotion.name+(n?', '+n+'방울':''))
+ })
+}
+function renderMixButtons(){$('drop-emotions').innerHTML=BASE.map(e=>
+ '<button type="button" class="emotion" data-drop="'+e.id+'">'+
+ '<span class="swatch" style="background:'+e.color+'"></span>'+e.name+
+ '<span class="drop-count" aria-hidden="true" hidden></span></button>').join('');
+refreshMixCounts();
+document.querySelectorAll('#drop-emotions [data-drop]').forEach(btn=>{
 const id=btn.dataset.drop;let pointerHandled=false;
 btn.addEventListener('pointerdown',ev=>{if(ev.button!==0&&ev.pointerType==='mouse')return;ev.preventDefault();pointerHandled=true;addDrop(id);clearTimeout(droppingTimer);clearInterval(repeatTimer);droppingTimer=setTimeout(()=>{addDrop(id);repeatTimer=setInterval(()=>addDrop(id),HOLD_REPEAT_MS)},HOLD_START_MS)});
 const finish=()=>{clearTimeout(droppingTimer);clearInterval(repeatTimer);droppingTimer=repeatTimer=null};
@@ -2114,9 +2130,14 @@ const num=Object.values(amounts).reduce((a,b)=>a+b,0);if(num>=36){toast('최대 
 amounts[id]=(amounts[id]||0)+1;
 const e=byId(id),t=num+1,theta=t*2.3999632297;
 drops.push({id,x:.5+.24*Math.cos(theta),y:.5+.24*Math.sin(theta),time:performance.now(),color:e.color});
-$('mix-button').disabled=false;$('mix-summary').textContent='총 '+(num+1)+'방울';const btn=document.querySelector('[data-drop="'+id+'"]');if(btn){let badge=btn.querySelector('.drop-count');if(!badge){badge=document.createElement('span');badge.className='drop-count';btn.append(badge)}badge.textContent='×'+amounts[id]}startWater();
+$('mix-button').disabled=false;
+$('mix-summary').textContent='총 '+(num+1)+'방울';
+refreshMixCounts();
+startWater();
 }
-function undoDrop(){if(mixed)return;const d=drops.pop();if(d){amounts[d.id]--;if(!amounts[d.id])delete amounts[d.id]}$('mix-button').disabled=!drops.length;$('mix-summary').textContent=drops.length?'총 '+drops.length+'방울':'';renderMixButtons();drawWater()}
+function undoDrop(){if(mixed)return;const d=drops.pop();if(d){amounts[d.id]--;if(!amounts[d.id])delete amounts[d.id]}$('mix-button').disabled=!drops.length;
+$('mix-summary').textContent=drops.length?'총 '+drops.length+'방울':'';
+refreshMixCounts();drawWater()}
 /* V10 — One water canvas carries the actual pigment from diffuse drops
    into a single solid circle. No DOM marble, crossfade, or scale-in layer. */
 function startWater(){

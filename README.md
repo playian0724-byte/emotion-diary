@@ -6,6 +6,16 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
+## V56 — Emotion lab 팔레트 크기 튐 수정
+
+- 감정을 추가해도 팔레트 4열·2행 카드 크기를 동일하게 고정(반응형 85~93px).
+- 방울 수 표시는 요소를 미리 준비하고 숫자만 갱신. 첫 방울 때 레이아웃 변화 방지.
+- `총 N방울` 안내 텍스트 높이를 확보해 감정 목록이 갑자기 밀리지 않게 조정.
+- 빼기에서도 버튼을 재생성하지 않고 방울 수만 바꿈. 혼합 및 저장 기능 그대로 유지.
+- [V56 수정 기록](./docs/V56_FIXED_LAB_PALETTE.md)
+
+[V56 Emotion lab](https://playian0724-byte.github.io/emotion-diary/v56.html?view=lab)
+
 ## V55 — Emotion lab 아이콘 버튼 정리
 
 - `한 방울 빼기`를 **−**, `다시 만들기`를 **되돌리기(↶) 아이콘**으로 교체. 조작 버튼의 외곽 테두리·배경·그림자를 제거.
