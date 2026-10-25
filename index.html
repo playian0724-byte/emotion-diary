@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#fbfbf9">
 <meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
 <title>결. — 감정 일기</title>
-<link rel="stylesheet" href="./styles.css?v=40">
+<link rel="stylesheet" href="./styles.css?v=41">
 <style id="v35-expiry-slider-style">
 /* Kept with the markup deliberately: a new HTML deploy must never show an
    unstyled blue native range while its CSS asset is still propagating. */
@@ -41,9 +41,21 @@
 }
 </style>
 <script defer src="./orb-renderer.js?v=8.2"></script>
-<script defer src="./app.js?v=40"></script>
+<script defer src="./app.js?v=41"></script>
 </head>
 <body>
+<button type="button" id="menu-toggle" class="menu-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="side-drawer"><span></span><span></span><span></span></button>
+<div id="drawer-overlay" class="drawer-overlay" aria-hidden="true"></div>
+<aside id="side-drawer" class="side-drawer" aria-label="페이지 메뉴" aria-hidden="true" inert>
+ <div class="drawer-head"><span class="drawer-title">메뉴</span><button type="button" id="menu-close" aria-label="메뉴 닫기">×</button></div>
+ <nav id="drawer-nav" class="drawer-nav" aria-label="페이지 이동">
+<button type="button" data-open="today" class="active" aria-current="page"><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 11 8.5-7 8.5 7V21H3.5Z"/><path d="M9 21v-7h6v7"/></svg><span>오늘</span></button>
+<button type="button" data-open="archive" class="" ><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 10h18M7 14h4m-4 3h7"/></svg><span>기록</span></button>
+<button type="button" data-open="dictionary" class="" ><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-3.4-2.4-7-2.3-9-1.7V19c3.3-.6 6.4.1 9 2 2.6-1.9 5.7-2.6 9-2V4.3c-2-.6-5.6-.7-9 1.7Z"/><path d="M12 6v15"/></svg><span>사전</span></button>
+<button type="button" data-open="my" class="" ><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="7" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="12" cy="18" r="2"/><path d="m6.7 8.1 3.7 7.8M17.3 8.1l-3.7 7.8M7 7h10"/></svg><span>마이</span></button>
+</nav>
+ <div class="drawer-bottom"><button type="button" id="drawer-settings" class="drawer-settings">설정 <span aria-hidden="true">↗</span></button></div>
+</aside>
 <main class="app">
 
 <section id="today" class="screen active" aria-label="오늘의 감정 기록">
@@ -62,7 +74,7 @@
 </section>
 <section id="archive" class="screen" aria-label="감정 아카이브">
 <div class="calendar-controls"><strong id="month-label"></strong><div class="arrow-buttons"><button type="button" id="month-prev" aria-label="이전 기간">‹</button><button type="button" id="month-next" aria-label="다음 기간">›</button></div></div>
-<p id="demo-note" class="demo-note" hidden>샘플 <a href="./?v=40&view=year">실제 기록 보기</a></p>
+<p id="demo-note" class="demo-note" hidden>샘플 <a href="./?v=41&view=year">실제 기록 보기</a></p>
 <div id="calendar" aria-label="감정 아카이브 달력"></div>
 <div class="entry-card" id="record-detail" hidden></div>
 
@@ -86,7 +98,7 @@
 <p id="emotion-map-demo-note" class="emotion-map-demo-note" hidden>샘플</p>
 <div class="emotion-map-board" id="emotion-map-board">
 <svg id="emotion-map-graphic" role="group" aria-label="감정별 빈도와 함께 기록한 관계를 표시하는 감정 지도" viewBox="0 0 420 610" preserveAspectRatio="xMidYMid meet"></svg>
-<div id="emotion-map-empty" class="emotion-map-empty" hidden><span>기록이 쌓이면 감정들이 이곳에 연결돼요.</span><a href="./?v=40&demo=1&view=map">샘플 감정 지도 보기 ↗</a></div>
+<div id="emotion-map-empty" class="emotion-map-empty" hidden><span>기록이 쌓이면 감정들이 이곳에 연결돼요.</span><a href="./?v=41&demo=1&view=map">샘플 감정 지도 보기 ↗</a></div>
 </div>
 <div id="emotion-map-summary" class="emotion-map-summary" aria-live="polite"></div>
 </section>
@@ -139,11 +151,6 @@
 </section>
 
 </main>
-<nav id="bottom-nav" class="bottom-island" aria-label="주요 화면">
-<button type="button" data-open="today" class="active" aria-current="page"><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 11 8.5-7 8.5 7V21H3.5Z"/><path d="M9 21v-7h6v7"/></svg><span>오늘</span></button>
-<button type="button" data-open="archive" class="" ><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 10h18M7 14h4m-4 3h7"/></svg><span>기록</span></button>
-<button type="button" data-open="dictionary" class="" ><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-3.4-2.4-7-2.3-9-1.7V19c3.3-.6 6.4.1 9 2 2.6-1.9 5.7-2.6 9-2V4.3c-2-.6-5.6-.7-9 1.7Z"/><path d="M12 6v15"/></svg><span>사전</span></button>
-<button type="button" data-open="my" class="" ><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="7" r="2"/><circle cx="19" cy="7" r="2"/><circle cx="12" cy="18" r="2"/><path d="m6.7 8.1 3.7 7.8M17.3 8.1l-3.7 7.8M7 7h10"/></svg><span>마이</span></button>
-</nav>
+
 <div class="toast" id="toast" aria-live="polite"></div>
 </body></html>
