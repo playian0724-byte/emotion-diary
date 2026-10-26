@@ -6,6 +6,14 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
+## V57 — '총 N방울' 문구의 레이아웃 밀림 제거
+
+- 첫 방울을 넣을 때 `총 1방울` 문구가 새 줄을 만들어 **Basic emotion 팔레트를 아래로 미는 문제** 수정.
+- 글씨를 혼합 전시 영역 **안쪽 우측 상단**의 작은 상태 표시로 옮기고 절대 위치로 고정. 방울을 더하거나 빼도 아래 요소의 위치는 변하지 않음.
+- V56 팔레트 고정 크기, 물감 혼합·기록 기능 유지.
+
+[V57 Emotion lab 확인](https://playian0724-byte.github.io/emotion-diary/v57.html?view=lab)
+
 ## V56 — Emotion lab 팔레트 크기 튐 수정
 
 - 감정을 추가해도 팔레트 4열·2행 카드 크기를 동일하게 고정(반응형 85~93px).

@@ -4223,3 +4223,40 @@ body.drawer-open #menu-toggle.menu-toggle{
 @media(max-width:350px){
  #create #drop-emotions.grid-emotions{grid-auto-rows:85px}
 }
+
+
+/* V57: "총 N방울" is an in-stage overlay, never a flow row.
+   It cannot cause Basic emotion, the palette or Mix emotion to jump. */
+#create #mix-stage{
+ position:relative;
+}
+#create #mix-stage > #mix-summary.drop-hint,
+#create #mix-stage > #mix-summary.drop-hint:not(:empty){
+ position:absolute!important;
+ z-index:5;
+ top:15px;
+ right:17px;
+ bottom:auto;
+ left:auto;
+ display:block;
+ width:auto;
+ height:auto;
+ min-height:0!important;
+ max-width:calc(100% - 132px);
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ background:transparent!important;
+ color:#868E84;
+ text-align:right;
+ font-family:var(--gyeol-font);
+ font-size:10px;
+ font-weight:530;
+ letter-spacing:-.01em;
+ line-height:1.4;
+ white-space:nowrap;
+ pointer-events:none;
+}
+#create #mix-stage > #mix-summary.drop-hint:empty{
+ display:none!important
+}
