@@ -2083,7 +2083,18 @@ saving=true;$('save-day').disabled=true;
 const keys=[...selection],note=$('memo').value;
 db.records[day]={...old,emotions:keys,note,
  createdAt:old?.createdAt||new Date().toISOString()};
-saveDB();month=new Date(new Date().getFullYear(),calendarZoom===3?0:new Date().getMonth(),1);calendarSelected=isoDay();
+if(!saveDB()){
+ if(old)db.records[day]=old;
+ else delete db.records[day];
+ saving=false;
+ renderPreview();
+ toast('저장에 실패했어요. 브라우저 저장 공간을 확인해 주세요.');
+ return
+}
+const savedAt=new Date(),span=CAL_SPANS[calendarZoom];
+month=new Date(savedAt.getFullYear(),
+ Math.floor(savedAt.getMonth()/span)*span,1);
+calendarSelected=day;
 const start=positionFlightStart($('today-orb').getBoundingClientRect()),ghost=document.createElement('div');ghost.className='flying-orb';ghost.style.cssText='left:'+start.left+'px;top:'+start.top+'px;width:'+start.width+'px;height:'+start.height+'px;';
 const inner=document.createElement('div');inner.className='orb';paintOrb(inner,keys);ghost.append(inner);document.body.append(ghost);
 setScreen('archive');await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));

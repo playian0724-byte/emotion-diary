@@ -6,6 +6,13 @@
 
 🌐 **웹앱:** https://playian0724-byte.github.io/emotion-diary/
 
+## V58 — Archive / Today 코드 점검
+
+- 기존 디자인·핀치·감정 선택 동작은 유지하고 저장 실패 시 잘못된 성공 처리와 저장 후 3/6개월 달력 기간 정렬을 수정.
+- [점검 기록](./docs/V58_ARCHIVE_TODAY_AUDIT.md)
+
+[V58 앱](https://playian0724-byte.github.io/emotion-diary/v58.html)
+
 ## V57 — '총 N방울' 문구의 레이아웃 밀림 제거
 
 - 첫 방울을 넣을 때 `총 1방울` 문구가 새 줄을 만들어 **Basic emotion 팔레트를 아래로 미는 문제** 수정.
