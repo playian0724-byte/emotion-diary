@@ -564,6 +564,7 @@ function weekStudyAnimateTo(monthly){
 }
 function setupWeekStudyGestures(){
  const host=$('calendar');
+ host.addEventListener('click',e=>{if(!weekStudyMonthly||weekStudyAnimating)return;const date=e.target.closest?.('[data-date]');if(date)openRecordPopup(date.dataset.date,date)});
  let gesture=null;
  const distance=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
  host.addEventListener('touchstart',e=>{
