@@ -526,7 +526,18 @@ const CAL_SPANS=[1,3,6,12];
    never touches the user's saved emotion records. */
 const WEEK_STUDY=new URLSearchParams(location.search).get('view')==='weekdemo';
 let weekStudyOffset=0,weekStudySelected=4,weekStudyMonthly=false,weekStudyAnimating=false;
-function weekStudyRecord(day){for(let i=0;i<7;i++){if(isoDay(weekStudyDay(i))===day){const ids=WEEK_STUDY_MOODS[i];return ids?{emotions:ids,note:'',demo:true}:undefined}}return undefined}
+function weekStudyRecord(day){
+ const ids=weekStudyMoodsForDate(day);
+ return ids?{emotions:ids,note:'',demo:true}:undefined
+}
+function weekStudyMoodsForDate(day){
+ const d=new Date(day+'T12:00:00');
+ const n=Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()))/86400000);
+ const index=((n*17+Math.floor(n/7)*13)%23+23)%23;
+ if(index===3||index===12||index===20)return null;
+ const options=[['calm'],['expectation'],['sad'],['joy'],['anxious'],['calm','expectation'],['surprise'],['sad','calm'],['anger'],['joy','expectation'],['disgust']];
+ return options[index%options.length]
+}
 
 const WEEK_STUDY_MOODS=[
  ['calm'],['expectation'],null,['sad'],['joy'],null,['calm','expectation']
@@ -609,7 +620,7 @@ function renderWeekStudy(){
  const weekdays=['MON','TUE','WED','THU','FRI','SAT','SUN'];
  target.replaceChildren();
  const stack=document.createElement('div');stack.className='week-study-stack';
- WEEK_STUDY_MOODS.forEach((ids,i)=>{
+ Array.from({length:7},(_,i)=>weekStudyRecord(isoDay(weekStudyDay(i)))?.emotions||null).forEach((ids,i)=>{
    const day=weekStudyDay(i),selected=i===weekStudySelected;
    const row=document.createElement('button');row.type='button';
    row.className='week-study-row'+(selected?' is-selected':'')+(ids?'':' is-empty');

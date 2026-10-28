@@ -1,5 +1,10 @@
 # 결. — 감정 일기
 
+## V61 — 주간 이동 시 샘플 변화 및 서체 조정
+
+[시안 V61](https://playian0724-byte.github.io/emotion-diary/v61.html?view=weekdemo) — 날짜별 샘플로 지난주/다음주 화살표를 누르면 다른 감정이 표시되며, 좌측 글자를 더 작고 담백하게 변경.
+
+
 ## V59 — 7일 Stack 웹앱 시안
 
 [5/7 감정 구슬 인터랙티브 미리보기](https://playian0724-byte.github.io/emotion-diary/v59.html?view=weekdemo) — 우측 동일 축, 좌측 요일/날짜/감정, 탭 확대, 주 단위 이전/다음, 기존 저장소 비변경. 실제 기록 화면은 종전과 동일.
