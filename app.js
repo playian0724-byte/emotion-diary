@@ -650,9 +650,9 @@ function renderWeekStudy(){
    row.setAttribute('aria-label',weekdays[i]+' '+(day.getMonth()+1)+'월 '+day.getDate()+'일, '+(ids?ids.map(id=>byId(id)?.name).join(' · '):'기록 없음'));
    const textCol=document.createElement('span');textCol.className='week-study-copy';
    const stamp=document.createElement('span');stamp.className='week-study-stamp';
-   stamp.textContent=weekdays[i]+' / '+String(day.getDate()).padStart(2,'0');
+   stamp.textContent=String(day.getDate()).padStart(2,'0')+'  '+weekdays[i];
    const mood=document.createElement('span');mood.className='week-study-mood';
-   mood.textContent=ids?ids.map(id=>byId(id)?.name).join(' · '):'';
+   mood.textContent=ids?ids.map(id=>byId(id)?.name).join(' · '):'—';
    textCol.append(stamp,mood);
    const vessel=document.createElement('span');vessel.className='week-study-vessel';
    const bead=document.createElement('span');bead.className='week-study-bead';

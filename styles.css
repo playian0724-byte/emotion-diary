@@ -4313,3 +4313,13 @@ body.drawer-open #menu-toggle.menu-toggle{
 
 /* V62: keep the weekly object/list proportions fixed at every age. */
 #archive.week-study .week-study-bead{transition:transform 560ms cubic-bezier(.18,.9,.2,1),opacity 330ms ease}
+
+/* V63 — single-line product typography; equal type size, only ink separates data. */
+#archive.week-study .week-study-copy{display:flex;flex-direction:row;align-items:center;gap:clamp(10px,3.2vw,18px);min-width:0;white-space:nowrap}
+#archive.week-study .week-study-stamp,#archive.week-study .week-study-mood{font-family:var(--gyeol-font);font-size:12px!important;font-weight:450!important;letter-spacing:-.025em!important;line-height:1.45;min-height:0!important;white-space:nowrap}
+#archive.week-study .week-study-stamp{color:#9A9C96!important;font-variant-numeric:tabular-nums;flex-shrink:0}
+#archive.week-study .week-study-mood{color:#777B74!important;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#archive.week-study .week-study-row.is-selected .week-study-mood{color:#282B28!important;font-weight:450!important}
+#archive.week-study .week-study-row.is-empty .week-study-mood{opacity:1;color:#C3C6BF!important}
+#archive.week-study .week-study-row{grid-template-columns:minmax(0,1fr) 94px}
+@media(max-width:370px){#archive.week-study .week-study-copy{gap:9px}#archive.week-study .week-study-row{grid-template-columns:minmax(0,1fr) 80px}}
