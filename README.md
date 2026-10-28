@@ -1,5 +1,10 @@
 # 결. — 감정 일기
 
+## V62 — 비반복 날짜별 구슬 / 단계별 확대
+
+[주간 Stack에서 1개월·3개월·6개월·1년 줌](https://playian0724-byte.github.io/emotion-diary/v62.html?view=weekdemo) — 샘플 경과 210일, 또는 `&age=20` / `&age=60` / `&age=120`으로 제한 단계 확인. 실제 기록은 손대지 않음.
+
+
 ## V61 — 주간 이동 시 샘플 변화 및 서체 조정
 
 [시안 V61](https://playian0724-byte.github.io/emotion-diary/v61.html?view=weekdemo) — 날짜별 샘플로 지난주/다음주 화살표를 누르면 다른 감정이 표시되며, 좌측 글자를 더 작고 담백하게 변경.

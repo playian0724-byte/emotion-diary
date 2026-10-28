@@ -530,18 +530,30 @@ function weekStudyRecord(day){
  const ids=weekStudyMoodsForDate(day);
  return ids?{emotions:ids,note:'',demo:true}:undefined
 }
+/* V62: deterministic, date-addressed sample. Long-lived dominant moods,
+   uneven omissions and occasional multi-pigment objects avoid periodic repeats. */
 function weekStudyMoodsForDate(day){
- const d=new Date(day+'T12:00:00');
- const n=Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()))/86400000);
- const index=((n*17+Math.floor(n/7)*13)%23+23)%23;
- if(index===3||index===12||index===20)return null;
- const options=[['calm'],['expectation'],['sad'],['joy'],['anxious'],['calm','expectation'],['surprise'],['sad','calm'],['anger'],['joy','expectation'],['disgust']];
- return options[index%options.length]
+ const n=Math.floor(Date.parse(day+'T12:00:00Z')/86400000);
+ const rand=(salt)=>{let x=(Math.imul(n+salt,2246822519)^0x9E3779B9)>>>0;
+   x=Math.imul(x^(x>>>16),3266489917)>>>0;
+   return ((x^(x>>>13))>>>0)/4294967296};
+ const gap=rand(77);
+ if(gap<.19||((Math.floor(n/11)%17)===4&&gap<.58))return null;
+ const pool=['calm','joy','sad','expectation','anxious','surprise','anger','disgust'];
+ const group=Math.floor(n/4);
+ let x=(Math.imul(group+417,1597334677)^0x6C8E9CF5)>>>0;
+ const mood=pool[(x^(x>>>16))%pool.length];
+ if(rand(9)<.49)return [mood];
+ const second=pool[Math.floor(rand(18)*pool.length)];
+ const result=[mood,second===mood?pool[(pool.indexOf(mood)+3)%pool.length]:second];
+ if(rand(22)<.13)result.push(pool[(pool.indexOf(mood)+5)%pool.length]);
+ return result
 }
-
-const WEEK_STUDY_MOODS=[
- ['calm'],['expectation'],null,['sad'],['joy'],null,['calm','expectation']
-];
+function weekStudyMaxZoom(){
+ const q=new URLSearchParams(location.search);
+ const days=Math.max(0,Math.min(1000,Number(q.get('age')??210)||0));
+ return days>=180?3:days>=90?2:days>=30?1:0
+}
 
 function weekStudyAnimateTo(monthly){
  if(weekStudyAnimating||weekStudyMonthly===monthly)return;
@@ -553,7 +565,7 @@ function weekStudyAnimateTo(monthly){
    if(node)original.set(id,node.getBoundingClientRect())
  });
  weekStudyAnimating=true;weekStudyMonthly=monthly;
- if(monthly){const d=weekStudyDay(4);month=new Date(d.getFullYear(),d.getMonth(),1)}
+ if(monthly){calendarZoom=0;const d=weekStudyDay(4);month=new Date(d.getFullYear(),d.getMonth(),1)}
  renderCalendar();
  const reduced=calendarReducedMotion(),animations=[];
  [...target.querySelectorAll(monthly?'.cal-day[data-date]':'.week-study-row')].forEach((row,i)=>{
@@ -591,16 +603,26 @@ function setupWeekStudyGestures(){
  function finish(){
    if(!gesture)return;
    const scale=gesture.scale;gesture=null;host.style.transform='';
-   if(scale<.88&&!weekStudyMonthly)weekStudyAnimateTo(true);
-   else if(scale>1.12&&weekStudyMonthly)weekStudyAnimateTo(false)
+   if(scale<.88){
+     if(!weekStudyMonthly)weekStudyAnimateTo(true);
+     else if(calendarZoom<weekStudyMaxZoom())changeCalendarZoom(1)
+   }else if(scale>1.12&&weekStudyMonthly){
+     if(calendarZoom===0)weekStudyAnimateTo(false);
+     else changeCalendarZoom(-1)
+   }
  }
  host.addEventListener('touchend',e=>{if(e.touches.length<2)finish()},{passive:true});
  host.addEventListener('touchcancel',finish,{passive:true});
  host.addEventListener('wheel',e=>{
    if(!e.ctrlKey&&!e.metaKey)return;
    e.preventDefault();
-   if(e.deltaY>0&&!weekStudyMonthly)weekStudyAnimateTo(true);
-   else if(e.deltaY<0&&weekStudyMonthly)weekStudyAnimateTo(false)
+   if(e.deltaY>0){
+     if(!weekStudyMonthly)weekStudyAnimateTo(true);
+     else if(calendarZoom<weekStudyMaxZoom())changeCalendarZoom(1)
+   }else if(e.deltaY<0&&weekStudyMonthly){
+     if(calendarZoom===0)weekStudyAnimateTo(false);
+     else changeCalendarZoom(-1)
+   }
  },{passive:false})
 }
 
@@ -645,7 +667,7 @@ function renderWeekStudy(){
 
 let calendarZoom=0,calendarSelected=isoDay(),inspectedDate=null;
 function shiftMonth(delta){
- if(WEEK_STUDY){if(weekStudyMonthly){month=new Date(month.getFullYear(),month.getMonth()+delta,1);renderCalendar()}else{weekStudyOffset+=delta;renderWeekStudy()}return}
+ if(WEEK_STUDY){if(weekStudyMonthly){const span=CAL_SPANS[calendarZoom];month=new Date(month.getFullYear(),month.getMonth()+delta*span,1);if(span===12)month=new Date(month.getFullYear(),0,1);renderCalendar()}else{weekStudyOffset+=delta;renderWeekStudy()}return}
  closeRecordPopup();
  month=new Date(month.getFullYear(),month.getMonth()+delta*CAL_SPANS[calendarZoom],1);
  if(calendarZoom===3)month=new Date(month.getFullYear(),0,1);

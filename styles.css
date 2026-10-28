@@ -4310,3 +4310,6 @@ body.drawer-open #menu-toggle.menu-toggle{
 #archive.week-study .week-study-row{grid-template-columns:minmax(0,1fr) 100px;padding-left:2px;padding-right:5px}
 #archive.week-study .week-study-stack{padding-top:5px}
 @media(max-width:370px){#archive.week-study .week-study-row{grid-template-columns:minmax(0,1fr) 87px}}
+
+/* V62: keep the weekly object/list proportions fixed at every age. */
+#archive.week-study .week-study-bead{transition:transform 560ms cubic-bezier(.18,.9,.2,1),opacity 330ms ease}
