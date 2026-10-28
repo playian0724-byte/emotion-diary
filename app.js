@@ -105,6 +105,7 @@ function buildDemoRecords(today=new Date()){
  return samples
 }
 function previewRecord(day){
+ if(WEEK_STUDY)return weekStudyRecord(day);
  if(!DEMO_MODE)return db.records[day];
  if(!demoRecords)demoRecords=buildDemoRecords();
  return demoRecords[day]
@@ -524,7 +525,9 @@ const CAL_SPANS=[1,3,6,12];
 /* V59: seven-day product-catalogue concept. Preview is URL-scoped and
    never touches the user's saved emotion records. */
 const WEEK_STUDY=new URLSearchParams(location.search).get('view')==='weekdemo';
-let weekStudyOffset=0,weekStudySelected=4;
+let weekStudyOffset=0,weekStudySelected=4,weekStudyMonthly=false,weekStudyAnimating=false;
+function weekStudyRecord(day){for(let i=0;i<7;i++){if(isoDay(weekStudyDay(i))===day){const ids=WEEK_STUDY_MOODS[i];return ids?{emotions:ids,note:'',demo:true}:undefined}}return undefined}
+
 const WEEK_STUDY_MOODS=[
  ['calm'],['expectation'],null,['sad'],['joy'],null,['calm','expectation']
 ];
@@ -560,7 +563,7 @@ function renderWeekStudy(){
    const bead=document.createElement('span');bead.className='week-study-bead';
    if(ids)paintOrb(bead,ids);
    vessel.append(bead);row.append(textCol,vessel);
-   row.onclick=()=>{weekStudySelected=i;renderWeekStudy()};
+   row.onclick=()=>{if(weekStudyAnimating)return;const prev=stack.querySelector('.week-study-row.is-selected');if(prev){prev.classList.remove('is-selected');prev.setAttribute('aria-pressed','false')}row.classList.add('is-selected');row.setAttribute('aria-pressed','true');weekStudySelected=i};
    stack.append(row)
  });
  target.append(stack);
@@ -569,7 +572,7 @@ function renderWeekStudy(){
 
 let calendarZoom=0,calendarSelected=isoDay(),inspectedDate=null;
 function shiftMonth(delta){
- if(WEEK_STUDY){weekStudyOffset+=delta;renderWeekStudy();return}
+ if(WEEK_STUDY){if(weekStudyMonthly){month=new Date(month.getFullYear(),month.getMonth()+delta,1);renderCalendar()}else{weekStudyOffset+=delta;renderWeekStudy()}return}
  closeRecordPopup();
  month=new Date(month.getFullYear(),month.getMonth()+delta*CAL_SPANS[calendarZoom],1);
  if(calendarZoom===3)month=new Date(month.getFullYear(),0,1);
@@ -815,8 +818,9 @@ function calendarWallMarkup(first,span){
    items.join('')+'</div></section></div>'
 }
 function renderCalendar(){
- if(WEEK_STUDY){renderWeekStudy();return}
+ if(WEEK_STUDY&&!weekStudyMonthly){renderWeekStudy();return}
  const span=CAL_SPANS[calendarZoom];
+ if(WEEK_STUDY)$('archive').classList.remove('week-study');
  if(span===12)month=new Date(month.getFullYear(),0,1);
  const yr=month.getFullYear();
  $('month-label').innerHTML=periodHeaderMarkup(month,span);
@@ -979,7 +983,7 @@ function openRecordEditor(day){
    fade in separately; no crossfade or scale on the entire calendar. */
 function setupCalendarGestures(){
  const el=$('calendar'),reduced=calendarReducedMotion;
- if(WEEK_STUDY)return;
+ if(WEEK_STUDY){setupWeekStudyGestures();return}
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
  const midpoint=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});

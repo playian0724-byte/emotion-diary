@@ -4295,3 +4295,9 @@ body.drawer-open #menu-toggle.menu-toggle{
 @media(max-width:370px){#archive.week-study .week-study-row{grid-template-columns:minmax(0,1fr) 88px;min-height:74px}
  #archive.week-study .week-study-vessel{height:65px}}
 @media(prefers-reduced-motion:reduce){#archive.week-study .week-study-bead{transition:none}}
+
+/* V60 */
+#archive.week-study .week-study-bead{transition:transform 560ms cubic-bezier(.18,.9,.2,1),opacity 330ms ease;will-change:transform}
+#archive.week-study .week-study-mood{transition:color 390ms ease}
+#archive #calendar.week-study-calendar{transform-origin:68% 46%;transition:transform 180ms ease-out}
+@media(prefers-reduced-motion:reduce){#archive.week-study .week-study-bead,#archive.week-study .week-study-mood,#archive #calendar.week-study-calendar{transition:none}}
