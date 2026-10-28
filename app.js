@@ -531,6 +531,67 @@ function weekStudyRecord(day){for(let i=0;i<7;i++){if(isoDay(weekStudyDay(i))===
 const WEEK_STUDY_MOODS=[
  ['calm'],['expectation'],null,['sad'],['joy'],null,['calm','expectation']
 ];
+
+function weekStudyAnimateTo(monthly){
+ if(weekStudyAnimating||weekStudyMonthly===monthly)return;
+ const target=$('calendar'),previous=weekStudyMonthly;
+ const original=new Map();
+ [...target.querySelectorAll(previous?'.cal-day[data-date]':'.week-study-row')].forEach((row,i)=>{
+   const id=previous?row.dataset.date:isoDay(weekStudyDay(i));
+   const node=row.querySelector(previous?'.mini':'.week-study-bead');
+   if(node)original.set(id,node.getBoundingClientRect())
+ });
+ weekStudyAnimating=true;weekStudyMonthly=monthly;
+ if(monthly){const d=weekStudyDay(4);month=new Date(d.getFullYear(),d.getMonth(),1)}
+ renderCalendar();
+ const reduced=calendarReducedMotion(),animations=[];
+ [...target.querySelectorAll(monthly?'.cal-day[data-date]':'.week-study-row')].forEach((row,i)=>{
+   const id=monthly?row.dataset.date:isoDay(weekStudyDay(i));
+   const from=original.get(id),node=row.querySelector(monthly?'.mini':'.week-study-bead');
+   if(!from||!node)return;
+   const to=node.getBoundingClientRect();
+   if(from.width<1||to.width<1||reduced||!node.animate)return;
+   const dx=from.left+from.width/2-to.left-to.width/2;
+   const dy=from.top+from.height/2-to.top-to.height/2;
+   const scale=from.width/to.width;
+   if(!Number.isFinite(dx+dy+scale))return;
+   animations.push(node.animate([
+     {transform:'translate('+dx+'px,'+dy+'px) scale('+scale+')',opacity:1},
+     {transform:'translate(0px,0px) scale(1)',opacity:1}
+   ],{duration:720,easing:'cubic-bezier(.2,.82,.2,1)'}).finished.catch(()=>{}))
+ });
+ Promise.all(animations).then(()=>{weekStudyAnimating=false})
+}
+function setupWeekStudyGestures(){
+ const host=$('calendar');
+ let gesture=null;
+ const distance=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+ host.addEventListener('touchstart',e=>{
+   if(e.touches.length===2)gesture={distance:distance(e.touches[0],e.touches[1]),scale:1}
+ },{passive:true});
+ host.addEventListener('touchmove',e=>{
+   if(!gesture||e.touches.length!==2)return;
+   if(e.cancelable)e.preventDefault();
+   gesture.scale=distance(e.touches[0],e.touches[1])/Math.max(1,gesture.distance);
+   const magnitude=Math.min(.10,Math.abs(1-gesture.scale)*.25);
+   host.style.transform='scale('+(gesture.scale<1?1-magnitude:1+magnitude)+')'
+ },{passive:false});
+ function finish(){
+   if(!gesture)return;
+   const scale=gesture.scale;gesture=null;host.style.transform='';
+   if(scale<.88&&!weekStudyMonthly)weekStudyAnimateTo(true);
+   else if(scale>1.12&&weekStudyMonthly)weekStudyAnimateTo(false)
+ }
+ host.addEventListener('touchend',e=>{if(e.touches.length<2)finish()},{passive:true});
+ host.addEventListener('touchcancel',finish,{passive:true});
+ host.addEventListener('wheel',e=>{
+   if(!e.ctrlKey&&!e.metaKey)return;
+   e.preventDefault();
+   if(e.deltaY>0&&!weekStudyMonthly)weekStudyAnimateTo(true);
+   else if(e.deltaY<0&&weekStudyMonthly)weekStudyAnimateTo(false)
+ },{passive:false})
+}
+
 function weekStudyDay(index){
  const now=new Date(),monday=new Date(now.getFullYear(),now.getMonth(),now.getDate());
  monday.setDate(monday.getDate()-((monday.getDay()+6)%7)+weekStudyOffset*7+index);
