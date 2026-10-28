@@ -4260,3 +4260,38 @@ body.drawer-open #menu-toggle.menu-toggle{
 #create #mix-stage > #mix-summary.drop-hint:empty{
  display:none!important
 }
+
+/* V59 / 7-day Stack study. Same SUIT typography and flat pigment discs
+   as the production app; the preview is non-destructive. */
+#archive.week-study{--week-ink:#30332d;}
+#archive.week-study #calendar{width:100%;margin:0 auto;max-width:600px;touch-action:pan-y}
+#archive.week-study .calendar-controls{max-width:600px;margin-left:auto;margin-right:auto}
+#archive.week-study .week-study-stack{display:flex;flex-direction:column;gap:0;padding:10px 0 28px}
+#archive.week-study .week-study-row{appearance:none;border:0;background:transparent;color:var(--week-ink);
+ width:100%;display:grid;grid-template-columns:minmax(0,1fr) 108px;
+ min-height:clamp(74px,11.5vh,102px);padding:5px 9px 5px 3px;
+ text-align:left;align-items:center;cursor:pointer;border-radius:0;
+ -webkit-tap-highlight-color:transparent;}
+#archive.week-study .week-study-copy{display:flex;flex-direction:column;gap:9px;min-width:0}
+#archive.week-study .week-study-stamp{font-size:11px;letter-spacing:.14em;color:#8C9188;
+ font-weight:520;font-variant-numeric:tabular-nums}
+#archive.week-study .week-study-mood{font-size:17px;letter-spacing:-.03em;font-weight:490;
+ color:#8C9188;line-height:1.3;min-height:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#archive.week-study .week-study-row.is-selected .week-study-mood{color:#30332d;font-weight:620}
+#archive.week-study .week-study-row.is-empty .week-study-mood{opacity:0}
+#archive.week-study .week-study-vessel{display:flex;align-items:center;justify-content:center;
+ height:70px;width:100%;overflow:visible}
+#archive.week-study .week-study-bead{display:block;position:relative;flex-shrink:0;
+ width:43px;height:43px;border-radius:50%;background:#E5E6DF;
+ transition:transform .37s cubic-bezier(.2,.85,.25,1),opacity .3s;
+ transform:scale(1);transform-origin:center center;}
+#archive.week-study .week-study-row.is-selected .week-study-bead{transform:scale(1.48)}
+#archive.week-study .week-study-row.is-empty .week-study-bead{background:#E9EAE5;
+ opacity:.5}
+#archive.week-study .week-study-row.is-empty.is-selected .week-study-bead{transform:scale(1.16)}
+#archive.week-study .week-study-bead .orb-center{position:absolute;left:19%;top:19%;
+ width:62%;height:62%;border-radius:50%}
+#archive.week-study .week-study-row:focus-visible{outline:1px solid #8c9487;outline-offset:-2px}
+@media(max-width:370px){#archive.week-study .week-study-row{grid-template-columns:minmax(0,1fr) 88px;min-height:74px}
+ #archive.week-study .week-study-vessel{height:65px}}
+@media(prefers-reduced-motion:reduce){#archive.week-study .week-study-bead{transition:none}}

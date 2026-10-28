@@ -521,8 +521,55 @@ function setScreen(id,keepMenuOpen=false){
 /* V16 — one staggered bead-poster grammar at every timescale.
    Zoom uses 7/3/2/1 bead-columns PER month for 1/3/6/12 month views. */
 const CAL_SPANS=[1,3,6,12];
+/* V59: seven-day product-catalogue concept. Preview is URL-scoped and
+   never touches the user's saved emotion records. */
+const WEEK_STUDY=new URLSearchParams(location.search).get('view')==='weekdemo';
+let weekStudyOffset=0,weekStudySelected=4;
+const WEEK_STUDY_MOODS=[
+ ['calm'],['expectation'],null,['sad'],['joy'],null,['calm','expectation']
+];
+function weekStudyDay(index){
+ const now=new Date(),monday=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+ monday.setDate(monday.getDate()-((monday.getDay()+6)%7)+weekStudyOffset*7+index);
+ return monday
+}
+function renderWeekStudy(){
+ const start=weekStudyDay(0),end=weekStudyDay(6);
+ const fmt=d=>(d.getMonth()+1)+'.'+String(d.getDate()).padStart(2,'0');
+ $('month-label').textContent=fmt(start)+' — '+fmt(end);
+ $('month-label').setAttribute('aria-label','일주일 감정 구슬 미리보기');
+ $('archive').classList.remove('poster-year','poster-month-view');
+ $('archive').classList.add('week-study');
+ const target=$('calendar');target.className='calendar-archive week-study-calendar';
+ const weekdays=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+ target.replaceChildren();
+ const stack=document.createElement('div');stack.className='week-study-stack';
+ WEEK_STUDY_MOODS.forEach((ids,i)=>{
+   const day=weekStudyDay(i),selected=i===weekStudySelected;
+   const row=document.createElement('button');row.type='button';
+   row.className='week-study-row'+(selected?' is-selected':'')+(ids?'':' is-empty');
+   row.setAttribute('aria-pressed',String(selected));
+   row.setAttribute('aria-label',weekdays[i]+' '+(day.getMonth()+1)+'월 '+day.getDate()+'일, '+(ids?ids.map(id=>byId(id)?.name).join(' · '):'기록 없음'));
+   const textCol=document.createElement('span');textCol.className='week-study-copy';
+   const stamp=document.createElement('span');stamp.className='week-study-stamp';
+   stamp.textContent=weekdays[i]+' / '+String(day.getDate()).padStart(2,'0');
+   const mood=document.createElement('span');mood.className='week-study-mood';
+   mood.textContent=ids?ids.map(id=>byId(id)?.name).join(' · '):'';
+   textCol.append(stamp,mood);
+   const vessel=document.createElement('span');vessel.className='week-study-vessel';
+   const bead=document.createElement('span');bead.className='week-study-bead';
+   if(ids)paintOrb(bead,ids);
+   vessel.append(bead);row.append(textCol,vessel);
+   row.onclick=()=>{weekStudySelected=i;renderWeekStudy()};
+   stack.append(row)
+ });
+ target.append(stack);
+ $('record-detail').hidden=true
+}
+
 let calendarZoom=0,calendarSelected=isoDay(),inspectedDate=null;
 function shiftMonth(delta){
+ if(WEEK_STUDY){weekStudyOffset+=delta;renderWeekStudy();return}
  closeRecordPopup();
  month=new Date(month.getFullYear(),month.getMonth()+delta*CAL_SPANS[calendarZoom],1);
  if(calendarZoom===3)month=new Date(month.getFullYear(),0,1);
@@ -768,6 +815,7 @@ function calendarWallMarkup(first,span){
    items.join('')+'</div></section></div>'
 }
 function renderCalendar(){
+ if(WEEK_STUDY){renderWeekStudy();return}
  const span=CAL_SPANS[calendarZoom];
  if(span===12)month=new Date(month.getFullYear(),0,1);
  const yr=month.getFullYear();
@@ -931,6 +979,7 @@ function openRecordEditor(day){
    fade in separately; no crossfade or scale on the entire calendar. */
 function setupCalendarGestures(){
  const el=$('calendar'),reduced=calendarReducedMotion;
+ if(WEEK_STUDY)return;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
  const midpoint=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});
@@ -2396,6 +2445,7 @@ window.addEventListener('resize',()=>{
 renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixButtons();renderSettings();
 const viewName=new URLSearchParams(window.location.search).get('view');
 // V35: let design reviews land on the actual settings control immediately.
+if(viewName==='weekdemo')setScreen('archive');
 if(viewName==='settings')setScreen('settings');
 if(viewName==='lab'||viewName==='create')setScreen('create');
 if(viewName==='dictionary')setScreen('dictionary');
