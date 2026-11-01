@@ -651,6 +651,7 @@ function renderWeekStudy(){
  const weekdays=['MON','TUE','WED','THU','FRI','SAT','SUN'];
  target.replaceChildren();
  const stack=document.createElement('div');stack.className='week-study-stack';
+ let focusBounce=null;
  Array.from({length:7},(_,i)=>weekStudyRecord(isoDay(weekStudyDay(i)))?.emotions||null).forEach((ids,i)=>{
    const day=weekStudyDay(i),selected=i===weekStudySelected;
    const row=document.createElement('button');row.type='button';
@@ -678,7 +679,9 @@ function renderWeekStudy(){
    row.onclick=()=>{
      if(weekStudyAnimating)return;
      const prev=stack.querySelector('.week-study-row.is-selected');
-     if(prev&&prev!==row){
+     if(prev===row)return;
+     if(focusBounce){focusBounce.cancel();focusBounce=null}
+     if(prev){
        prev.classList.remove('is-selected');
        prev.setAttribute('aria-pressed','false');
        prev.querySelector('.week-study-detail')?.setAttribute('aria-hidden','true')
@@ -686,7 +689,17 @@ function renderWeekStudy(){
      row.classList.add('is-selected');
      row.setAttribute('aria-pressed','true');
      details.setAttribute('aria-hidden','false');
-     weekStudySelected=i
+     weekStudySelected=i;
+     if(!calendarReducedMotion()&&bead.animate){
+       const rest=ids?1.54:1.16;
+       const overshoot=ids?1.60:1.20;
+       focusBounce=bead.animate([
+         {transform:'scale(1)',offset:0},
+         {transform:'scale('+overshoot+')',offset:.72},
+         {transform:'scale('+rest+')',offset:1}
+       ],{duration:510,easing:'cubic-bezier(.22,.88,.24,1)'});
+       focusBounce.finished.catch(()=>{})
+     }
    };
    stack.append(row)
  });

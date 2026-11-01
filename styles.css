@@ -4410,3 +4410,21 @@ body.drawer-open #menu-toggle.menu-toggle{
 @media(prefers-reduced-motion:reduce){
  #archive.week-study .week-study-detail{transition:none}
 }
+
+/* V65 — Quiet Focus. The chosen object is full pigment, without decoration. */
+#archive.week-study .week-study-row .week-study-bead{
+ opacity:.72;transform:scale(1);
+ transition:transform 510ms cubic-bezier(.22,.88,.24,1),opacity 340ms ease;
+}
+#archive.week-study .week-study-row.is-selected .week-study-bead{
+ opacity:1;transform:scale(1.54);
+}
+#archive.week-study .week-study-row.is-empty:not(.is-selected) .week-study-bead{
+ opacity:.50;
+}
+#archive.week-study .week-study-row.is-empty.is-selected .week-study-bead{
+ opacity:1;transform:scale(1.16);
+}
+@media(prefers-reduced-motion:reduce){
+ #archive.week-study .week-study-row .week-study-bead{transition:none}
+}

@@ -1,5 +1,12 @@
 # 결. — 감정 일기
 
+## V65 — Quiet Focus, gentle bounce
+
+- [V65 주간 Stack 웹앱](https://playian0724-byte.github.io/emotion-diary/v65.html?view=weekdemo)
+- 선택된 기록 구슬은 불투명도 100% 및 1.54배 확대, 그 외 기록 구슬은 72%.
+- 탭할 때 510ms의 1 → 1.60 → 1.54 약한 바운스, 빠른 재선택 시 이전 애니메이션 취소.
+- 미기록 구슬의 옅은 표현, 접근성 저동작 모드, 주간 이동/핀치, 개인 일기 데이터 보존.
+
 ## V64 — Quiet Object 주간 Stack
 
 - [V64 1주 Stack 미리보기](https://playian0724-byte.github.io/emotion-diary/v64.html?view=weekdemo)
