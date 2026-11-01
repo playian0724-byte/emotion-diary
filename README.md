@@ -1,5 +1,12 @@
 # 결. — 감정 일기
 
+## V64 — Quiet Object 주간 Stack
+
+- [V64 1주 Stack 미리보기](https://playian0724-byte.github.io/emotion-diary/v64.html?view=weekdemo)
+- 기본 행에는 날짜/요일만 노출, 선택된 구슬만 확대하면서 감정 이름·샘플 메모 페이드 표시.
+- 오른쪽 구슬 정렬축과 행 높이는 고정. 기존 월·분기·반기·연도 핀치 및 기록 데이터 유지.
+- 주간 화면은 여전히 별도 실험 링크(view=weekdemo)이며 실사용 Archive는 변경하지 않음.
+
 ## V63 — 1주 Stack 단일 행 타이포그래피
 
 [주간 웹앱 V63](https://playian0724-byte.github.io/emotion-diary/v63.html?view=weekdemo) — 날짜·요일·감정 같은 행/크기, 색으로만 정보 위계 구분.

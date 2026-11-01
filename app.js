@@ -528,7 +528,16 @@ const WEEK_STUDY=new URLSearchParams(location.search).get('view')==='weekdemo';
 let weekStudyOffset=0,weekStudySelected=4,weekStudyMonthly=false,weekStudyAnimating=false;
 function weekStudyRecord(day){
  const ids=weekStudyMoodsForDate(day);
- return ids?{emotions:ids,note:'',demo:true}:undefined
+ if(!ids)return undefined;
+ // Short sample notes appear only for some recorded days. Never persisted.
+ const n=Math.floor(Date.parse(day+'T12:00:00Z')/86400000);
+ const notes=[
+   '조용히 지나간 하루였다.',
+   '평소보다 마음이 가벼웠다.',
+   '여러 감정이 조금씩 섞였던 날.',
+   '저녁의 공기가 오래 남는다.'
+ ];
+ return {emotions:ids,note:n%4===0?notes[Math.floor(n/4)%notes.length]:'',demo:true}
 }
 /* V62: deterministic, date-addressed sample. Long-lived dominant moods,
    uneven omissions and occasional multi-pigment objects avoid periodic repeats. */
@@ -538,7 +547,7 @@ function weekStudyMoodsForDate(day){
    x=Math.imul(x^(x>>>16),3266489917)>>>0;
    return ((x^(x>>>13))>>>0)/4294967296};
  const gap=rand(77);
- if(gap<.19||((Math.floor(n/11)%17)===4&&gap<.58))return null;
+ if(gap<.27||((Math.floor(n/11)%17)===4&&gap<.58))return null;
  const pool=['calm','joy','sad','expectation','anxious','surprise','anger','disgust'];
  const group=Math.floor(n/4);
  let x=(Math.imul(group+417,1597334677)^0x6C8E9CF5)>>>0;
@@ -648,17 +657,37 @@ function renderWeekStudy(){
    row.className='week-study-row'+(selected?' is-selected':'')+(ids?'':' is-empty');
    row.setAttribute('aria-pressed',String(selected));
    row.setAttribute('aria-label',weekdays[i]+' '+(day.getMonth()+1)+'월 '+day.getDate()+'일, '+(ids?ids.map(id=>byId(id)?.name).join(' · '):'기록 없음'));
+   const record=weekStudyRecord(isoDay(day));
    const textCol=document.createElement('span');textCol.className='week-study-copy';
    const stamp=document.createElement('span');stamp.className='week-study-stamp';
-   stamp.textContent=String(day.getDate()).padStart(2,'0')+'  '+weekdays[i];
+   stamp.textContent=String(day.getDate()).padStart(2,'0')+' / '+weekdays[i];
+   const details=document.createElement('span');details.className='week-study-detail';
+   details.setAttribute('aria-hidden',String(!selected));
    const mood=document.createElement('span');mood.className='week-study-mood';
-   mood.textContent=ids?ids.map(id=>byId(id)?.name).join(' · '):'—';
-   textCol.append(stamp,mood);
+   mood.textContent=ids?ids.map(id=>byId(id)?.name).join(' · '):'기록 없음';
+   details.append(mood);
+   if(record?.note){
+     const note=document.createElement('span');note.className='week-study-note';
+     note.textContent=record.note;details.append(note)
+   }
+   textCol.append(stamp,details);
    const vessel=document.createElement('span');vessel.className='week-study-vessel';
    const bead=document.createElement('span');bead.className='week-study-bead';
    if(ids)paintOrb(bead,ids);
    vessel.append(bead);row.append(textCol,vessel);
-   row.onclick=()=>{if(weekStudyAnimating)return;const prev=stack.querySelector('.week-study-row.is-selected');if(prev){prev.classList.remove('is-selected');prev.setAttribute('aria-pressed','false')}row.classList.add('is-selected');row.setAttribute('aria-pressed','true');weekStudySelected=i};
+   row.onclick=()=>{
+     if(weekStudyAnimating)return;
+     const prev=stack.querySelector('.week-study-row.is-selected');
+     if(prev&&prev!==row){
+       prev.classList.remove('is-selected');
+       prev.setAttribute('aria-pressed','false');
+       prev.querySelector('.week-study-detail')?.setAttribute('aria-hidden','true')
+     }
+     row.classList.add('is-selected');
+     row.setAttribute('aria-pressed','true');
+     details.setAttribute('aria-hidden','false');
+     weekStudySelected=i
+   };
    stack.append(row)
  });
  target.append(stack);

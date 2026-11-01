@@ -4323,3 +4323,90 @@ body.drawer-open #menu-toggle.menu-toggle{
 #archive.week-study .week-study-row.is-empty .week-study-mood{opacity:1;color:#C3C6BF!important}
 #archive.week-study .week-study-row{grid-template-columns:minmax(0,1fr) 94px}
 @media(max-width:370px){#archive.week-study .week-study-copy{gap:9px}#archive.week-study .week-study-row{grid-template-columns:minmax(0,1fr) 80px}}
+
+/* V64 — Quiet Object: the weekday/date is always visible. Emotion and
+   note are quiet catalogue captions revealed only for the active bead. */
+#archive.week-study .week-study-row{
+ grid-template-columns:minmax(0,1fr) 98px;
+}
+#archive.week-study .week-study-copy{
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ align-items:flex-start;
+ height:100%;
+ width:100%;
+ min-width:0;
+ gap:6px;
+ white-space:normal;
+}
+#archive.week-study .week-study-stamp{
+ font-family:var(--gyeol-font);
+ font-size:12px!important;
+ font-weight:450!important;
+ letter-spacing:-.012em!important;
+ line-height:1.35;
+ color:#8A8E85!important;
+ font-variant-numeric:tabular-nums;
+}
+#archive.week-study .week-study-detail{
+ display:flex;
+ flex-direction:column;
+ align-items:flex-start;
+ gap:3px;
+ width:100%;
+ min-width:0;
+ opacity:0;
+ transform:translate3d(0,5px,0);
+ visibility:hidden;
+ transition:opacity 330ms ease,transform 440ms cubic-bezier(.2,.8,.2,1),
+            visibility 0s linear 440ms;
+ pointer-events:none;
+}
+#archive.week-study .week-study-row.is-selected .week-study-detail{
+ opacity:1;
+ transform:translate3d(0,0,0);
+ visibility:visible;
+ transition:opacity 380ms ease,transform 440ms cubic-bezier(.2,.8,.2,1),
+            visibility 0s;
+}
+#archive.week-study .week-study-mood{
+ font-family:var(--gyeol-font);
+ font-size:12px!important;
+ font-weight:450!important;
+ letter-spacing:-.025em!important;
+ line-height:1.4;
+ min-height:0!important;
+ color:#363B35!important;
+ white-space:nowrap;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ max-width:100%;
+}
+#archive.week-study .week-study-row.is-selected .week-study-mood{
+ color:#363B35!important;
+ font-weight:450!important;
+}
+#archive.week-study .week-study-row.is-empty .week-study-mood{
+ opacity:1;
+ color:#A7ABA2!important;
+}
+#archive.week-study .week-study-note{
+ display:-webkit-box;
+ -webkit-box-orient:vertical;
+ -webkit-line-clamp:2;
+ max-width:100%;
+ overflow:hidden;
+ font:400 10.5px/1.45 var(--gyeol-font);
+ letter-spacing:-.015em;
+ color:#8C9088;
+ overflow-wrap:anywhere;
+}
+@media(max-width:370px){
+ #archive.week-study .week-study-row{grid-template-columns:minmax(0,1fr) 85px}
+ #archive.week-study .week-study-copy{gap:4px}
+ #archive.week-study .week-study-note{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+ #archive.week-study .week-study-detail{transition:none}
+}
