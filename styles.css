@@ -4428,3 +4428,6 @@ body.drawer-open #menu-toggle.menu-toggle{
 @media(prefers-reduced-motion:reduce){
  #archive.week-study .week-study-row .week-study-bead{transition:none}
 }
+
+/* V66: real weekly Archive with the V65 Quiet Focus surface. */
+#archive.week-study .week-study-row[data-date]{touch-action:pan-y}

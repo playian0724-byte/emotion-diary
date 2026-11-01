@@ -1,5 +1,15 @@
 # 결. — 감정 일기
 
+## V66 — 정식 주간 Stack + My 실제 기록 통일
+
+- [V66 정식 웹앱](https://playian0724-byte.github.io/emotion-diary/v66.html)
+- Archive는 저장된 `gyeol-v2.records`를 7일 Stack부터 표시하고, 같은 기록을 월별 / My Map에 사용.
+- 테스트 날짜 생성기와 샘플 감정 지도 이동 링크 및 미저장 가짜 커스텀 감정 선택을 제거.
+- **기존 개인 기록과 직접 만든 감정은 일절 삭제하지 않음.** 과거 샘플 감정 ID가 저장 기록에 있으면 인식은 유지.
+- 과거 저장 기록에서 최초 사용일을 보수적으로 복원하고 새 기록에는 유지. 30/90/180일 지나 3/6/12개월 뷰 단계별 개방.
+- 저장 후 오늘 주간 구슬에 착지, My Map에는 동일한 저장 기록을 집계.
+- 다른 기기·브라우저 간 기록 자동 동기화는 아직 없음.
+
 ## V65 — Quiet Focus, gentle bounce
 
 - [V65 주간 Stack 웹앱](https://playian0724-byte.github.io/emotion-diary/v65.html?view=weekdemo)

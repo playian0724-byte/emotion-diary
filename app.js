@@ -17,100 +17,11 @@ const SAMPLES=[
 {id:'sample-b',name:'후련함',color:'#65C9B5',definition:'무거운 마음이 풀린 느낌.',sample:true},
 {id:'sample-c',name:'아련함',color:'#AC91D2',definition:'지나간 것을 조용히 떠올리는 마음.',sample:true}];
 const KEY='gyeol-v2';const $=id=>document.getElementById(id);
-const DEMO_MODE=new URLSearchParams(window.location.search).get('demo')==='1';
-// Keep all preview dates in memory only. The real localStorage diary stays
-// completely untouched even if someone explores the rest of the app in demo.
-let demoRecords=null;
-/* V27 demo samples use exactly the SAME eight base-emotion colors
-   as the real diary, no independent swatch palette or recoloring. */
-const DEMO_PIGMENTS=Object.fromEntries(BASE.map(e=>[e.id,[e.color]]));
-const REFERENCE_INKS=Object.fromEntries(BASE.map(e=>[e.color,e.ink]));
-const GRADIENT_INKS={
- 'expectation|joy':'#C45F3F',
- 'joy|surprise':'#008471',
- 'calm|sad':'#F4D242',
- 'anxious|sad':'#C45F3F',
- 'calm|expectation':'#F4D242',
- 'expectation|surprise':'#C45F3F',
- 'anger|expectation':'#FFC0C0',
- 'calm|disgust':'#F4D242'
-};
-const DEMO_EMOTION_POOL=[
- 'joy','joy','joy','surprise','surprise','surprise',
- 'expectation','expectation','expectation','anger','anger',
- 'calm','calm','sad','sad','anxious','disgust'
-];
-// V28 preview: 30% multicolor days are split across 2-, 3- and 4-tone
-// nested discs, so all requested ring geometries are visible in the year.
-const DEMO_GRADIENTS=[
- ['joy','anger'],['calm','sad'],['joy','surprise'],
- ['sad','anxious'],['anger','expectation'],['calm','disgust'],
- ['expectation','joy','surprise'],['sad','anxious','calm'],
- ['joy','anger','sad'],['expectation','disgust','calm'],
- ['joy','expectation','surprise','anger'],
- ['calm','sad','anxious','disgust'],
- ['sad','expectation','anger','joy']
-];
-/* V54 — realistic, reproducible recording rhythm.
-   A saved object does not exist on every date. Some breaks are scattered
-   single misses; others form short runs or occasional longer stretches.
-   This preview is in-memory only and never touches gyeol-v2. */
-function buildDemoRecords(today=new Date()){
- const end=new Date(today.getFullYear(),today.getMonth(),today.getDate());
- const year=end.getFullYear();
- const days=[];
- for(let d=new Date(year,0,1);d<=end;d.setDate(d.getDate()+1))
-   days.push(isoDay(d));
- let seed=(Math.imul(year,2654435761)^0x137A2B49)>>>0;
- const random=()=>{
-   seed=(Math.imul(seed,1664525)+1013904223)>>>0;
-   return seed/4294967296
- };
- const samples={};
- // Carry a predominant mood across consecutive recorded days, with
- // occasional shifts; the archive looks like a diary, not confetti.
- let previousMood='calm',missed=0;
- const pickMood=()=>DEMO_EMOTION_POOL[Math.floor(random()*DEMO_EMOTION_POOL.length)];
- for(let i=0;i<days.length;i++){
-   const isLatestDay=i===days.length-1;
-   if(missed>0&&!isLatestDay){missed--;continue}
-   // Recording habits: scattered one-day omissions, 2–3-day forgetful
-   // spells, plus rarer 4–7-day lapses. A missing date stays an empty bead.
-   const roll=random();
-   if(i!==0&&!isLatestDay&&roll<.017){
-     missed=3+Math.floor(random()*4);
-     continue
-   }
-   if(i!==0&&!isLatestDay&&roll<.087){
-     missed=1+Math.floor(random()*2);
-     continue
-   }
-   if(i!==0&&!isLatestDay&&roll<.174)continue;
-   const mood=random()<.54?previousMood:pickMood();
-   previousMood=mood;
-   // Approximately a quarter of recorded dates have mixed emotion
-   // recipes; two-, three- and four-colour concentric objects all appear.
-   let choices=[mood];
-   if(random()<.29){
-     const recipe=DEMO_GRADIENTS[Math.floor(random()*DEMO_GRADIENTS.length)];
-     choices=[mood,...recipe.filter(id=>id!==mood)].slice(0,4);
-   }
-   samples[days[i]]={
-     emotions:choices,
-     demoColors:choices.map(id=>BASIC_PALETTE.get(id).color),
-     note:'',
-     demo:true
-   }
- }
- return samples
-}
-function previewRecord(day){
- if(WEEK_STUDY)return weekStudyRecord(day);
- if(!DEMO_MODE)return db.records[day];
- if(!demoRecords)demoRecords=buildDemoRecords();
- return demoRecords[day]
-}
-let db={records:{},custom:[],settings:{editExpiryHours:24}},selection=[],month=new Date(new Date().getFullYear(),new Date().getMonth(),1),saving=false;
+/* V66: one true source of records for Archive and Map.
+   Old demo URLs no longer generate sample entries. */
+const DEMO_MODE=false;
+function previewRecord(day){return db.records[day]}
+let db={records:{},custom:[],settings:{editExpiryHours:24},firstUsedAt:null},selection=[],month=new Date(new Date().getFullYear(),new Date().getMonth(),1),saving=false;
 let drops=[],amounts={},mixed=null,droppingTimer=null,repeatTimer=null,raf=0,mixBusy=false,toastTimer=0;
 let nextUnnamed=1,mixStartedAt=0,mixDuration=1900,lastWaterFrame=0;
 let mixRaster=null;
@@ -119,8 +30,11 @@ const HOLD_START_MS=780,HOLD_REPEAT_MS=850,INK_BLOOM_SECONDS=2.8;
 const orbCache=new Map();
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const isoDay=(d=new Date())=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
-const allEmotions=()=>[...BASE,...SAMPLES,...db.custom];
-const byId=id=>allEmotions().find(e=>e.id===id);
+/* Legacy example IDs remain resolvable only if a saved record uses them. */
+const allEmotions=()=>[...BASE,...db.custom,...SAMPLES.filter(e=>
+ Object.values(db.records).some(rec=>Array.isArray(rec?.emotions)&&rec.emotions.includes(e.id)))];
+const byId=id=>BASE.find(e=>e.id===id)||db.custom.find(e=>e.id===id)||
+ SAMPLES.find(e=>e.id===id&&Object.values(db.records).some(rec=>rec?.emotions?.includes(id)));
 // V33 — every diary record has a finite editing window.
 // Migrate removed legacy settings (0 = unlimited, 720 = 30 days)
 // and missing/invalid values to a balanced 24-hour default.
@@ -224,13 +138,42 @@ function saveDB(){
  try{localStorage.setItem(KEY,JSON.stringify(db));return true}
  catch(e){console.warn('Storage unavailable',e);return false}
 }
+/* Migrate the oldest existing saved day without ever dropping records. */
+function firstUsedTimestamp(saved,records){
+ const prior=Date.parse(saved||'');
+ let oldest=Number.isFinite(prior)?prior:Date.now();
+ for(const day of Object.keys(records||{})){
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(day))continue;
+   const time=Date.parse(day+'T00:00:00');
+   if(Number.isFinite(time))oldest=Math.min(oldest,time)
+ }
+ return new Date(oldest).toISOString()
+}
 function loadDB(){
-try{const raw=localStorage.getItem(KEY);if(raw){const v=JSON.parse(raw);if(v&&typeof v==='object'){db={records:v.records||{},custom:Array.isArray(v.custom)?v.custom:[],
-settings:{editExpiryHours:validEditExpiry(v.settings?.editExpiryHours)}};return}}}
-catch(e){console.warn(e)}
-try{const legacy=JSON.parse(localStorage.getItem('gyeolRecords')||'{}');const keys=[...BASE,...SAMPLES].map(x=>x.id);
-for(const [day,record] of Object.entries(legacy)){if(record&&Array.isArray(record.ids)){db.records[day]={emotions:record.ids.map(i=>keys[i]).filter(Boolean).slice(0,4),note:String(record.note||'')}}}
-saveDB()}catch(e){}
+ try{
+   const raw=localStorage.getItem(KEY);
+   if(raw){
+     const v=JSON.parse(raw);
+     if(v&&typeof v==='object'&&!Array.isArray(v)){
+       const records=v.records&&typeof v.records==='object'&&!Array.isArray(v.records)?v.records:{};
+       db={...v,records,custom:Array.isArray(v.custom)?v.custom:[],
+         settings:{...v.settings,editExpiryHours:validEditExpiry(v.settings?.editExpiryHours)},
+         firstUsedAt:firstUsedTimestamp(v.firstUsedAt,records)};
+       if(db.firstUsedAt!==v.firstUsedAt)saveDB();
+       return
+     }
+   }
+ }catch(e){console.warn('Could not load saved diary',e)}
+ try{
+   const legacy=JSON.parse(localStorage.getItem('gyeolRecords')||'{}');
+   const keys=[...BASE,...SAMPLES].map(x=>x.id);
+   for(const [day,record] of Object.entries(legacy||{})){
+     if(record&&Array.isArray(record.ids))
+       db.records[day]={emotions:record.ids.map(i=>keys[i]).filter(Boolean).slice(0,4),note:String(record.note||'')}
+   }
+ }catch(e){console.warn('Could not migrate older diary',e)}
+ db.firstUsedAt=firstUsedTimestamp(db.firstUsedAt,db.records);
+ saveDB()
 }
 function toast(t){const v=$('toast');v.textContent=t;v.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>v.classList.remove('visible'),2200)}
 function clamp(v,min=0,max=1){return Math.max(min,Math.min(max,v))}
@@ -419,7 +362,7 @@ function setEmotionPanel(name,forceOpen){
 function renderChoices(){
 const selected=new Set(selection);
 $('base-emotions').innerHTML=BASE.map(e=>'<button type="button" class="emotion '+(selected.has(e.id)?'active':'')+'" data-select="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+e.name+(selected.has(e.id)?'<span class="checkmark">✓</span>':'')+'</button>').join('');
-const mine=[...SAMPLES,...db.custom];
+const mine=db.custom;
 $('custom-empty').hidden=mine.length>0;
 $('my-emotions').innerHTML=mine.map(e=>'<button type="button" class="emotion '+(selected.has(e.id)?'active':'')+'" data-select="'+e.id+'"><span class="swatch" style="background:'+e.color+'"></span>'+escapeHTML(e.name||'이름 미정')+(selected.has(e.id)?'<span class="checkmark">✓</span>':'')+'</button>').join('');
 document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.select;if(selection.includes(id))selection=selection.filter(x=>x!==id);else if(selection.length<4)selection.push(id);else toast('최대 4개까지 선택할 수 있습니다.');renderChoices();renderPreview()}))
@@ -524,46 +467,15 @@ function setScreen(id,keepMenuOpen=false){
 const CAL_SPANS=[1,3,6,12];
 /* V59: seven-day product-catalogue concept. Preview is URL-scoped and
    never touches the user's saved emotion records. */
-const WEEK_STUDY=new URLSearchParams(location.search).get('view')==='weekdemo';
-let weekStudyOffset=0,weekStudySelected=4,weekStudyMonthly=false,weekStudyAnimating=false;
-function weekStudyRecord(day){
- const ids=weekStudyMoodsForDate(day);
- if(!ids)return undefined;
- // Short sample notes appear only for some recorded days. Never persisted.
- const n=Math.floor(Date.parse(day+'T12:00:00Z')/86400000);
- const notes=[
-   '조용히 지나간 하루였다.',
-   '평소보다 마음이 가벼웠다.',
-   '여러 감정이 조금씩 섞였던 날.',
-   '저녁의 공기가 오래 남는다.'
- ];
- return {emotions:ids,note:n%4===0?notes[Math.floor(n/4)%notes.length]:'',demo:true}
-}
-/* V62: deterministic, date-addressed sample. Long-lived dominant moods,
-   uneven omissions and occasional multi-pigment objects avoid periodic repeats. */
-function weekStudyMoodsForDate(day){
- const n=Math.floor(Date.parse(day+'T12:00:00Z')/86400000);
- const rand=(salt)=>{let x=(Math.imul(n+salt,2246822519)^0x9E3779B9)>>>0;
-   x=Math.imul(x^(x>>>16),3266489917)>>>0;
-   return ((x^(x>>>13))>>>0)/4294967296};
- const gap=rand(77);
- if(gap<.27||((Math.floor(n/11)%17)===4&&gap<.58))return null;
- const pool=['calm','joy','sad','expectation','anxious','surprise','anger','disgust'];
- const group=Math.floor(n/4);
- let x=(Math.imul(group+417,1597334677)^0x6C8E9CF5)>>>0;
- const mood=pool[(x^(x>>>16))%pool.length];
- if(rand(9)<.49)return [mood];
- const second=pool[Math.floor(rand(18)*pool.length)];
- const result=[mood,second===mood?pool[(pool.indexOf(mood)+3)%pool.length]:second];
- if(rand(22)<.13)result.push(pool[(pool.indexOf(mood)+5)%pool.length]);
- return result
-}
+/* V65 weekly Stack is now the live default Archive. */
+const WEEK_STUDY=true;
+let weekStudyOffset=0,weekStudySelected=-1,weekStudyMonthly=false,weekStudyAnimating=false;
+function weekStudyRecord(day){return db.records[day]}
 function weekStudyMaxZoom(){
- const q=new URLSearchParams(location.search);
- const days=Math.max(0,Math.min(1000,Number(q.get('age')??210)||0));
+ const first=Date.parse(db.firstUsedAt||'');
+ const days=Number.isFinite(first)?Math.max(0,Math.floor((Date.now()-first)/86400000)):0;
  return days>=180?3:days>=90?2:days>=30?1:0
 }
-
 function weekStudyAnimateTo(monthly){
  if(weekStudyAnimating||weekStudyMonthly===monthly)return;
  const target=$('calendar'),previous=weekStudyMonthly;
@@ -644,7 +556,7 @@ function renderWeekStudy(){
  const start=weekStudyDay(0),end=weekStudyDay(6);
  const fmt=d=>(d.getMonth()+1)+'.'+String(d.getDate()).padStart(2,'0');
  $('month-label').textContent=fmt(start)+' — '+fmt(end);
- $('month-label').setAttribute('aria-label','일주일 감정 구슬 미리보기');
+ $('month-label').setAttribute('aria-label','일주일 감정 기록');
  $('archive').classList.remove('poster-year','poster-month-view');
  $('archive').classList.add('week-study');
  const target=$('calendar');target.className='calendar-archive week-study-calendar';
@@ -655,6 +567,7 @@ function renderWeekStudy(){
  Array.from({length:7},(_,i)=>weekStudyRecord(isoDay(weekStudyDay(i)))?.emotions||null).forEach((ids,i)=>{
    const day=weekStudyDay(i),selected=i===weekStudySelected;
    const row=document.createElement('button');row.type='button';
+   row.dataset.date=isoDay(day);
    row.className='week-study-row'+(selected?' is-selected':'')+(ids?'':' is-empty');
    row.setAttribute('aria-pressed',String(selected));
    row.setAttribute('aria-label',weekdays[i]+' '+(day.getMonth()+1)+'월 '+day.getDate()+'일, '+(ids?ids.map(id=>byId(id)?.name).join(' · '):'기록 없음'));
@@ -709,7 +622,7 @@ function renderWeekStudy(){
 
 let calendarZoom=0,calendarSelected=isoDay(),inspectedDate=null;
 function shiftMonth(delta){
- if(WEEK_STUDY){if(weekStudyMonthly){const span=CAL_SPANS[calendarZoom];month=new Date(month.getFullYear(),month.getMonth()+delta*span,1);if(span===12)month=new Date(month.getFullYear(),0,1);renderCalendar()}else{weekStudyOffset+=delta;renderWeekStudy()}return}
+ if(WEEK_STUDY){closeRecordPopup();if(weekStudyMonthly){const span=CAL_SPANS[calendarZoom];month=new Date(month.getFullYear(),month.getMonth()+delta*span,1);if(span===12)month=new Date(month.getFullYear(),0,1);renderCalendar()}else{weekStudyOffset+=delta;weekStudySelected=-1;renderWeekStudy()}return}
  closeRecordPopup();
  month=new Date(month.getFullYear(),month.getMonth()+delta*CAL_SPANS[calendarZoom],1);
  if(calendarZoom===3)month=new Date(month.getFullYear(),0,1);
@@ -803,7 +716,7 @@ function animateCalendarLayout(before,next,zoomDelta){
 }
 function changeCalendarZoom(delta,point){
  closeRecordPopup();
- const next=Math.max(0,Math.min(CAL_SPANS.length-1,calendarZoom+delta));
+ const next=Math.max(0,Math.min(WEEK_STUDY?weekStudyMaxZoom():CAL_SPANS.length-1,calendarZoom+delta));
  if(next===calendarZoom)return false;
  const before=snapshotCalendar(point);
  $('record-detail').hidden=true;
@@ -2105,11 +2018,11 @@ function layoutEmotionMap(graph){
  return nodes
 }
 function renderEmotionMap(){
- const records=DEMO_MODE?(demoRecords||buildDemoRecords()):db.records;
+ const records=db.records;
  const graph=emotionMapStats(records,emotionMapPeriod);
  const svg=$('emotion-map-graphic'),summary=$('emotion-map-summary');
  const empty=$('emotion-map-empty');
- $('emotion-map-demo-note').hidden=!DEMO_MODE;
+
  svg.replaceChildren();
  empty.hidden=graph.nodes.length>0;
  svg.hidden=graph.nodes.length===0;
@@ -2282,13 +2195,17 @@ if(!saveDB()){
  return
 }
 const savedAt=new Date(),span=CAL_SPANS[calendarZoom];
+weekStudyOffset=0;
+weekStudySelected=(savedAt.getDay()+6)%7;
+weekStudyMonthly=false;
+calendarZoom=0;
 month=new Date(savedAt.getFullYear(),
  Math.floor(savedAt.getMonth()/span)*span,1);
 calendarSelected=day;
 const start=positionFlightStart($('today-orb').getBoundingClientRect()),ghost=document.createElement('div');ghost.className='flying-orb';ghost.style.cssText='left:'+start.left+'px;top:'+start.top+'px;width:'+start.width+'px;height:'+start.height+'px;';
 const inner=document.createElement('div');inner.className='orb';paintOrb(inner,keys);ghost.append(inner);document.body.append(ghost);
 setScreen('archive');await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-const dest=document.querySelector('[data-date="'+isoDay()+'"] .mini');if(dest){dest.classList.add('arriving');
+const dest=$('calendar').querySelector('[data-date="'+isoDay()+'"] .mini, [data-date="'+isoDay()+'"] .week-study-bead');if(dest){dest.classList.add('arriving');
 const rect=dest.getBoundingClientRect(),dx=rect.left+rect.width/2-start.left-start.width/2,dy=rect.top+rect.height/2-start.top-start.height/2,scale=rect.width/start.width;
 try{if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches&&ghost.animate){const ani=ghost.animate([
 {transform:'translate(0,0) scale(1) rotate(0deg)',offset:0},
@@ -2503,11 +2420,8 @@ db.custom.push(e);saveDB();orbCache.clear();if(addToDay){if(selection.length>=4)
 renderChoices();renderPreview();resetMix();if(addToDay)setEmotionPanel('custom',true);setScreen(addToDay?'today':'dictionary');toast(addToDay?'오늘에 추가됨':'사전에 저장됨')}
 function init(){
 loadDB();
-if(DEMO_MODE){
- demoRecords=buildDemoRecords();
- const banner=$('demo-note');
- if(banner)banner.hidden=false
-}const old=db.records[isoDay()];if(old){selection=old.emotions.filter(id=>byId(id)).slice(0,4);$('memo').value=old.note||''}
+weekStudySelected=db.records[isoDay()]?(new Date().getDay()+6)%7:-1;
+const old=db.records[isoDay()];if(old){selection=old.emotions.filter(id=>byId(id)).slice(0,4);$('memo').value=old.note||''}
 $('today-date').textContent=new Intl.DateTimeFormat('ko-KR',{month:'long',day:'numeric',weekday:'long'}).format(new Date());
 document.querySelectorAll('[data-open]').forEach(btn=>btn.onclick=()=>
   btn.closest('#drawer-nav')?navigateFromMenu(btn.dataset.open):setScreen(btn.dataset.open));
@@ -2597,7 +2511,8 @@ if(viewName==='emotion'){
 if(viewName==='my'||viewName==='map')setScreen('my');
 const zoomForView={month:0,quarter:1,half:2,year:3};
 if(Object.prototype.hasOwnProperty.call(zoomForView,viewName)){
- calendarZoom=zoomForView[viewName];
+ weekStudyMonthly=true;
+ calendarZoom=Math.min(zoomForView[viewName],weekStudyMaxZoom());
  const now=new Date(),step=CAL_SPANS[calendarZoom];
  month=new Date(now.getFullYear(),Math.floor(now.getMonth()/step)*step,1);
  setScreen('archive')
