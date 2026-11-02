@@ -476,7 +476,37 @@ function weekStudyMaxZoom(){
  const days=Number.isFinite(first)?Math.max(0,Math.floor((Date.now()-first)/86400000)):0;
  return days>=180?3:days>=90?2:days>=30?1:0
 }
-function weekStudyAnimateTo(monthly){
+/* V67: Week selection follows the month bead under the pinch midpoint.
+   The week remains Monday-Sunday even across months and year boundaries. */
+function weekStudyNearestDate(point){
+ const host=$('calendar'),bounds=host.getBoundingClientRect();
+ const focus=point||{x:bounds.left+bounds.width/2,y:bounds.top+bounds.height/2};
+ let closest=null,best=Infinity;
+ for(const button of host.querySelectorAll('.cal-day[data-date]')){
+   const bead=button.querySelector('.mini');
+   if(!bead)continue;
+   const rect=bead.getBoundingClientRect();
+   if(!rect.width||!rect.height)continue;
+   const dx=rect.left+rect.width/2-focus.x,dy=rect.top+rect.height/2-focus.y;
+   const distance=dx*dx+dy*dy;
+   if(distance<best){best=distance;closest=button.dataset.date}
+ }
+ return closest
+}
+function weekStudyOffsetForDate(day){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(day||''))return weekStudyOffset;
+ const target=new Date(day+'T12:00:00');
+ if(!Number.isFinite(target.getTime()))return weekStudyOffset;
+ const now=new Date();
+ function mondayUTC(d){
+   const monday=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+   monday.setDate(monday.getDate()-((monday.getDay()+6)%7));
+   return Date.UTC(monday.getFullYear(),monday.getMonth(),monday.getDate())
+ }
+ return Math.round((mondayUTC(target)-mondayUTC(now))/(7*86400000))
+}
+
+function weekStudyAnimateTo(monthly,anchorDay=null){
  if(weekStudyAnimating||weekStudyMonthly===monthly)return;
  const target=$('calendar'),previous=weekStudyMonthly;
  const original=new Map();
@@ -486,7 +516,18 @@ function weekStudyAnimateTo(monthly){
    if(node)original.set(id,node.getBoundingClientRect())
  });
  weekStudyAnimating=true;weekStudyMonthly=monthly;
- if(monthly){calendarZoom=0;const d=weekStudyDay(4);month=new Date(d.getFullYear(),d.getMonth(),1)}
+ if(monthly){
+   calendarZoom=0;
+   const d=weekStudyDay(weekStudySelected>=0?weekStudySelected:3);
+   month=new Date(d.getFullYear(),d.getMonth(),1)
+ }else{
+   // Pinch inward/outward transforms preserve date identity. Do not reopen
+   // the current week just because it was the last displayed Stack.
+   const day=anchorDay||isoDay(new Date(month.getFullYear(),month.getMonth(),1));
+   weekStudyOffset=weekStudyOffsetForDate(day);
+   const focus=new Date(day+'T12:00:00');
+   weekStudySelected=Number.isFinite(focus.getTime())?(focus.getDay()+6)%7:-1
+ }
  renderCalendar();
  const reduced=calendarReducedMotion(),animations=[];
  [...target.querySelectorAll(monthly?'.cal-day[data-date]':'.week-study-row')].forEach((row,i)=>{
@@ -511,38 +552,45 @@ function setupWeekStudyGestures(){
  host.addEventListener('click',e=>{if(!weekStudyMonthly||weekStudyAnimating)return;const date=e.target.closest?.('[data-date]');if(date)openRecordPopup(date.dataset.date,date)});
  let gesture=null;
  const distance=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+ const midpoint=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});
  host.addEventListener('touchstart',e=>{
-   if(e.touches.length===2)gesture={distance:distance(e.touches[0],e.touches[1]),scale:1}
+   if(e.touches.length!==2)return;
+   const point=midpoint(e.touches[0],e.touches[1]);
+   gesture={distance:distance(e.touches[0],e.touches[1]),scale:1,point,
+     anchorDate:weekStudyMonthly&&calendarZoom===0?weekStudyNearestDate(point):null}
  },{passive:true});
  host.addEventListener('touchmove',e=>{
    if(!gesture||e.touches.length!==2)return;
    if(e.cancelable)e.preventDefault();
    gesture.scale=distance(e.touches[0],e.touches[1])/Math.max(1,gesture.distance);
+   gesture.point=midpoint(e.touches[0],e.touches[1]);
    const magnitude=Math.min(.10,Math.abs(1-gesture.scale)*.25);
    host.style.transform='scale('+(gesture.scale<1?1-magnitude:1+magnitude)+')'
  },{passive:false});
  function finish(){
    if(!gesture)return;
-   const scale=gesture.scale;gesture=null;host.style.transform='';
+   const {scale,point,anchorDate}=gesture;
+   gesture=null;host.style.transform='';
    if(scale<.88){
      if(!weekStudyMonthly)weekStudyAnimateTo(true);
-     else if(calendarZoom<weekStudyMaxZoom())changeCalendarZoom(1)
+     else if(calendarZoom<weekStudyMaxZoom())changeCalendarZoom(1,point)
    }else if(scale>1.12&&weekStudyMonthly){
-     if(calendarZoom===0)weekStudyAnimateTo(false);
-     else changeCalendarZoom(-1)
+     if(calendarZoom===0)weekStudyAnimateTo(false,anchorDate||weekStudyNearestDate(point));
+     else changeCalendarZoom(-1,point)
    }
  }
  host.addEventListener('touchend',e=>{if(e.touches.length<2)finish()},{passive:true});
- host.addEventListener('touchcancel',finish,{passive:true});
+ host.addEventListener('touchcancel',()=>{gesture=null;host.style.transform=''},{passive:true});
  host.addEventListener('wheel',e=>{
    if(!e.ctrlKey&&!e.metaKey)return;
    e.preventDefault();
+   const point={x:e.clientX,y:e.clientY};
    if(e.deltaY>0){
      if(!weekStudyMonthly)weekStudyAnimateTo(true);
-     else if(calendarZoom<weekStudyMaxZoom())changeCalendarZoom(1)
+     else if(calendarZoom<weekStudyMaxZoom())changeCalendarZoom(1,point)
    }else if(e.deltaY<0&&weekStudyMonthly){
-     if(calendarZoom===0)weekStudyAnimateTo(false);
-     else changeCalendarZoom(-1)
+     if(calendarZoom===0)weekStudyAnimateTo(false,weekStudyNearestDate(point));
+     else changeCalendarZoom(-1,point)
    }
  },{passive:false})
 }
