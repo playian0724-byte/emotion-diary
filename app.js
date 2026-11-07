@@ -473,10 +473,16 @@ const CAL_SPANS=[1,3,6,12];
 const WEEK_STUDY=true;
 let weekStudyOffset=0,weekStudySelected=-1,weekStudyMonthly=false,weekStudyAnimating=false;
 function weekStudyRecord(day){return db.records[day]}
+/* V70: unlock the first zoom milestone after 30 elapsed days OR the
+   calendar month rolls over. Other milestones stay at 90/180 days. */
 function weekStudyMaxZoom(){
  const first=Date.parse(db.firstUsedAt||'');
- const days=Number.isFinite(first)?Math.max(0,Math.floor((Date.now()-first)/86400000)):0;
- return days>=180?3:days>=90?2:days>=30?1:0
+ if(!Number.isFinite(first))return 0;
+ const now=new Date(),started=new Date(first);
+ const days=Math.max(0,Math.floor((Date.now()-first)/86400000));
+ const monthChanged=now.getFullYear()*12+now.getMonth() >
+   started.getFullYear()*12+started.getMonth();
+ return days>=180?3:days>=90?2:(days>=30||monthChanged)?1:0
 }
 /* V67: Week selection follows the month bead under the pinch midpoint.
    The week remains Monday-Sunday even across months and year boundaries. */
