@@ -1,5 +1,15 @@
 # 결. — 감정 일기
 
+## V68 — 별도 아카이브 밀집 테스트
+
+- [구슬이 많이 쌓인 테스트 웹앱 (V68)](https://playian0724-byte.github.io/emotion-diary/v68-gallery.html)
+- 별도의 `v68-gallery.html` + `v68-gallery.js`로 동작. 실제 앱의 JS/CSS/HTML 변경 없음.
+- 작년 1월부터 현재까지 날짜별 고정 난수로 약 85~90%의 날을 채우고, 여러 감정이 혼합된 구슬도 보여줌.
+- 3개월 화면에서 시작하며 핀치로 1주·1개월·6개월·1년을 볼 수 있고 My Map도 해당 샘플을 집계.
+- **테스트용은 저장 비활성화, 실제 localStorage를 읽지도 쓰지도 않음.** 페이지를 닫으면 샘플 데이터는 사라짐.
+- 페이지 안 `실제 결. ↗` 링크를 통해 기존 앱으로 돌아갈 수 있음.
+
+
 ## V67 — 월간 핀치 위치에 따라 주간 Stack 이동
 
 - [V67 실제 기록 아카이브](https://playian0724-byte.github.io/emotion-diary/v67.html)
