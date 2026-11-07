@@ -2154,25 +2154,25 @@ function renderEmotionMap(){
    nodeLayer.append(group)
  }
  svg.append(nodeLayer);
+ summary.replaceChildren();
  if(active){
    const focus=positions.get(active);
-   const related=graph.edges.filter(e=>e.a===active||e.b===active)
-     .sort((a,b)=>b.count-a.count).slice(0,4);
-   summary.replaceChildren();
-   const heading=document.createElement('strong');
-   heading.textContent=focus.name+' · '+focus.count+'일';
-   summary.append(heading);
-   const note=document.createElement('span');
-   note.textContent=related.length?'함께 기록한 감정: '+
-     related.map(e=>{const other=positions.get(e.a===active?e.b:e.a);
-       return other.name+' '+e.count+'회'}).join(' · '):
-     '이 기간에는 다른 감정과 함께 기록되지 않았어요.';
-   summary.append(note);
- }else{
-   summary.textContent=graph.recordedDays+'일의 기록 · '+graph.totalNodes+
-     '가지 감정'+(graph.totalNodes>graph.nodes.length?
-     ' · 주요 '+graph.nodes.length+'가지 표시':'')+
-     (graph.allEdgeCount>graph.edges.length?' · 강한 연결 우선':'');
+   const cutoff=emotionMapPeriod==='30'?
+     isoDay(new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()-29)):null;
+   // Use the same saved-day filter and multi-emotion membership as the
+   // map nodes themselves, rather than generated samples or node positions.
+   const dates=Object.entries(records)
+     .filter(([day,rec])=>!cutoff||day>=cutoff)
+     .filter(([,rec])=>Array.isArray(rec?.emotions)&&rec.emotions.includes(active))
+     .map(([day])=>day)
+     .sort((a,b)=>b.localeCompare(a));
+   const name=document.createElement('strong');
+   name.className='emotion-map-date-name';
+   name.textContent=focus.name;
+   const datesLine=document.createElement('span');
+   datesLine.className='emotion-map-date-list';
+   datesLine.textContent=dates.map(day=>day.replace(/-/g,'.')).join('  ·  ');
+   summary.append(name,datesLine);
  }
 }
 

@@ -4431,3 +4431,31 @@ body.drawer-open #menu-toggle.menu-toggle{
 
 /* V66: real weekly Archive with the V65 Quiet Focus surface. */
 #archive.week-study .week-study-row[data-date]{touch-action:pan-y}
+
+/* V71: My has no global count caption; selected emotions show dates only. */
+#my .emotion-map-summary{
+ display:flex;
+ flex-direction:column;
+ align-items:flex-start;
+ gap:7px;
+ padding-top:8px;
+}
+#my .emotion-map-summary:empty{display:none}
+#my .emotion-map-date-name{
+ font-family:var(--gyeol-font);
+ font-size:12px;
+ font-weight:480;
+ color:#363B35;
+ letter-spacing:-.025em;
+ line-height:1.5;
+}
+#my .emotion-map-date-list{
+ font-family:var(--gyeol-font);
+ font-size:11px;
+ font-weight:400;
+ color:#92968E;
+ letter-spacing:-.01em;
+ line-height:1.85;
+ overflow-wrap:anywhere;
+ word-break:keep-all;
+}
