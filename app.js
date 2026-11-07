@@ -557,7 +557,12 @@ function weekStudyAnimateTo(monthly,anchorDay=null){
 }
 function setupWeekStudyGestures(){
  const host=$('calendar');
- host.addEventListener('click',e=>{if(!weekStudyMonthly||weekStudyAnimating)return;const date=e.target.closest?.('[data-date]');if(date)openRecordPopup(date.dataset.date,date)});
+ let suppressClickUntil=0;
+ host.addEventListener('click',e=>{
+   if(!weekStudyMonthly||weekStudyAnimating||performance.now()<suppressClickUntil)return;
+   const date=e.target.closest?.('[data-date]');
+   if(date)openRecordPopup(date.dataset.date,date)
+ });
  let gesture=null;
  const distance=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
  const midpoint=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});
@@ -579,6 +584,7 @@ function setupWeekStudyGestures(){
    if(!gesture)return;
    const {scale,point,anchorDate}=gesture;
    gesture=null;host.style.transform='';
+   if(scale<.88||scale>1.12)suppressClickUntil=performance.now()+650;
    if(scale<.88){
      if(!weekStudyMonthly)weekStudyAnimateTo(true);
      else if(calendarZoom<weekStudyMaxZoom())changeCalendarZoom(1,point)
@@ -2093,8 +2099,7 @@ function renderEmotionMap(){
    button.setAttribute('aria-pressed',String(active))
  });
  if(!graph.nodes.length){
-   summary.textContent=emotionMapPeriod==='30'?
-     '최근 30일에 기록된 감정이 없어요.':'첫 감정을 기록하면 지도가 자라나요.';
+   summary.replaceChildren();
    emotionMapSelected=null;
    return
  }
@@ -2255,16 +2260,18 @@ if(!saveDB()){
  toast('저장에 실패했어요. 브라우저 저장 공간을 확인해 주세요.');
  return
 }
+let ghost=null;
+try{
 syncSavedRecordViews();
-const savedAt=new Date(),span=CAL_SPANS[calendarZoom];
+const savedAt=new Date();
 weekStudyOffset=0;
 weekStudySelected=(savedAt.getDay()+6)%7;
 weekStudyMonthly=false;
 calendarZoom=0;
-month=new Date(savedAt.getFullYear(),
- Math.floor(savedAt.getMonth()/span)*span,1);
+month=new Date(savedAt.getFullYear(),savedAt.getMonth(),1);
 calendarSelected=day;
-const start=positionFlightStart($('today-orb').getBoundingClientRect()),ghost=document.createElement('div');ghost.className='flying-orb';ghost.style.cssText='left:'+start.left+'px;top:'+start.top+'px;width:'+start.width+'px;height:'+start.height+'px;';
+const start=positionFlightStart($('today-orb').getBoundingClientRect());
+ghost=document.createElement('div');ghost.className='flying-orb';ghost.style.cssText='left:'+start.left+'px;top:'+start.top+'px;width:'+start.width+'px;height:'+start.height+'px;';
 const inner=document.createElement('div');inner.className='orb';paintOrb(inner,keys);ghost.append(inner);document.body.append(ghost);
 setScreen('archive');await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 const dest=$('calendar').querySelector('[data-date="'+isoDay()+'"] .mini, [data-date="'+isoDay()+'"] .week-study-bead');if(dest){dest.classList.add('arriving');
@@ -2277,7 +2284,15 @@ try{if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches&&ghost.ani
 ],{duration:1050,easing:'cubic-bezier(.22,.71,.19,1)',fill:'forwards'});await ani.finished}}
 catch(e){}
 dest.classList.remove('arriving');dest.classList.add('landed');setTimeout(()=>dest.classList.remove('landed'),450)}
-ghost.remove();saving=false;renderPreview();try{navigator.vibrate?.(12)}catch(e){}toast('저장됨')
+toast('저장됨')
+}catch(error){
+ console.warn('Saved successfully, but the display transition failed',error);
+ toast('저장됐어요. 화면을 새로고침하면 확인할 수 있어요.')
+}finally{
+ ghost?.remove();
+ saving=false;
+ renderPreview()
+}
 }
 function resetMix(){if(v8Shader)v8Shader.detach();amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;$('water').style.opacity='1';$('mix-stats').style.opacity='0';$('blend-panel').hidden=true;$('mix-button').disabled=true;$('mix-undo').disabled=false;$('mix-name').value='';$('mix-definition').value='';$('mix-summary').textContent='';renderMixButtons();drawWater();startWater()}
 /* V56: badges are always present, so adding drops does not add nodes. */
@@ -2478,7 +2493,13 @@ function blendMix(){
 function createEmotion(addToDay){
 if(!mixed)return;const name=$('mix-name').value.trim(),definition=$('mix-definition').value.trim(),id='custom-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
 const e={id,name,color:mixed.color,definition,components:mixed.components,visibility:'private',createdAt:new Date().toISOString()};
-db.custom.push(e);saveDB();orbCache.clear();if(addToDay){if(selection.length>=4)selection.pop();selection.push(id)}
+db.custom.push(e);
+if(!saveDB()){
+ db.custom.pop();
+ toast('감정을 저장하지 못했어요. 저장 공간을 확인해 주세요.');
+ return
+}
+orbCache.clear();if(addToDay){if(selection.length>=4)selection.pop();selection.push(id)}
 renderChoices();renderPreview();resetMix();if(addToDay)setEmotionPanel('custom',true);setScreen(addToDay?'today':'dictionary');toast(addToDay?'오늘에 추가됨':'사전에 저장됨')}
 function init(){
 loadDB();
@@ -2554,9 +2575,15 @@ window.addEventListener('storage',event=>{
  try{
    const changed=JSON.parse(event.newValue);
    if(!changed||!changed.records||typeof changed.records!=='object')return;
+   if(Array.isArray(changed.records))return;
    db.records=changed.records;
    db.custom=Array.isArray(changed.custom)?changed.custom:db.custom;
+   if(changed.settings&&typeof changed.settings==='object')
+     db.settings={...db.settings,...changed.settings};
+   db.firstUsedAt=firstUsedTimestamp(changed.firstUsedAt,db.records);
    if($('archive').classList.contains('active'))renderCalendar();
+   if($('dictionary').classList.contains('active'))renderDictionary();
+   if($('today').classList.contains('active'))renderPreview();
    syncSavedRecordViews()
  }catch(error){console.warn('Diary sync failed',error)}
 });
