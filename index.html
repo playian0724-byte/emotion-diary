@@ -7,7 +7,7 @@
 <meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
 <title>결. — 감정 일기</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
-<link rel="stylesheet" href="./styles.css?v=71">
+<link rel="stylesheet" href="./styles.css?v=73">
 <style id="v35-expiry-slider-style">
 /* Kept with the markup deliberately: a new HTML deploy must never show an
    unstyled blue native range while its CSS asset is still propagating. */
@@ -42,7 +42,7 @@
 }
 </style>
 <script defer src="./orb-renderer.js?v=8.2"></script>
-<script defer src="./app.js?v=72"></script>
+<script defer src="./app.js?v=73"></script>
 </head>
 <body>
 <button type="button" id="menu-toggle" class="menu-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="side-drawer"><span></span><span></span><span></span></button>
@@ -188,6 +188,26 @@
   <span>1시간</span><span class="selected">24시간</span><span>3일</span><span>7일</span>
 </div>
 <p id="edit-expiry-summary" class="sr-only" aria-live="polite"></p>
+</div>
+
+<div class="settings-backup" aria-labelledby="backup-title">
+  <h2 id="backup-title" class="settings-backup-title">Data archive</h2>
+  <p class="settings-backup-explain">감정 기록과 직접 만든 감정을 파일로 보관하고, 다른 기기에서 다시 불러올 수 있어요.</p>
+  <div class="settings-backup-actions">
+    <button type="button" id="backup-export" class="settings-backup-action"><span>기록 내보내기</span><span aria-hidden="true">↗</span></button>
+    <button type="button" id="backup-import" class="settings-backup-action"><span>기록 가져오기</span><span aria-hidden="true">↗</span></button>
+  </div>
+  <input id="backup-file" class="settings-backup-input" type="file" accept=".json,application/json" hidden>
+  <div id="backup-review" class="settings-backup-review" hidden>
+    <p id="backup-review-summary" class="settings-backup-review-summary"></p>
+    <p class="settings-backup-explain">병합하면 현재 날짜별 기록이 우선이고, 백업에만 있는 날짜를 추가해요.</p>
+    <button type="button" id="backup-merge" class="settings-backup-action"><span>기존 기록 유지하며 병합</span><span aria-hidden="true">↗</span></button>
+    <button type="button" id="backup-replace" class="settings-backup-action settings-backup-danger">백업으로 전체 교체</button>
+    <p id="backup-replace-note" class="settings-backup-warning" hidden>현재 기록과 사용자 감정이 백업 내용으로 교체돼요. 되돌리려면 기존 백업 파일이 필요해요. 다시 눌러 확정하세요.</p>
+    <button type="button" id="backup-cancel" class="settings-backup-cancel">취소</button>
+  </div>
+  <p id="backup-status" class="settings-backup-status" role="status" aria-live="polite"></p>
+  <p class="settings-backup-footnote">파일에는 감정과 메모가 포함돼요. 개인 파일로 안전하게 보관해 주세요.</p>
 </div>
 </section>
 <section id="create" class="screen" aria-label="Emotion lab">

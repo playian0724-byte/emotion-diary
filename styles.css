@@ -4459,3 +4459,73 @@ body.drawer-open #menu-toggle.menu-toggle{
  overflow-wrap:anywhere;
  word-break:keep-all;
 }
+
+/* V73 — archival actions as restrained catalogue rows (no new card style). */
+#settings .settings-backup{
+ margin:32px 0 26px;
+ padding:23px 0 0;
+ border-top:1px solid #e5e5dd;
+ font-family:var(--gyeol-font);
+}
+#settings .settings-backup-title{
+ margin:0 0 10px;
+ font-family:var(--gyeol-font);
+ font-weight:530;
+ font-size:13px;
+ line-height:1.4;
+ letter-spacing:-.02em;
+ color:#343934;
+}
+#settings .settings-backup-explain{
+ margin:0 0 16px;
+ color:#848980;
+ font-size:11px;
+ font-weight:400;
+ line-height:1.7;
+ letter-spacing:-.014em;
+}
+#settings .settings-backup-actions{border-top:1px solid #ecece5}
+#settings .settings-backup-action{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:12px;min-height:48px;width:100%;
+ padding:11px 2px;border:0;border-bottom:1px solid #ecece5;
+ background:transparent;color:#303831;
+ font-family:var(--gyeol-font);font-size:12px;font-weight:460;
+ text-align:left;letter-spacing:-.015em;cursor:pointer;
+}
+#settings .settings-backup-action span:last-child{color:#8a9086}
+#settings .settings-backup-action:focus-visible,
+#settings .settings-backup-cancel:focus-visible{
+ outline:1px solid #738274;outline-offset:3px
+}
+#settings .settings-backup-review{
+ margin-top:18px;padding:14px 0 2px;
+ border-top:1px solid #ecece5;
+}
+#settings .settings-backup-review[hidden],
+#settings .settings-backup-warning[hidden],
+#settings .settings-backup-input[hidden]{display:none!important}
+#settings .settings-backup-review-summary{
+ margin:0 0 9px;
+ color:#414b43;font-size:11px;line-height:1.6
+}
+#settings .settings-backup-review .settings-backup-explain{
+ margin-bottom:8px
+}
+#settings .settings-backup-danger{color:#8d645a}
+#settings .settings-backup-warning{
+ margin:9px 0;color:#9b6860;font-size:11px;line-height:1.6
+}
+#settings .settings-backup-cancel{
+ border:0;background:transparent;padding:12px 2px 5px;
+ color:#848980;font:400 11px var(--gyeol-font);cursor:pointer
+}
+#settings .settings-backup-status{
+ min-height:0;margin:12px 0 0;color:#626d62;
+ font:400 11px/1.6 var(--gyeol-font);letter-spacing:-.012em
+}
+#settings .settings-backup-status:empty{display:none}
+#settings .settings-backup-footnote{
+ margin:15px 0 0;color:#a0a39b;
+ font:400 10px/1.6 var(--gyeol-font);
+}

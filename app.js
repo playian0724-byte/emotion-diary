@@ -175,6 +175,162 @@ function loadDB(){
  db.firstUsedAt=firstUsedTimestamp(db.firstUsedAt,db.records);
  saveDB()
 }
+
+/* V73 — local-only JSON backup / restoration.
+   Export never modifies records. Import validates first and requires an
+   explicit choice: non-destructive merge or a separately confirmed replace. */
+let backupCandidate=null,backupReplaceArmed=false;
+const BACKUP_MAX_BYTES=5*1024*1024;
+function backupStatus(text){
+ const node=$('backup-status');
+ node.textContent=text||'';
+}
+function exportGyeolBackup(){
+ if(DEMO_MODE){backupStatus('테스트 화면에서는 내보낼 수 없어요.');return}
+ const payload={format:'gyeol-backup',version:1,exportedAt:new Date().toISOString(),
+   data:{records:db.records,custom:db.custom,settings:db.settings,
+     firstUsedAt:db.firstUsedAt}};
+ try{
+   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+   const url=URL.createObjectURL(blob);
+   const link=document.createElement('a');
+   link.href=url;link.download='gyeol-backup-'+isoDay()+'.json';
+   document.body.append(link);
+   link.click();
+   link.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),60000);
+   backupStatus('백업 파일을 저장했어요. 파일 앱이나 다운로드 목록을 확인해 주세요.')
+ }catch(err){
+   console.warn('Backup export failed',err);
+   backupStatus('파일을 만들지 못했어요. 다른 브라우저에서 다시 시도해 주세요.')
+ }
+}
+function validateGyeolBackup(raw){
+ if(!raw||raw.format!=='gyeol-backup'||raw.version!==1||
+    !raw.data||typeof raw.data!=='object'||Array.isArray(raw.data))
+   throw new Error('결. 백업 파일 형식이 아니에요.');
+ const content=raw.data;
+ if(!content.records||typeof content.records!=='object'||Array.isArray(content.records)||
+    !Array.isArray(content.custom)||content.custom.length>2000)
+   throw new Error('기록이나 감정 목록의 형식이 올바르지 않아요.');
+ const entries=Object.entries(content.records);
+ if(entries.length>25000)throw new Error('기록 수가 너무 많아 파일을 가져올 수 없어요.');
+ for(const [day,record] of entries){
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(day))throw new Error('기록 날짜가 올바르지 않아요.');
+   const date=new Date(day+'T00:00:00Z');
+   if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==day)
+     throw new Error('기록 날짜가 올바르지 않아요.');
+   if(!record||typeof record!=='object'||Array.isArray(record)||
+      !Array.isArray(record.emotions)||record.emotions.length<1||record.emotions.length>4||
+      !record.emotions.every(id=>typeof id==='string'&&id.length>0&&id.length<=120)||
+      (record.note!==undefined&&(typeof record.note!=='string'||record.note.length>10000)))
+     throw new Error('기록 내용이 올바르지 않아요.');
+ }
+ const seen=new Set();
+ for(const entry of content.custom){
+   if(!entry||typeof entry!=='object'||Array.isArray(entry)||
+      typeof entry.id!=='string'||!entry.id||entry.id.length>120||
+      typeof entry.name!=='string'||entry.name.length>200||
+      typeof entry.color!=='string'||!/^#[0-9a-fA-F]{6}$/.test(entry.color)||
+      seen.has(entry.id))
+     throw new Error('사용자 감정 정보가 올바르지 않아요.');
+   seen.add(entry.id)
+ }
+ if(content.settings!==undefined&&
+    (!content.settings||typeof content.settings!=='object'||Array.isArray(content.settings)))
+   throw new Error('설정 형식이 올바르지 않아요.');
+ if(content.firstUsedAt!=null&&!Number.isFinite(Date.parse(content.firstUsedAt)))
+   throw new Error('최초 사용일 형식이 올바르지 않아요.');
+ return {records:content.records,custom:content.custom,
+   settings:content.settings||{editExpiryHours:24},
+   firstUsedAt:content.firstUsedAt||null}
+}
+function dismissBackupReview(){
+ backupCandidate=null;backupReplaceArmed=false;
+ $('backup-review').hidden=true;
+ $('backup-replace').textContent='백업으로 전체 교체';
+ $('backup-replace-note').hidden=true
+}
+async function readBackupFile(file){
+ dismissBackupReview();
+ if(!file)return;
+ if(file.size>BACKUP_MAX_BYTES){backupStatus('5MB 이하의 JSON 백업 파일을 선택해 주세요.');return}
+ try{
+   const candidate=validateGyeolBackup(JSON.parse(await file.text()));
+   backupCandidate=candidate;
+   const newDays=Object.keys(candidate.records).length,existing=Object.keys(db.records).length;
+   $('backup-review-summary').textContent='백업 기록 '+newDays+'일 · 사용자 감정 '+
+      candidate.custom.length+'개 / 현재 기록 '+existing+'일';
+   $('backup-review').hidden=false;
+   backupStatus('복원 방법을 선택해 주세요. 아직 현재 기록은 바뀌지 않았어요.')
+ }catch(error){
+   console.warn('Backup import rejected',error);
+   backupStatus(error?.message||'파일을 읽지 못했어요.')
+ }
+}
+function restoreGyeolBackup(replace=false){
+ if(DEMO_MODE||!backupCandidate)return;
+ const input=backupCandidate,prior=db;
+ let next;
+ if(replace){
+   next={...prior,records:input.records,custom:input.custom,
+     settings:{...input.settings,editExpiryHours:validEditExpiry(input.settings.editExpiryHours)},
+     firstUsedAt:firstUsedTimestamp(input.firstUsedAt,input.records)}
+ }else{
+   // Keep this device's records on conflicting dates, and add missing ones
+   // from the backup. Merge custom definitions by stable id without duplicates.
+   const records={...input.records,...prior.records};
+   const customs=new Map(input.custom.map(e=>[e.id,e]));
+   for(const item of prior.custom)customs.set(item.id,item);
+   next={...prior,records,custom:[...customs.values()],
+     firstUsedAt:firstUsedTimestamp(
+       firstUsedTimestamp(input.firstUsedAt,input.records),records)}
+ }
+ db=next;
+ if(!saveDB()){
+   db=prior;
+   backupStatus('복원 내용을 저장하지 못했어요. 현재 기록은 그대로예요.');
+   return
+ }
+ dismissBackupReview();
+ orbCache.clear();
+ const now=isoDay(),today=db.records[now];
+ selection=Array.isArray(today?.emotions)?
+   today.emotions.filter(id=>byId(id)).slice(0,4):[];
+ $('memo').value=typeof today?.note==='string'?today.note:'';
+ weekStudyOffset=0;weekStudySelected=today?(new Date().getDay()+6)%7:-1;
+ weekStudyMonthly=false;calendarZoom=0;
+ month=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+ calendarSelected=now;emotionMapSelected=null;
+ renderChoices();renderPreview();renderCalendar();renderDictionary();
+ renderEmotionMap();renderSettings();
+ backupStatus(replace?'백업으로 전체 복원했어요.':'기존 기록을 보존하면서 백업을 합쳤어요.')
+}
+function setupGyeolBackup(){
+ $('backup-export').onclick=exportGyeolBackup;
+ $('backup-import').onclick=()=>$('backup-file').click();
+ $('backup-file').onchange=async()=>{
+   const input=$('backup-file');
+   const file=input.files?.[0];
+   input.value='';
+   await readBackupFile(file)
+ };
+ $('backup-merge').onclick=()=>restoreGyeolBackup(false);
+ $('backup-replace').onclick=()=>{
+   if(!backupCandidate)return;
+   if(!backupReplaceArmed){
+     backupReplaceArmed=true;
+     $('backup-replace').textContent='전체 교체 확정';
+     $('backup-replace-note').hidden=false;
+     return
+   }
+   restoreGyeolBackup(true)
+ };
+ $('backup-cancel').onclick=()=>{
+   dismissBackupReview();backupStatus('')
+ }
+}
+
 function toast(t){const v=$('toast');v.textContent=t;v.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>v.classList.remove('visible'),2200)}
 function clamp(v,min=0,max=1){return Math.max(min,Math.min(max,v))}
 function hexRgb(hex){const h=hex.replace('#','');return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255)}
@@ -2564,6 +2720,7 @@ document.querySelectorAll('[data-expiry-index]').forEach(btn=>{
  btn.onclick=()=>persistExpiryHours(sliderHoursForIndex(btn.dataset.expiryIndex),true)
 });
 $('settings-back').onclick=()=>setScreen('my');
+setupGyeolBackup();
 document.addEventListener('visibilitychange',()=>{
  if(!document.hidden){
    refreshExpiryLocks();
