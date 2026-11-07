@@ -10,6 +10,14 @@
 - 페이지 안 `실제 결. ↗` 링크를 통해 기존 앱으로 돌아갈 수 있음.
 
 
+## V69 — 저장 즉시 My Map 반영
+
+- [V69 실제 앱](https://playian0724-byte.github.io/emotion-diary/v69.html)
+- 일기 저장 및 수정이 성공한 즉시 `db.records`에서 My 감정지도를 갱신.
+- 수정 저장 실패 시 원래 기록을 복구하며 저장되지 않은 감정은 지도에 표시하지 않음.
+- 동일 사이트의 다른 탭에서 기록이 변경되면 storage 이벤트로 Archive/My 업데이트.
+- 개인 기록 및 V68 별도 테스트 웹앱 유지. 다른 기기 간 자동 동기화는 별도 기능이 필요.
+
 ## V67 — 월간 핀치 위치에 따라 주간 Stack 이동
 
 - [V67 실제 기록 아카이브](https://playian0724-byte.github.io/emotion-diary/v67.html)

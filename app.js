@@ -449,6 +449,8 @@ function navigateFromMenu(id){
  setScreen(id,true)
 }
 function toggleMenu(){if(menuOpen)closeMenu();else openMenu()}
+/* The same saved records feed both Archive and My, including while My is hidden. */
+function syncSavedRecordViews(){renderEmotionMap()}
 function setScreen(id,keepMenuOpen=false){
  if(id!=='archive')closeRecordPopup();
  document.querySelectorAll('.screen').forEach(el=>el.classList.toggle('active',el.id===id));
@@ -1063,7 +1065,12 @@ function openRecordEditor(day){
    if(!picked.length){toast('감정을 하나 이상 선택해 주세요.');return}
    db.records[day]={...current,emotions:[...picked],note:memo.value.trim(),
      editedAt:new Date().toISOString()};
-   saveDB();
+   if(!saveDB()){
+     db.records[day]=current;
+     toast('저장에 실패했어요. 다시 시도해 주세요.');
+     return
+   }
+   syncSavedRecordViews();
    if(day===isoDay()){
      selection=[...picked];$('memo').value=memo.value.trim();
      renderChoices();renderPreview()
@@ -2242,6 +2249,7 @@ if(!saveDB()){
  toast('저장에 실패했어요. 브라우저 저장 공간을 확인해 주세요.');
  return
 }
+syncSavedRecordViews();
 const savedAt=new Date(),span=CAL_SPANS[calendarZoom];
 weekStudyOffset=0;
 weekStudySelected=(savedAt.getDay()+6)%7;
@@ -2530,7 +2538,21 @@ document.querySelectorAll('[data-expiry-index]').forEach(btn=>{
 });
 $('settings-back').onclick=()=>setScreen('my');
 document.addEventListener('visibilitychange',()=>{
- if(!document.hidden)refreshExpiryLocks()
+ if(!document.hidden){
+   refreshExpiryLocks();
+   if($('my').classList.contains('active'))renderEmotionMap()
+ }
+});
+window.addEventListener('storage',event=>{
+ if(event.key!==KEY||!event.newValue)return;
+ try{
+   const changed=JSON.parse(event.newValue);
+   if(!changed||!changed.records||typeof changed.records!=='object')return;
+   db.records=changed.records;
+   db.custom=Array.isArray(changed.custom)?changed.custom:db.custom;
+   if($('archive').classList.contains('active'))renderCalendar();
+   syncSavedRecordViews()
+ }catch(error){console.warn('Diary sync failed',error)}
 });
 window.setInterval(refreshExpiryLocks,30000);
 document.querySelectorAll('[data-map-period]').forEach(btn=>btn.onclick=()=>{
