@@ -7,7 +7,7 @@
 - iOS Safari/Chrome 홈 화면용 180px Apple touch PNG, Chrome/Android용 192px·512px PNG, SVG 파비콘, Web App Manifest 설치 정보 추가.
 - 홈 화면 이름/설치 이름 `inside in`, 단독 실행 `display: standalone`, 설치 시작 경로 `/emotion-diary/`.
 - 앱 데이터 키 `gyeol-v2`, JSON 백업 내부 포맷 `gyeol-backup`은 **기존 데이터·백업 호환성을 위해 유지**. 새로 다운로드하는 파일 이름만 `inside-in-backup-YYYY-MM-DD.json`.
-- 기존에 홈 화면에 설치한 구버전 아이콘은 iOS 캐시 때문에 교체가 바로 안 될 수 있음. 필요하면 기존 홈 화면 바로가기를 제거하고 새로 추가.
+- **주의:** 이미 홈 화면에 설치한 앱의 기록은 Safari/Chrome 탭과 별도의 저장공간에 있을 수 있음. 이전 아이콘을 삭제하거나 다시 설치하기 전에 반드시 해당 설치 앱의 Settings → Data archive에서 JSON 기록을 내보내 안전하게 보관. iOS 아이콘이 즉시 갱신되지 않을 수 있으며, 백업 없이 기존 홈 화면 앱 삭제 금지.
 - [메인 웹앱](https://playian0724-byte.github.io/emotion-diary/) / [V77 독립 점검 페이지](https://playian0724-byte.github.io/emotion-diary/v77.html).
 
 ## V76 — Settings 위계와 아코디언 모션, Today 아이콘
