@@ -2543,12 +2543,21 @@ function drawWater(now=performance.now()){
  if(!canvas||!host)return;
  const w=host.clientWidth,h=host.clientHeight;
  if(w<1||h<1)return;
- const dpr=Math.min(window.devicePixelRatio||1,1.5);
+ // V79: render the final mixed orb directly at native Retina resolution.
+ // Keep the 225px diffusion calculation buffer only for the ink animation.
+ const dpr=Math.min(window.devicePixelRatio||1,3);
  const width=Math.round(w*dpr),height=Math.round(h*dpr);
  if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}
  const ctx=canvas.getContext('2d');if(!ctx)return;
  ctx.setTransform(dpr,0,0,dpr,0,0);
  ctx.clearRect(0,0,w,h);
+ if(mixed&&!mixBusy){
+   ctx.fillStyle=mixed.color;
+   ctx.beginPath();
+   ctx.arc(w*.5,h*.5,Math.min(73,h*.34,w*.27),0,Math.PI*2);
+   ctx.fill();
+   return
+ }
  if(!drops.length)return;
 
  // One visible Canvas, and one smaller OFFSCREEN calculation buffer for
@@ -2621,7 +2630,20 @@ function drawWater(now=performance.now()){
  }
  mixRaster.ctx.putImageData(mixRaster.image,0,0);
  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
- ctx.drawImage(mixRaster.buffer,0,0,w,h);
+ // The low-resolution pigment field gently hands over to a full-resolution
+ // vector circle during the last 16% of the mixing animation.
+ const crisp=mixed?smoothstep((p-.84)/.16):0;
+ ctx.globalAlpha=1-crisp;
+ if(crisp<1)ctx.drawImage(mixRaster.buffer,0,0,w,h);
+ ctx.globalAlpha=1;
+ if(crisp>0){
+   ctx.globalAlpha=crisp;
+   ctx.fillStyle=mixed.color;
+   ctx.beginPath();
+   ctx.arc(cx,cy,sphereRadius,0,Math.PI*2);
+   ctx.fill();
+   ctx.globalAlpha=1
+ }
 
  // The original soft concentric splash on each new ink drop.
  // It belongs to the same Canvas, and is gone before condensation begins.

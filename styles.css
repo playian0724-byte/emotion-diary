@@ -5061,3 +5061,18 @@ html.splash-enabled #app-splash{display:block}
 @media(prefers-reduced-motion:reduce){
  #app-splash.splash-edge-to-edge .splash-bead--selected{will-change:auto}
 }
+
+/* V79 — 0.3s longer static archive-grid introduction before selection.
+   Keep all prior animation durations and the 0.5s longer wordmark hold. */
+#app-splash.splash-edge-to-edge.is-playing{
+ animation:inside-splash-exit 260ms ease 2020ms forwards;
+}
+#app-splash.splash-edge-to-edge.is-playing .splash-bead:not(.splash-bead--selected){
+ animation:inside-splash-vanish 490ms ease-in 420ms forwards;
+}
+#app-splash.splash-edge-to-edge.is-playing .splash-bead--selected{
+ animation:inside-splash-vector-grow 580ms cubic-bezier(.22,.82,.2,1) 470ms forwards;
+}
+#app-splash.splash-edge-to-edge.is-playing .splash-wordmark{
+ animation:inside-splash-title 220ms ease-out 990ms forwards;
+}
