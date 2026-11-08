@@ -1,5 +1,13 @@
 # 결. — 감정 일기
 
+## V74 — Settings 플랫 카탈로그 UI 통일
+
+- [V74 실제 웹앱 — Settings](https://playian0724-byte.github.io/emotion-diary/v74.html?view=settings)
+- 유통기한 영역의 외곽 박스, 배경, 둥근 테두리를 제거하고 Data archive와 같은 플랫한 SUIT 타이포그래피/여백 적용.
+- 기존 유통기한 값, 네 점 슬라이더와 1시간/24시간/3일/7일 선택 동작은 그대로 유지.
+- 설정 화면에서 유통기한과 기록 내보내기·가져오기를 같은 목록형 시각 언어로 정리.
+- 데이터 저장 구조 및 백업·복원 로직 변경 없음.
+
 ## V73 — Settings 기록 백업 / 복원
 
 - [V73 실제 웹앱](https://playian0724-byte.github.io/emotion-diary/v73.html?view=settings)
