@@ -2646,7 +2646,7 @@ function drawWater(now=performance.now()){
    const opening=smoothstep(age/INK_BLOOM_SECONDS);
    // An individual ink drop starts compact, then blooms outward in water.
    // Previous V10 grouped all same-color drops and erased this behavior.
-   const bloomRadius=lerp(9,Math.min(195,Math.max(w*.48,h*.67)),opening);
+   const bloomRadius=lerp(6,Math.min(145,Math.max(w*.35,h*.46)),opening);
    const radius=lerp(bloomRadius,69,move);
    const dx=(d.x-.5)*w,dy=(d.y-.5)*h;
    const drift=(!mixBusy&&!mixed)?Math.sin(now/2100+i*1.7)*1.4:0;
@@ -2654,7 +2654,7 @@ function drawWater(now=performance.now()){
      x:cx+(dx*co-dy*si)*(1-move)+drift,
      y:cy+(dx*si+dy*co)*(1-move),
      r2:radius*radius,
-     strength:.66,
+     strength:.57,
      rgb:hexRgb(d.color).map(v=>Math.round(v*255)),
      age,
      opening
@@ -2715,16 +2715,16 @@ function drawWater(now=performance.now()){
    sources.forEach(ink=>{
      if(ink.age>=2.2)return;
      const q=smoothstep(ink.age/2.2);
-     const r=lerp(3,74,q);
-     const opacity=.24*(1-q);
+     const r=lerp(2,52,q);
+     const opacity=.18*(1-q);
      ctx.beginPath();ctx.arc(ink.x,ink.y,r,0,Math.PI*2);
      ctx.lineWidth=1.1;
      ctx.strokeStyle='rgba('+ink.rgb.join(',')+','+opacity.toFixed(3)+')';
      ctx.stroke();
      if(ink.age<.22){
        const fade=1-smoothstep(ink.age/.22);
-       ctx.beginPath();ctx.arc(ink.x,ink.y,lerp(5,3,q),0,Math.PI*2);
-       ctx.fillStyle='rgba('+ink.rgb.join(',')+','+(.44*fade).toFixed(3)+')';
+       ctx.beginPath();ctx.arc(ink.x,ink.y,lerp(3.5,2,q),0,Math.PI*2);
+       ctx.fillStyle='rgba('+ink.rgb.join(',')+','+(.35*fade).toFixed(3)+')';
        ctx.fill()
      }
    })

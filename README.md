@@ -1,5 +1,12 @@
 # inside in — 감정 아카이브
 
+## V81 — Emotion Lab 박스 제거 및 방울 축소
+
+- 감정 혼합과 완성 단계 모두 **회색 혼합 팔레트 박스 배경·테두리·라운딩·그림자·COLOR STUDY 코너 라벨 제거**. Emotion Lab은 빈 흰 화면 위에서 물감이 퍼지고 하나의 구슬이 완성되는 화면으로 정리.
+- 떨어진 방울의 처음 크기 `9 → 6`, 확산 반경 약 25~30% 축소, 색 농도 `.66 → .57`로 조정. 동심 물결 `74 → 52`, 불투명도 `.24 → .18`로 절제.
+- 방울 개수(최대 36), 실제 혼합 비율, 최종 감정 색, V79 완성 구슬 Retina 렌더링 및 V80 고정 저장 버튼·이름 입력/설명 접기·Edit mix 로직은 변경 없음.
+- [V81 Emotion Lab 화면](https://playian0724-byte.github.io/emotion-diary/v81.html?view=lab) · [최신 웹앱](https://playian0724-byte.github.io/emotion-diary/?v=81)
+
 ## V80 — Emotion Lab 완료·저장 UX 이원화
 
 - **혼합 단계:** 기존 8가지 기본 색, 방울 수, 취소·초기화·Mix emotion, 확산/혼합 애니메이션을 유지.

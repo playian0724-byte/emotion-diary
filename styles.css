@@ -5230,3 +5230,42 @@ html.splash-enabled #app-splash{display:block}
  #create.is-finished .result-actions,
  #create #blend-panel .lab-description-symbol{transition:none}
 }
+
+/* V81 — unboxed white Emotion Lab. The paper itself is the mixing surface.
+   Keep the existing droplet simulation, Retina orb and V80 save flow. */
+@supports selector(body:has(#create.active)){
+ body:has(#create.active) main.app{
+   background:#FFFFFF;
+ }
+}
+#create.active{
+ background:#FFFFFF;
+}
+#create #mix-stage.mix-stage,
+#create.is-finished #mix-stage.mix-stage{
+ background:transparent!important;
+ background-image:none!important;
+ border:0!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+ outline:0!important;
+}
+#create #mix-stage.mix-stage::before,
+#create #mix-stage.mix-stage::after{
+ content:none!important;
+ display:none!important;
+}
+#create #mix-stage .water,
+#create #mix-stage .mixresult{
+ background:transparent!important;
+ border:0!important;
+ box-shadow:none!important;
+}
+#create #mix-stage .water canvas{
+ display:block;
+ background:transparent!important;
+}
+/* When the finished editor opens, no colored stage/panel reappears. */
+#create.is-finished #mix-stage.mix-stage{
+ background:transparent!important;
+}
