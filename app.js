@@ -2487,6 +2487,8 @@ function setMixDescriptionOpen(open){
 function resetMix(){
  if(v8Shader)v8Shader.detach();
  $('create').classList.remove('is-finished');
+ $('lab-intro').removeAttribute('aria-hidden');
+ $('edit-mix').disabled=true;
  $('lab-mix-tools').inert=false;
  $('lab-actions')?.style.removeProperty('--lab-keyboard-lift');
  amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;
@@ -2504,6 +2506,8 @@ function editMix(){
  if(!mixed||mixBusy)return;
  mixed=null;mixBusy=false;
  $('create').classList.remove('is-finished');
+ $('lab-intro').removeAttribute('aria-hidden');
+ $('edit-mix').disabled=true;
  $('lab-mix-tools').inert=false;
  $('blend-panel').hidden=true;
  $('lab-actions').style.removeProperty('--lab-keyboard-lift');
@@ -2533,9 +2537,12 @@ function finishMix(){
  // must not change diameter while the palette quietly closes.
  $('blend-panel').hidden=false;
  $('create').classList.add('is-finished');
+ $('lab-intro').setAttribute('aria-hidden','true');
+ $('edit-mix').disabled=false;
  $('lab-mix-tools').inert=true;
  $('mix-undo').disabled=true;
- $('mix-summary').textContent='완성';
+ // The finished orb and ratio already communicate completion.
+ $('mix-summary').textContent='';
  requestAnimationFrame(()=>{
    drawWater();
    positionLabActions();

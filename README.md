@@ -1,5 +1,15 @@
 # inside in — 감정 아카이브
 
+## V83 — Emotion Lab 저장 화면을 미니멀한 제품 쇼룸으로
+
+- 혼합 화면에서는 기존 큰 **Emotion Lab** 제목과 INSIDE IN / EMOTION STUDIO를 유지. 감정이 완성되면 두 텍스트를 **360ms 동안 페이드아웃**하되, 제목 영역의 공간은 유지해 구슬이 갑자기 움직이지 않게 함.
+- 상단을 두 상태에 공통인 내비게이션으로 정리: 혼합 중에는 `← BACK`, 완성 시에는 **`←` / `Edit mix ↗`**. 왼쪽 화살표는 이전 페이지, 오른쪽 Edit mix는 감정 혼합 단계. 혼합 상태에서는 Edit mix를 비활성·비노출로 두고 완료 상태에서만 나타냄.
+- 중복 위계를 만들던 **`02 / 02` 단계 수, 별도 `완성` 상태 표기 제거**. 구슬과 혼합 비율이 주인공인 미니멀한 완성 화면.
+- `EMOTION NAME` 라벨은 10px의 조용한 편집 캡션으로, 이름 입력은 약 **20~26px** 서체와 얇은 밑줄만 남기는 편집형 타이포그래피로 변경.
+- `Add a description +`은 한 줄 확장, `Save to dictionary`는 유일한 강한 검정 버튼, `Use today`는 약한 텍스트 보조 버튼. 불필요한 구분선·카드 박스 추가 없음.
+- V82의 동일 Canvas 크기·부드러운 팔레트 접기, V81 흰색 혼합 공간과 물방울, V79 Retina 최종 구슬, 데이터 키 `gyeol-v2`·기록·백업·기존 오프닝 유지.
+- [V83 Emotion Lab](https://playian0724-byte.github.io/emotion-diary/v83.html?view=lab) · [V83 메인 앱](https://playian0724-byte.github.io/emotion-diary/?v=83)
+
 ## V82 — Emotion Lab 결과 전환 부드럽게 및 감정 비율 여백 개선
 
 - 혼합 화면 → 완성 화면으로 넘어갈 때 캔버스 높이를 갑자기 줄이지 않고 **두 단계 모두 동일한 높이(`clamp(260px,68vw,300px)`)**로 유지. 최종 구슬 반지름은 73px로 일정하여 화면 전환 시 구슬 크기가 튀지 않음.

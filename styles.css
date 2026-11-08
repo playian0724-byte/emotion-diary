@@ -5311,3 +5311,170 @@ html.splash-enabled #app-splash{display:block}
  #create #blend-panel.lab-finish:not([hidden]){animation:none!important}
  #create #mix-stage .mixstats{transition:none!important}
 }
+
+/* V83 — Editorial Object: a still product-like finish screen with a clear,
+   minimal top navigation and no competing oversized page title. */
+#create .lab-topbar{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:12px;
+ width:100%;
+ min-height:44px;
+ margin:4px 0 0;
+}
+#create .lab-topbar #create-back.back{
+ display:inline-flex;
+ align-items:center;
+ gap:6px;
+ flex:0 0 auto;
+ min-width:44px;
+ min-height:44px;
+ padding:9px 3px;
+ margin:0;
+ border:0;
+ background:transparent;
+ color:#3C443C;
+ font-family:var(--gyeol-font);
+ font-size:12px;
+ font-weight:560;
+ letter-spacing:.025em;
+ line-height:1;
+}
+#create .lab-back-arrow{
+ display:inline-block;
+ font-size:19px;
+ font-weight:400;
+ line-height:1;
+}
+#create .lab-back-word{
+ display:inline-block;
+ max-width:56px;
+ overflow:hidden;
+ opacity:1;
+ white-space:nowrap;
+ transition:max-width 350ms cubic-bezier(.22,.8,.22,1),opacity 270ms ease;
+}
+#create.is-finished .lab-back-word{
+ max-width:0;
+ opacity:0;
+}
+#create .lab-topbar .lab-edit-mix{
+ min-width:85px;
+ min-height:44px;
+ margin:0;
+ padding:7px 1px;
+ flex:0 0 auto;
+ border:0;
+ border-radius:0;
+ background:transparent;
+ color:#767E76;
+ font-family:var(--gyeol-font);
+ font-size:12px;
+ font-weight:540;
+ text-align:right;
+ letter-spacing:-.015em;
+ opacity:0;
+ visibility:hidden;
+ pointer-events:none;
+ transition:opacity 330ms ease,visibility 0s linear 330ms;
+}
+#create .lab-topbar .lab-edit-mix span{margin-left:5px}
+#create.is-finished .lab-topbar .lab-edit-mix{
+ opacity:1;
+ visibility:visible;
+ pointer-events:auto;
+ transition:opacity 330ms ease 120ms,visibility 0s linear 0s;
+}
+#create .lab-intro{
+ /* Reserve the original heading space to keep the bead at one fixed Y. */
+ opacity:1;
+ visibility:visible;
+ transition:opacity 360ms ease,visibility 0s linear 0s;
+}
+#create.is-finished .lab-intro{
+ opacity:0;
+ visibility:hidden;
+ pointer-events:none;
+ transition:opacity 360ms ease,visibility 0s linear 360ms;
+}
+#create.is-finished #blend-panel.lab-finish{
+ margin-top:clamp(24px,4.2svh,38px);
+ padding-top:0;
+ border:0;
+}
+#create #blend-panel .input-label[for="mix-name"]{
+ display:block;
+ margin:0 0 8px;
+ color:#8C938C;
+ font-family:var(--gyeol-font);
+ font-size:10px;
+ font-weight:600;
+ line-height:1.6;
+ letter-spacing:.115em;
+}
+#create #blend-panel #mix-name{
+ width:100%;
+ min-height:62px;
+ padding:10px 2px 12px;
+ background:#FFFFFF;
+ border:0;
+ border-bottom:1px solid #AFB7AC;
+ border-radius:0;
+ color:#232B24;
+ font-family:var(--gyeol-font);
+ font-size:clamp(20px,5.8vw,26px);
+ font-weight:520;
+ letter-spacing:-.065em;
+ line-height:1.24;
+}
+#create #blend-panel #mix-name::placeholder{
+ color:#B5BBB2;
+ font-weight:420;
+ letter-spacing:-.06em;
+}
+#create #blend-panel #mix-name:focus{
+ border-color:#303A31;
+ border-bottom-width:1.5px;
+}
+#create #blend-panel .lab-description-toggle{
+ margin-top:23px;
+ min-height:51px;
+ padding:11px 2px;
+ color:#737D73;
+ border-bottom:1px solid #E8ECE6;
+ font-size:13px;
+ font-weight:500;
+}
+#create #blend-panel .lab-description-symbol{
+ color:#616A61;
+ font-size:22px;
+ font-weight:380;
+}
+#create.is-finished .result-actions{
+ background:#FFFFFF;
+ border-top:0;
+ padding-top:14px;
+}
+#create.is-finished .result-actions #save-word{
+ min-height:52px;
+ font-family:var(--gyeol-font);
+ font-size:14px;
+ font-weight:580;
+ border-radius:2px;
+}
+#create.is-finished .result-actions #use-word{
+ font-family:var(--gyeol-font);
+ color:#717970;
+ font-size:12px;
+ font-weight:500;
+}
+#create.is-finished #blend-panel.lab-finish:not([hidden]){
+ animation:inside-lab-finish-enter 380ms cubic-bezier(.22,.8,.22,1) 140ms both;
+}
+@media(prefers-reduced-motion:reduce){
+ #create .lab-back-word,
+ #create .lab-topbar .lab-edit-mix,
+ #create .lab-intro{transition:none!important}
+ #create.is-finished #blend-panel.lab-finish:not([hidden]){animation:none!important}
+}

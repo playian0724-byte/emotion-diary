@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png?v=77">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=77">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
-<link rel="stylesheet" href="./styles.css?v=82">
+<link rel="stylesheet" href="./styles.css?v=83">
 <style id="v35-expiry-slider-style">
 /* Kept with the markup deliberately: a new HTML deploy must never show an
    unstyled blue native range while its CSS asset is still propagating. */
@@ -106,7 +106,7 @@
 @media(prefers-reduced-motion:reduce){#settings .settings-accordion-panel{transition:none}#settings .settings-accordion-symbol{transition:none}}
 </style>
 <script defer src="./orb-renderer.js?v=8.2"></script>
-<script defer src="./app.js?v=82"></script>
+<script defer src="./app.js?v=83"></script>
 
 <script>
 /* V78 opening poster: only on normal launch; use ?splash=1 to preview again.
@@ -459,8 +459,11 @@
 </div>
 </section>
 <section id="create" class="screen" aria-label="Emotion lab">
-<button id="create-back" type="button" class="back">← BACK</button>
-<div class="intro lab-intro">
+<div class="lab-topbar">
+  <button id="create-back" type="button" class="back" aria-label="이전 페이지로 돌아가기"><span class="lab-back-arrow" aria-hidden="true">←</span><span class="lab-back-word" aria-hidden="true">BACK</span></button>
+  <button id="edit-mix" type="button" class="lab-edit-mix" aria-label="감정 혼합 비율 수정하기" disabled>Edit mix <span aria-hidden="true">↗</span></button>
+</div>
+<div id="lab-intro" class="intro lab-intro">
 <p class="lab-kicker">INSIDE IN / EMOTION STUDIO</p>
 <h1>Emotion lab</h1>
 </div>
@@ -481,12 +484,8 @@
 </div>
 </div>
 <div id="blend-panel" class="lab-finish" hidden>
-  <div class="lab-finish-meta">
-    <span class="lab-step-label">02 / 02</span>
-    <button id="edit-mix" type="button" class="lab-edit-mix">Edit mix <span aria-hidden="true">↗</span></button>
-  </div>
-  <label class="input-label" for="mix-name">Emotion name</label>
-  <input id="mix-name" class="text-field" maxlength="40" autocomplete="off" placeholder="감정의 이름을 지어주세요">
+  <label class="input-label" for="mix-name">EMOTION NAME</label>
+  <input id="mix-name" class="text-field" maxlength="40" autocomplete="off" placeholder="이름을 입력하세요">
   <button type="button" id="mix-description-toggle" class="lab-description-toggle" aria-controls="mix-description-fields" aria-expanded="false">
     <span>Add a description</span><span class="lab-description-symbol" aria-hidden="true">+</span>
   </button>
