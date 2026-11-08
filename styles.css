@@ -4566,3 +4566,47 @@ body.drawer-open #menu-toggle.menu-toggle{
 #settings .settings-backup{
  margin-top:27px;
 }
+
+/* V74.1 — calm, compact expiry row within Settings' flat catalogue.
+   The current time is a quiet value, not an oversized feature headline. */
+#settings .settings-group{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) auto;
+ align-items:center;
+ column-gap:12px;
+ row-gap:0;
+}
+#settings .settings-group .settings-label{
+ grid-column:1;
+ grid-row:1;
+ margin:0;
+}
+#settings .settings-group .expiry-reading{
+ grid-column:2;
+ grid-row:1;
+ justify-self:end;
+ margin:0;
+ line-height:1.4;
+}
+#settings .settings-group .expiry-reading strong{
+ font-size:15px;
+ font-weight:500;
+ letter-spacing:-.025em;
+ line-height:1.4;
+ color:#5c655c;
+ font-variant-numeric:tabular-nums;
+}
+#settings .settings-group .expiry-scale{
+ grid-column:1 / -1;
+ grid-row:2;
+ margin-top:11px;
+}
+#settings .settings-group .expiry-labels{
+ grid-column:1 / -1;
+ grid-row:3;
+ margin-top:0;
+ margin-bottom:0;
+}
+#settings .settings-group #edit-expiry-summary{
+ grid-column:1 / -1;
+}
