@@ -1,4 +1,14 @@
-# 결. — 감정 일기
+# inside in — 감정 아카이브
+
+## V77 — inside in 브랜딩 및 홈 화면 설치 아이콘
+
+- 앱 이름을 **inside in**으로 확정. 구 브랜드명 `결.`은 웹페이지 제목·앱 내 보이는 스튜디오 문구에서 새 이름으로 교체.
+- 브랜드 아이콘: 슬픔 `#80B0E8`(바깥), 기쁨 `#F4D242`(중간), 분노 `#C45F3F`(중심)의 동심원. 크림 배경 `#FBFBF9`. 앱의 기본 감정 색값 그대로 사용.
+- iOS Safari/Chrome 홈 화면용 180px Apple touch PNG, Chrome/Android용 192px·512px PNG, SVG 파비콘, Web App Manifest 설치 정보 추가.
+- 홈 화면 이름/설치 이름 `inside in`, 단독 실행 `display: standalone`, 설치 시작 경로 `/emotion-diary/`.
+- 앱 데이터 키 `gyeol-v2`, JSON 백업 내부 포맷 `gyeol-backup`은 **기존 데이터·백업 호환성을 위해 유지**. 새로 다운로드하는 파일 이름만 `inside-in-backup-YYYY-MM-DD.json`.
+- 기존에 홈 화면에 설치한 구버전 아이콘은 iOS 캐시 때문에 교체가 바로 안 될 수 있음. 필요하면 기존 홈 화면 바로가기를 제거하고 새로 추가.
+- [메인 웹앱](https://playian0724-byte.github.io/emotion-diary/) / [V77 독립 점검 페이지](https://playian0724-byte.github.io/emotion-diary/v77.html).
 
 ## V76 — Settings 위계와 아코디언 모션, Today 아이콘
 

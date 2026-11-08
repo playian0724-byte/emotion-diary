@@ -194,7 +194,7 @@ function exportGyeolBackup(){
    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
    const url=URL.createObjectURL(blob);
    const link=document.createElement('a');
-   link.href=url;link.download='gyeol-backup-'+isoDay()+'.json';
+   link.href=url;link.download='inside-in-backup-'+isoDay()+'.json';
    document.body.append(link);
    link.click();
    link.remove();
@@ -208,7 +208,7 @@ function exportGyeolBackup(){
 function validateGyeolBackup(raw){
  if(!raw||raw.format!=='gyeol-backup'||raw.version!==1||
     !raw.data||typeof raw.data!=='object'||Array.isArray(raw.data))
-   throw new Error('결. 백업 파일 형식이 아니에요.');
+   throw new Error('inside in 백업 파일 형식이 아니에요.');
  const content=raw.data;
  if(!content.records||typeof content.records!=='object'||Array.isArray(content.records)||
     !Array.isArray(content.custom)||content.custom.length>2000)
@@ -1140,7 +1140,7 @@ function showDate(day,rerender=true){
  const e=previewRecord(day),detail=$('record-detail');
  detail.replaceChildren();
  const kicker=document.createElement('span');kicker.className='record-kicker';
- kicker.textContent='GYEOL / DAILY OBJECT';
+ kicker.textContent='INSIDE IN / DAILY OBJECT';
  const date=document.createElement('span');date.className='record-date';
  date.textContent=day.replaceAll('-','.');
  const title=document.createElement('h2');title.className='record-emotion-title';

@@ -3286,7 +3286,7 @@ body.drawer-open #menu-toggle.menu-toggle{
  border:0;border-radius:3px;box-shadow:none;background:#F4F5F2
 }
 #create .mix-stage::before{
- content:"GYEOL / COLOR STUDY";position:absolute;top:16px;left:17px;z-index:4;
+ content:"INSIDE IN / COLOR STUDY";position:absolute;top:16px;left:17px;z-index:4;
  color:#8B9189;font-family:var(--gyeol-font);font-size:9px;
  font-weight:650;letter-spacing:.12em;pointer-events:none
 }
