@@ -1,5 +1,13 @@
 # inside in — 감정 아카이브
 
+## V84 — 저장 화면 상단 여백 축소
+
+- 이전 V83에서 완성 뒤 제목을 숨기면서도 자리는 남겨둔 것을 수정. **Emotion Lab 제목 영역의 높이와 마진까지 약 0.44초 동안 접어**, 구슬이 상단 `← / Edit mix` 내비게이션 아래로 자연스럽게 올라오게 함.
+- 혼합/완성 단계 모두 같은 Canvas 높이(`clamp(240px,61vw,270px)`)를 유지. 결과 구슬의 실제 반지름 73px·Retina 선명도는 보존, 상태 전환 때 갑작스러운 구슬 크기 변경을 방지.
+- 구슬과 입력창 사이 저장 화면 마진을 17~24px로 줄여, 상단 여백과 입력폼의 과도한 간격을 동시에 개선.
+- V83의 타이포그래피·작은 내비게이션·Edit mix, V82 팔레트 접기, V81 흰색 혼합 화면, 오프닝과 모든 기존 데이터 유지.
+- [V84 Emotion Lab](https://playian0724-byte.github.io/emotion-diary/v84.html?view=lab) · [최신 메인 웹앱](https://playian0724-byte.github.io/emotion-diary/?v=84)
+
 ## V83 — Emotion Lab 저장 화면을 미니멀한 제품 쇼룸으로
 
 - 혼합 화면에서는 기존 큰 **Emotion Lab** 제목과 INSIDE IN / EMOTION STUDIO를 유지. 감정이 완성되면 두 텍스트를 **360ms 동안 페이드아웃**하되, 제목 영역의 공간은 유지해 구슬이 갑자기 움직이지 않게 함.

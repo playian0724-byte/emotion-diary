@@ -5387,16 +5387,27 @@ html.splash-enabled #app-splash{display:block}
  transition:opacity 330ms ease 120ms,visibility 0s linear 0s;
 }
 #create .lab-intro{
- /* Reserve the original heading space to keep the bead at one fixed Y. */
+ /* Mixing has the full heading; finishing removes the unused height. */
+ max-height:130px;
+ overflow:hidden;
  opacity:1;
  visibility:visible;
- transition:opacity 360ms ease,visibility 0s linear 0s;
+ transition:max-height 440ms cubic-bezier(.22,.8,.22,1),
+   margin 440ms cubic-bezier(.22,.8,.22,1),
+   opacity 300ms ease,
+   visibility 0s linear 0s;
 }
 #create.is-finished .lab-intro{
+ max-height:0;
+ margin-top:0;
+ margin-bottom:0;
  opacity:0;
  visibility:hidden;
  pointer-events:none;
- transition:opacity 360ms ease,visibility 0s linear 360ms;
+ transition:max-height 440ms cubic-bezier(.22,.8,.22,1),
+   margin 440ms cubic-bezier(.22,.8,.22,1),
+   opacity 300ms ease,
+   visibility 0s linear 440ms;
 }
 #create.is-finished #blend-panel.lab-finish{
  margin-top:clamp(24px,4.2svh,38px);
@@ -5477,4 +5488,25 @@ html.splash-enabled #app-splash{display:block}
  #create .lab-topbar .lab-edit-mix,
  #create .lab-intro{transition:none!important}
  #create.is-finished #blend-panel.lab-finish:not([hidden]){animation:none!important}
+}
+
+/* V84 — Tighten the white showroom vertically without changing the bead.
+   Both phases keep an identical canvas height; only the heading's empty
+   footprint collapses and moves the bead upward as a single fluid layout. */
+#create #mix-stage.mix-stage,
+#create.is-finished #mix-stage.mix-stage{
+ height:clamp(240px,61vw,270px)!important;
+}
+#create.is-finished #blend-panel.lab-finish{
+ margin-top:clamp(17px,2.6svh,24px);
+}
+@media(max-height:650px){
+ #create #mix-stage.mix-stage,
+ #create.is-finished #mix-stage.mix-stage{
+   height:240px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #create .lab-intro,
+ #create.is-finished .lab-intro{transition:none!important}
 }
