@@ -4782,3 +4782,78 @@ body.drawer-open #menu-toggle.menu-toggle{
  #settings .settings-accordion-symbol{transition:none}
  #settings .settings-accordion-body{animation:none}
 }
+
+/* V76 — Settings heading hierarchy + Today's same accordion easing.
+   The content stays in DOM during closing, so both directions animate. */
+#settings .settings-intro{
+ align-items:baseline;
+ margin-bottom:24px;
+}
+#settings .settings-intro h1{
+ font-family:var(--gyeol-font);
+ font-size:clamp(35px,9vw,42px);
+ font-weight:780;
+ line-height:1.12;
+ letter-spacing:-.075em;
+ color:#161916;
+}
+#settings .settings-accordion{margin-top:20px;}
+#settings .settings-accordion-heading{
+ display:flex;
+ width:100%;
+ min-height:82px;
+ align-items:center;
+ justify-content:space-between;
+ padding:14px 2px;
+ border:0;
+ border-radius:0;
+ text-align:left;
+ background:transparent;
+ font-family:var(--gyeol-font);
+ font-size:clamp(22px,6.1vw,27px);
+ font-weight:690;
+ line-height:1.16;
+ letter-spacing:-.065em;
+ color:#363d36;
+}
+#settings .settings-accordion-symbol{
+ font-family:var(--gyeol-font);
+ font-size:clamp(29px,7vw,34px);
+ font-weight:430;
+ width:32px;
+ min-width:32px;
+ transform:rotate(0deg);
+ transform-origin:center;
+ transition:transform .28s cubic-bezier(.22,.86,.22,1);
+}
+#settings .settings-accordion-item.is-open .settings-accordion-symbol{transform:rotate(45deg);}
+#settings .settings-accordion-panel{
+ display:grid;
+ grid-template-rows:0fr;
+ opacity:0;
+ transition:grid-template-rows .43s cubic-bezier(.2,.81,.2,1),opacity .25s ease;
+}
+#settings .settings-accordion-item.is-open .settings-accordion-panel{
+ grid-template-rows:1fr;
+ opacity:1;
+}
+#settings .settings-accordion-panel-inner{
+ min-height:0;
+ overflow:hidden;
+}
+#settings .settings-accordion-body{
+ animation:none;
+ padding:2px 2px 30px;
+}
+#today .catalog-section.is-open .catalog-symbol{
+ font-size:clamp(28px,7vw,34px);
+ transform:rotate(45deg);
+}
+@media(max-width:350px){
+ #settings .settings-accordion-heading{min-height:75px;font-size:21px}
+ #settings .settings-intro h1{font-size:33px}
+}
+@media(prefers-reduced-motion:reduce){
+ #settings .settings-accordion-symbol,
+ #settings .settings-accordion-panel{transition:none}
+}
