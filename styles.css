@@ -4610,3 +4610,6 @@ body.drawer-open #menu-toggle.menu-toggle{
 #settings .settings-group #edit-expiry-summary{
  grid-column:1 / -1;
 }
+
+/* V74.2 — final compact expiry type; matches the HTML first paint. */
+#settings .settings-group .expiry-reading strong{font-size:13px;font-weight:520;letter-spacing:-.02em;color:#5c655c}
