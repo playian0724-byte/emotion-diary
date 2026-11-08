@@ -1,5 +1,14 @@
 # 결. — 감정 일기
 
+## V75 — Settings 아코디언
+
+- [V75 실제 웹앱 — Settings 바로 열기](https://playian0724-byte.github.io/emotion-diary/v75.html?view=settings)
+- Settings를 Today의 Basic emotion / Custom emotion처럼 큰 SUIT 제목과 우측 `+`로 구성.
+- `Expiration date`와 `Data archive` 두 항목은 **기본 접힘**; 각 항목을 눌러 독립적으로 펼치고 다시 닫을 수 있음. 열리면 `+`가 45도 회전.
+- 만료 시간(1시간/24시간/3일/7일), 시각적인 슬라이더와 네 선택점, 데이터 내보내기/가져오기·병합/교체 검증 로직은 그대로 보존.
+- 원래의 브라우저 `<details>/<summary>`를 사용해 터치와 키보드 지원. 별도 서버나 데이터 변경 없음.
+- 실기기 점검: 두 패널을 따로 열고 닫기, 유통기한 저장 및 재접속, JSON 내보내기/가져오기, iPhone Safari에서 `+` 회전과 레이아웃 확인.
+
 ## V74.3 — Settings 가독성 조정
 
 - [V74.3 Settings](https://playian0724-byte.github.io/emotion-diary/v74-3.html?view=settings)
