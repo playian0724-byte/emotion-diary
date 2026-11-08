@@ -509,10 +509,35 @@ function setEmotionPanel(name,forceOpen){
    const opened=next===key;
    const head=$(toggle),body=$(panel),wrapper=$(section);
    head.setAttribute('aria-expanded',String(opened));
-   head.querySelector('.catalog-symbol').textContent=opened?'−':'+';
+   // Keep a literal plus; CSS rotates it into an X, no glyph swap.
+   head.querySelector('.catalog-symbol').textContent='+';
    body.setAttribute('aria-hidden',String(!opened));
    body.inert=!opened;
    wrapper.classList.toggle('is-open',opened);
+ }
+}
+/* V76 — Settings uses the same CSS grid-height accordion as Today.
+   Each shelf opens independently; aria-expanded and inert follow its state. */
+function setSettingsPanel(name){
+ const config={
+   expiry:['settings-expiry-toggle','settings-expiry-panel','settings-expiry-item'],
+   archive:['settings-archive-toggle','settings-archive-panel','settings-archive-item']
+ };
+ const parts=config[name];
+ if(!parts)return;
+ const [toggleId,panelId,sectionId]=parts;
+ const head=$(toggleId),panel=$(panelId),section=$(sectionId);
+ if(!head||!panel||!section)return;
+ const opened=!section.classList.contains('is-open');
+ head.setAttribute('aria-expanded',String(opened));
+ panel.setAttribute('aria-hidden',String(!opened));
+ panel.inert=!opened;
+ section.classList.toggle('is-open',opened);
+}
+function setupSettingsAccordions(){
+ for(const name of ['expiry','archive']){
+   const head=$('settings-'+name+'-toggle');
+   if(head)head.onclick=()=>setSettingsPanel(name);
  }
 }
 function renderChoices(){
@@ -2720,6 +2745,7 @@ document.querySelectorAll('[data-expiry-index]').forEach(btn=>{
  btn.onclick=()=>persistExpiryHours(sliderHoursForIndex(btn.dataset.expiryIndex),true)
 });
 $('settings-back').onclick=()=>setScreen('my');
+setupSettingsAccordions();
 setupGyeolBackup();
 document.addEventListener('visibilitychange',()=>{
  if(!document.hidden){
