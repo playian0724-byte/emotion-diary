@@ -4669,3 +4669,116 @@ body.drawer-open #menu-toggle.menu-toggle{
 #settings .settings-backup-action{
  border-color:#e3e6de;
 }
+
+/* V75 — Settings accordion, matching Today's large catalogue typography.
+   Native details keep both sections independent, keyboard accessible,
+   and closed until the user chooses to open them. */
+#settings .settings-accordion{
+ margin-top:18px;
+ font-family:var(--gyeol-font);
+}
+#settings .settings-accordion-item{
+ border:0;
+ border-radius:0;
+ background:transparent;
+}
+#settings .settings-accordion-heading{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:16px;
+ box-sizing:border-box;
+ min-height:100px;
+ margin:0;
+ padding:18px 2px;
+ list-style:none;
+ background:transparent;
+ color:#171a17;
+ font:790 clamp(23px,6.5vw,30px)/1.18 var(--gyeol-font);
+ letter-spacing:-.075em;
+ cursor:pointer;
+ -webkit-tap-highlight-color:transparent;
+}
+#settings .settings-accordion-heading::-webkit-details-marker{display:none}
+#settings .settings-accordion-heading::marker{content:""}
+#settings .settings-accordion-heading:focus-visible{
+ outline:1.5px solid #687c6c;
+ outline-offset:3px;
+}
+#settings .settings-accordion-symbol{
+ flex:0 0 auto;
+ width:37px;
+ text-align:center;
+ font:400 37px/1 var(--gyeol-font);
+ letter-spacing:0;
+ transform:rotate(0);
+ transform-origin:center center;
+ transition:transform 270ms cubic-bezier(.2,.8,.2,1);
+}
+#settings .settings-accordion-item[open] .settings-accordion-symbol{
+ transform:rotate(45deg);
+}
+#settings .settings-accordion-body{
+ padding:0 2px 30px;
+ animation:settings-accordion-enter 260ms ease both;
+}
+@keyframes settings-accordion-enter{
+ from{opacity:0;transform:translateY(-5px)}
+ to{opacity:1;transform:translateY(0)}
+}
+/* Inside the panels, remove all old card rules and repeated headings. */
+#settings .settings-accordion-body .settings-group{
+ display:block;
+ margin:0;
+ padding:0;
+ background:transparent;
+ border:0;
+ border-radius:0;
+ box-shadow:none;
+}
+#settings .settings-accordion-body .settings-group .settings-label.sr-only{
+ position:absolute!important;
+}
+#settings .settings-accordion-body .expiry-reading{
+ display:flex;
+ justify-content:flex-start;
+ margin:0 0 6px;
+}
+#settings .settings-accordion-body .expiry-reading strong{
+ font-size:18px;
+ font-weight:620;
+ letter-spacing:-.035em;
+ color:#293b30;
+}
+#settings .settings-accordion-body .expiry-scale{
+ margin-top:9px;
+}
+#settings .settings-accordion-body .expiry-labels{
+ margin-bottom:0;
+}
+#settings .settings-accordion-body .settings-backup{
+ margin:0;
+ padding:0;
+ border:0;
+ background:transparent;
+}
+#settings .settings-accordion-body .settings-backup-explain{
+ margin:0 0 18px;
+}
+#settings .settings-accordion-body .settings-backup-actions{
+ border-top:1px solid #e3e6de;
+}
+@media(max-width:350px){
+ #settings .settings-accordion-heading{
+  min-height:88px;
+  font-size:22px;
+ }
+ #settings .settings-accordion-symbol{
+  font-size:33px;
+  width:34px;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #settings .settings-accordion-symbol{transition:none}
+ #settings .settings-accordion-body{animation:none}
+}
