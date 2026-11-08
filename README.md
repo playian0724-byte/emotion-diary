@@ -1,5 +1,13 @@
 # inside in — 감정 아카이브
 
+## V85 — Emotion Lab 전환 시 덜컹임 제거
+
+- 완료 순간 위쪽 제목 영역을 `max-height:130px → 0`로 접던 로직을 폐기. 실제 제목의 **현재 렌더링 높이를 측정**한 뒤 `height:실제값 → 0`으로 460ms 동안 변화시켜 중간 속도 변화/갑작스런 점프 방지.
+- 제목 높이·마진과 팔레트 영역 모두 460ms, 동일한 easing으로 **동기화**. 이름 입력 영역은 별도 `translateY` 없이 opacity만 변화.
+- 완료 **380ms 뒤 실행되던 추가 스크롤을 삭제**. 혼합 버튼을 누르는 시점에만 필요한 경우 화면을 구슬 쪽으로 스크롤해, 구슬이 완성될 때는 화면 위치가 안정되도록 변경.
+- 화면 전환 중 스크롤 앵커 개입 억제. 기존 V84 위쪽 여백 개선, V83 Editorial Object 디자인, 저장·Edit mix·기록·감정색 계산·Retina 렌더링 및 `gyeol-v2` 데이터 유지.
+- [V85 Emotion Lab](https://playian0724-byte.github.io/emotion-diary/v85.html?view=lab) · [V85 메인 웹앱](https://playian0724-byte.github.io/emotion-diary/?v=85)
+
 ## V84 — 저장 화면 상단 여백 축소
 
 - 이전 V83에서 완성 뒤 제목을 숨기면서도 자리는 남겨둔 것을 수정. **Emotion Lab 제목 영역의 높이와 마진까지 약 0.44초 동안 접어**, 구슬이 상단 `← / Edit mix` 내비게이션 아래로 자연스럽게 올라오게 함.

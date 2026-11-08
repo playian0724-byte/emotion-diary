@@ -2533,33 +2533,23 @@ function positionLabActions(){
  if(overlap>0)bar.style.setProperty('--lab-keyboard-lift',Math.min(680,overlap)+'px')
 }
 function finishMix(){
- // Keep the canvas at precisely the same dimensions; the completed bead
- // must not change diameter while the palette quietly closes.
+ // Capture the REAL heading height before collapsing it. Animating its
+ // previous max-height caused a flat segment then a visible late jump.
+ const heading=$('lab-intro');
+ heading.style.setProperty('--lab-heading-height',heading.getBoundingClientRect().height+'px');
+ void heading.offsetHeight;
  $('blend-panel').hidden=false;
  $('create').classList.add('is-finished');
- $('lab-intro').setAttribute('aria-hidden','true');
+ heading.setAttribute('aria-hidden','true');
  $('edit-mix').disabled=false;
  $('lab-mix-tools').inert=true;
  $('mix-undo').disabled=true;
- // The finished orb and ratio already communicate completion.
  $('mix-summary').textContent='';
+ // One coordinated 460ms layout transition; no delayed second scroll.
  requestAnimationFrame(()=>{
    drawWater();
-   positionLabActions();
- });
- // Let the collapsing controls settle before scrolling, and only scroll
- // when the bead itself is hidden above the visible area.
- setTimeout(()=>{
-   if(!$('create').classList.contains('active')||
-      !$('create').classList.contains('is-finished'))return;
-   const target=$('mix-stage').getBoundingClientRect();
-   if(target.top<85){
-     const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-     window.scrollTo({top:Math.max(0,window.scrollY+target.top-110),
-       behavior:reduced?'auto':'smooth'})
-   }
    positionLabActions()
- },380)
+ })
 }
 /* V56: badges are always present, so adding drops does not add nodes. */
 function refreshMixCounts(){
@@ -2760,6 +2750,12 @@ function drawWater(now=performance.now()){
 }
 function blendMix(){
  if(mixBusy||mixed)return;
+ // Move to the artwork at the beginning of the 1.9s mixing sequence.
+ // The viewport is settled before the editor and palette collapse.
+ if($('create').classList.contains('active')&&window.scrollY>0){
+   const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+   window.scrollTo({top:0,behavior:reduce?'auto':'smooth'})
+ }
  const components=BASE.filter(e=>amounts[e.id]>0).map(e=>({id:e.id,n:amounts[e.id]}));
  const sum=components.reduce((s,e)=>s+e.n,0);if(!sum)return;
  const color=blendColors(components.map(e=>byId(e.id).color),components.map(e=>e.n));

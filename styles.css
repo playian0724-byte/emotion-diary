@@ -5085,7 +5085,7 @@ html.splash-enabled #app-splash{display:block}
  display:grid;
  grid-template-rows:1fr;
  opacity:1;
- transition:grid-template-rows 370ms cubic-bezier(.22,.8,.22,1),opacity 240ms ease;
+ transition:grid-template-rows 460ms cubic-bezier(.22,.8,.22,1),opacity 320ms ease;
 }
 #create .lab-mix-tools-inner{
  min-height:0;
@@ -5387,27 +5387,29 @@ html.splash-enabled #app-splash{display:block}
  transition:opacity 330ms ease 120ms,visibility 0s linear 0s;
 }
 #create .lab-intro{
- /* Mixing has the full heading; finishing removes the unused height. */
- max-height:130px;
+ /* Measured actual text height: no 'max-height' dead zone or late jump. */
+ height:var(--lab-heading-height,auto);
  overflow:hidden;
  opacity:1;
  visibility:visible;
- transition:max-height 440ms cubic-bezier(.22,.8,.22,1),
-   margin 440ms cubic-bezier(.22,.8,.22,1),
-   opacity 300ms ease,
+ transition:height 460ms cubic-bezier(.22,.8,.22,1),
+   margin-top 460ms cubic-bezier(.22,.8,.22,1),
+   margin-bottom 460ms cubic-bezier(.22,.8,.22,1),
+   opacity 320ms ease,
    visibility 0s linear 0s;
 }
 #create.is-finished .lab-intro{
- max-height:0;
+ height:0;
  margin-top:0;
  margin-bottom:0;
  opacity:0;
  visibility:hidden;
  pointer-events:none;
- transition:max-height 440ms cubic-bezier(.22,.8,.22,1),
-   margin 440ms cubic-bezier(.22,.8,.22,1),
-   opacity 300ms ease,
-   visibility 0s linear 440ms;
+ transition:height 460ms cubic-bezier(.22,.8,.22,1),
+   margin-top 460ms cubic-bezier(.22,.8,.22,1),
+   margin-bottom 460ms cubic-bezier(.22,.8,.22,1),
+   opacity 320ms ease,
+   visibility 0s linear 460ms;
 }
 #create.is-finished #blend-panel.lab-finish{
  margin-top:clamp(24px,4.2svh,38px);
@@ -5509,4 +5511,20 @@ html.splash-enabled #app-splash{display:block}
 @media(prefers-reduced-motion:reduce){
  #create .lab-intro,
  #create.is-finished .lab-intro{transition:none!important}
+}
+
+/* V85 — single coordinated Lab finish motion, without a second vertical
+   translation or scroll anchoring during the collapsing layout. */
+#create.active{overflow-anchor:none}
+#create.is-finished #blend-panel.lab-finish:not([hidden]){
+ animation:inside-lab-soft-appear 300ms ease-out 180ms both;
+}
+@keyframes inside-lab-soft-appear{
+ from{opacity:0}
+ to{opacity:1}
+}
+@media(prefers-reduced-motion:reduce){
+ #create .lab-mix-tools,
+ #create .lab-intro{transition:none!important}
+ #create.is-finished #blend-panel.lab-finish:not([hidden]){animation:none!important}
 }
