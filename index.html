@@ -7,7 +7,7 @@
 <meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
 <title>결. — 감정 일기</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
-<link rel="stylesheet" href="./styles.css?v=75">
+<link rel="stylesheet" href="./styles.css?v=76">
 <style id="v35-expiry-slider-style">
 /* Kept with the markup deliberately: a new HTML deploy must never show an
    unstyled blue native range while its CSS asset is still propagating. */
@@ -81,9 +81,24 @@
 #settings .settings-accordion-body .settings-backup-explain{margin:0 0 18px}
 @media(max-width:350px){#settings .settings-accordion-heading{min-height:88px;font-size:22px}#settings .settings-accordion-symbol{font-size:33px;width:34px}}
 @media(prefers-reduced-motion:reduce){#settings .settings-accordion-symbol{transition:none}}
+
+/* V76 first-paint accordion and typography, following Today's fluid grid. */
+#settings .settings-intro{align-items:baseline;margin-bottom:24px}
+#settings .settings-intro h1{font-family:var(--gyeol-font);font-size:clamp(35px,9vw,42px);font-weight:780;line-height:1.12;letter-spacing:-.075em;color:#161916}
+#settings .settings-accordion{margin-top:20px}
+#settings .settings-accordion-heading{width:100%;min-height:82px;padding:14px 2px;border:0;background:transparent;text-align:left;font:690 clamp(22px,6.1vw,27px)/1.16 var(--gyeol-font);letter-spacing:-.065em;color:#363d36}
+#settings .settings-accordion-symbol{font-size:clamp(29px,7vw,34px);font-weight:430;min-width:32px;width:32px}
+#settings .settings-accordion-item.is-open .settings-accordion-symbol{transform:rotate(45deg)}
+#settings .settings-accordion-panel{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .43s cubic-bezier(.2,.81,.2,1),opacity .25s ease}
+#settings .settings-accordion-item.is-open .settings-accordion-panel{grid-template-rows:1fr;opacity:1}
+#settings .settings-accordion-panel-inner{min-height:0;overflow:hidden}
+#settings .settings-accordion-body{animation:none;padding:2px 2px 30px}
+#today .catalog-section.is-open .catalog-symbol{font-size:clamp(28px,7vw,34px);transform:rotate(45deg)}
+@media(max-width:350px){#settings .settings-accordion-heading{min-height:75px;font-size:21px}#settings .settings-intro h1{font-size:33px}}
+@media(prefers-reduced-motion:reduce){#settings .settings-accordion-panel{transition:none}#settings .settings-accordion-symbol{transition:none}}
 </style>
 <script defer src="./orb-renderer.js?v=8.2"></script>
-<script defer src="./app.js?v=75"></script>
+<script defer src="./app.js?v=76"></script>
 </head>
 <body>
 <button type="button" id="menu-toggle" class="menu-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="side-drawer"><span></span><span></span><span></span></button>
@@ -209,9 +224,11 @@
 <section id="settings" class="screen" aria-label="앱 설정">
 <div class="intro settings-intro"><h1>Settings</h1><button type="button" id="settings-back" class="settings-back">마이로 돌아가기 <span aria-hidden="true">↗</span></button></div>
 <div class="settings-accordion" aria-label="설정 항목">
-<details class="settings-accordion-item" id="settings-expiry-item">
-  <summary class="settings-accordion-heading"><span>Expiration date</span><span class="settings-accordion-symbol" aria-hidden="true">+</span></summary>
-  <div class="settings-accordion-body">
+<section class="settings-accordion-item" id="settings-expiry-item">
+  <button type="button" id="settings-expiry-toggle" class="settings-accordion-heading" aria-expanded="false" aria-controls="settings-expiry-panel"><span>Expiration date</span><span class="settings-accordion-symbol" aria-hidden="true">+</span></button>
+  <div class="settings-accordion-panel" id="settings-expiry-panel" aria-hidden="true" inert>
+<div class="settings-accordion-panel-inner">
+<div class="settings-accordion-body">
 <div class="settings-group">
 <label class="settings-label sr-only" for="edit-expiry">기록 유통기한</label>
 <div class="expiry-reading" aria-hidden="true">
@@ -235,10 +252,14 @@
 <p id="edit-expiry-summary" class="sr-only" aria-live="polite"></p>
 </div>
   </div>
-</details>
-<details class="settings-accordion-item" id="settings-archive-item">
-  <summary class="settings-accordion-heading"><span>Data archive</span><span class="settings-accordion-symbol" aria-hidden="true">+</span></summary>
-  <div class="settings-accordion-body">
+</div>
+</div>
+</section>
+<section class="settings-accordion-item" id="settings-archive-item">
+  <button type="button" id="settings-archive-toggle" class="settings-accordion-heading" aria-expanded="false" aria-controls="settings-archive-panel"><span>Data archive</span><span class="settings-accordion-symbol" aria-hidden="true">+</span></button>
+  <div class="settings-accordion-panel" id="settings-archive-panel" aria-hidden="true" inert>
+<div class="settings-accordion-panel-inner">
+<div class="settings-accordion-body">
 <div class="settings-backup">
   <p class="settings-backup-explain">감정 기록을 파일로 보관하거나 다시 불러올 수 있어요.</p>
   <div class="settings-backup-actions">
@@ -258,7 +279,9 @@
   <p class="settings-backup-footnote">파일에는 감정과 메모가 포함돼요. 개인 파일로 안전하게 보관해 주세요.</p>
 </div>
   </div>
-</details>
+</div>
+</div>
+</section>
 </div>
 </section>
 <section id="create" class="screen" aria-label="Emotion lab">
