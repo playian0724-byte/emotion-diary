@@ -2744,7 +2744,7 @@ $('edit-expiry').onchange=()=>{
 document.querySelectorAll('[data-expiry-index]').forEach(btn=>{
  btn.onclick=()=>persistExpiryHours(sliderHoursForIndex(btn.dataset.expiryIndex),true)
 });
-$('settings-back').onclick=()=>setScreen('my');
+// V76.1: Settings navigation stays in the global drawer; no in-page back action.
 setupSettingsAccordions();
 setupGyeolBackup();
 document.addEventListener('visibilitychange',()=>{
