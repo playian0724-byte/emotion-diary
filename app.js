@@ -2475,7 +2475,71 @@ toast('저장됨')
  renderPreview()
 }
 }
-function resetMix(){if(v8Shader)v8Shader.detach();amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;$('water').style.opacity='1';$('mix-stats').style.opacity='0';$('blend-panel').hidden=true;$('mix-button').disabled=true;$('mix-undo').disabled=false;$('mix-name').value='';$('mix-definition').value='';$('mix-summary').textContent='';renderMixButtons();drawWater();startWater()}
+/* V80: mutually exclusive mixing and finished-editor states. */
+function setMixDescriptionOpen(open){
+ const fields=$('mix-description-fields'),button=$('mix-description-toggle');
+ if(!fields||!button)return;
+ fields.hidden=!open;
+ button.setAttribute('aria-expanded',String(open));
+ const symbol=button.querySelector('.lab-description-symbol');
+ if(symbol)symbol.textContent=open?'−':'+'
+}
+function resetMix(){
+ if(v8Shader)v8Shader.detach();
+ $('create').classList.remove('is-finished');
+ $('lab-actions')?.style.removeProperty('--lab-keyboard-lift');
+ amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;
+ $('water').style.opacity='1';
+ $('mix-stats').style.opacity='0';
+ $('blend-panel').hidden=true;
+ $('mix-button').disabled=true;
+ $('mix-undo').disabled=false;
+ $('mix-name').value='';$('mix-definition').value='';
+ $('mix-summary').textContent='';
+ setMixDescriptionOpen(false);
+ renderMixButtons();drawWater();startWater()
+}
+function editMix(){
+ if(!mixed||mixBusy)return;
+ mixed=null;mixBusy=false;
+ $('create').classList.remove('is-finished');
+ $('blend-panel').hidden=true;
+ $('lab-actions').style.removeProperty('--lab-keyboard-lift');
+ $('mix-stats').style.opacity='0';
+ $('mix-undo').disabled=false;
+ $('mix-button').disabled=!drops.length;
+ $('mix-summary').textContent=drops.length?'총 '+drops.length+'방울':'';
+ // Keep pigment amounts and the name/description draft for re-editing.
+ refreshMixCounts();
+ drawWater();startWater()
+}
+function positionLabActions(){
+ if(!$('create').classList.contains('is-finished'))return;
+ const bar=$('lab-actions'),vv=window.visualViewport;
+ if(!bar)return;
+ bar.style.setProperty('--lab-keyboard-lift','0px');
+ if(!vv)return;
+ // On mobile keyboards, move the fixed save action into the visual viewport.
+ const active=document.activeElement;
+ if(active!==$('mix-name')&&active!==$('mix-definition'))return;
+ const bottom=vv.offsetTop+vv.height;
+ const overlap=Math.max(0,Math.ceil(bar.getBoundingClientRect().bottom-bottom));
+ if(overlap>0)bar.style.setProperty('--lab-keyboard-lift',Math.min(680,overlap)+'px')
+}
+function finishMix(){
+ $('blend-panel').hidden=false;
+ $('create').classList.add('is-finished');
+ $('mix-undo').disabled=true;
+ $('mix-summary').textContent='완성';
+ requestAnimationFrame(()=>{
+   // Repaint the final sphere at the new stage dimensions, then reveal its
+   // editor without automatically invoking the mobile software keyboard.
+   drawWater();
+   const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+   window.scrollTo({top:0,behavior:reduce?'auto':'smooth'});
+   positionLabActions()
+ })
+}
 /* V56: badges are always present, so adding drops does not add nodes. */
 function refreshMixCounts(){
  document.querySelectorAll('#drop-emotions [data-drop]').forEach(btn=>{
@@ -2669,9 +2733,7 @@ function drawWater(now=performance.now()){
  if(mixBusy&&p>=1){
    mixBusy=false;
    $('mix-stats').style.opacity='1';
-   $('blend-panel').hidden=false;
-   $('mix-undo').disabled=true;
-   $('mix-summary').textContent='완성';
+   finishMix();
    try{navigator.vibrate?.(8)}catch(e){}
  }
 }
@@ -2800,11 +2862,20 @@ document.querySelectorAll('[data-map-period]').forEach(btn=>btn.onclick=()=>{
 });
 $('month-prev').onclick=()=>shiftMonth(-1);$('month-next').onclick=()=>shiftMonth(1);setupCalendarGestures();
 $('mix-button').onclick=blendMix;$('mix-undo').onclick=undoDrop;$('mix-reset').onclick=resetMix;
+$('edit-mix').onclick=editMix;
+$('mix-description-toggle').onclick=()=>setMixDescriptionOpen($('mix-description-fields').hidden);
 $('save-word').onclick=()=>createEmotion(false);$('use-word').onclick=()=>createEmotion(true);
 window.addEventListener('resize',()=>{
  drawWater();
+ positionLabActions();
  if($('archive').classList.contains('active'))renderCalendar()
 });
+window.visualViewport?.addEventListener('resize',()=>requestAnimationFrame(positionLabActions));
+window.visualViewport?.addEventListener('scroll',()=>requestAnimationFrame(positionLabActions));
+$('mix-name').addEventListener('focus',()=>requestAnimationFrame(positionLabActions));
+$('mix-definition').addEventListener('focus',()=>requestAnimationFrame(positionLabActions));
+$('mix-name').addEventListener('blur',()=>requestAnimationFrame(positionLabActions));
+$('mix-definition').addEventListener('blur',()=>requestAnimationFrame(positionLabActions));
 renderChoices();renderPreview();renderCalendar();renderDictionary();renderMixButtons();renderSettings();
 const viewName=new URLSearchParams(window.location.search).get('view');
 // V35: let design reviews land on the actual settings control immediately.

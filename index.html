@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png?v=77">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=77">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
-<link rel="stylesheet" href="./styles.css?v=79">
+<link rel="stylesheet" href="./styles.css?v=80">
 <style id="v35-expiry-slider-style">
 /* Kept with the markup deliberately: a new HTML deploy must never show an
    unstyled blue native range while its CSS asset is still propagating. */
@@ -106,7 +106,7 @@
 @media(prefers-reduced-motion:reduce){#settings .settings-accordion-panel{transition:none}#settings .settings-accordion-symbol{transition:none}}
 </style>
 <script defer src="./orb-renderer.js?v=8.2"></script>
-<script defer src="./app.js?v=79"></script>
+<script defer src="./app.js?v=80"></script>
 
 <script>
 /* V78 opening poster: only on normal launch; use ?splash=1 to preview again.
@@ -476,13 +476,24 @@
   <button type="button" id="mix-reset" class="mix-icon-button" aria-label="다시 만들기" title="다시 만들기"><svg class="mix-reset-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.7 6.4"/><path d="M3 4v7h7"/></svg></button>
 </div>
 <button type="button" id="mix-button" class="button-primary" disabled>Mix emotion <span class="button-arrow" aria-hidden="true">↗</span></button>
-<div id="blend-panel" hidden>
-<label class="input-label" for="mix-name">Emotion name</label>
-<input id="mix-name" class="text-field" maxlength="40" autocomplete="off">
-<label class="input-label" for="mix-definition">Definition <span class="optional-label">(optional)</span></label>
-<textarea id="mix-definition" class="memo" maxlength="500"></textarea>
-
-<div class="result-actions"><button id="save-word" type="button" class="button-outline">Save to dictionary</button><button id="use-word" type="button" class="button-primary">Use today ↗</button></div>
+<div id="blend-panel" class="lab-finish" hidden>
+  <div class="lab-finish-meta">
+    <span class="lab-step-label">02 / 02</span>
+    <button id="edit-mix" type="button" class="lab-edit-mix">Edit mix <span aria-hidden="true">↗</span></button>
+  </div>
+  <label class="input-label" for="mix-name">Emotion name</label>
+  <input id="mix-name" class="text-field" maxlength="40" autocomplete="off" placeholder="감정의 이름을 지어주세요">
+  <button type="button" id="mix-description-toggle" class="lab-description-toggle" aria-controls="mix-description-fields" aria-expanded="false">
+    <span>Add a description</span><span class="lab-description-symbol" aria-hidden="true">+</span>
+  </button>
+  <div id="mix-description-fields" class="lab-description-fields" hidden>
+    <label class="sr-only" for="mix-definition">Definition (optional)</label>
+    <textarea id="mix-definition" class="memo" maxlength="500" placeholder="어떤 감정인지 남겨보세요. (선택)"></textarea>
+  </div>
+  <div id="lab-actions" class="result-actions" role="group" aria-label="완성한 감정 보관">
+    <button id="save-word" type="button" class="button-primary">Save to dictionary <span aria-hidden="true">↗</span></button>
+    <button id="use-word" type="button" class="button-outline">Use today <span aria-hidden="true">↗</span></button>
+  </div>
 </div>
 </section>
 

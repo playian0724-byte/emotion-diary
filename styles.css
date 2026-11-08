@@ -5076,3 +5076,157 @@ html.splash-enabled #app-splash{display:block}
 #app-splash.splash-edge-to-edge.is-playing .splash-wordmark{
  animation:inside-splash-title 220ms ease-out 990ms forwards;
 }
+
+/* V80 — Emotion Lab has two states: mix pigments, then name and archive.
+   Completed objects stay in the showroom; palette and mix controls go away. */
+#create.is-finished .lab-palette-heading,
+#create.is-finished #drop-emotions,
+#create.is-finished .mix-controls,
+#create.is-finished #mix-button{display:none!important}
+#create.is-finished .mix-stage{
+ height:clamp(185px,44vw,215px);
+}
+#create.is-finished #blend-panel{
+ margin:15px 0 0;
+ padding:0 0 calc(144px + env(safe-area-inset-bottom));
+ border:0;
+}
+#create #blend-panel[hidden],
+#create #mix-description-fields[hidden]{display:none!important}
+#create #blend-panel .lab-finish-meta{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ min-height:42px;
+ gap:18px;
+ padding:0 2px;
+ border-bottom:1px solid #E6E9E2;
+}
+#create #blend-panel .lab-step-label{
+ color:#A2A79F;
+ font-size:11px;
+ font-weight:550;
+ letter-spacing:.09em;
+}
+#create #blend-panel .lab-edit-mix{
+ padding:8px 1px;
+ min-height:40px;
+ background:transparent;
+ border:0;
+ border-radius:0;
+ color:#4D5A50;
+ font-family:var(--gyeol-font);
+ font-size:12px;
+ font-weight:600;
+}
+#create #blend-panel .lab-edit-mix span{margin-left:5px}
+#create #blend-panel .input-label{
+ margin:20px 0 9px;
+ color:#252D27;
+ font-size:14px;
+ font-weight:620;
+}
+#create #blend-panel #mix-name{
+ min-height:52px;
+ background:#FBFBF9;
+ border:0;
+ border-bottom:1px solid #9AA49A;
+ border-radius:0;
+ padding:10px 2px;
+ font-size:16px;
+ font-weight:500;
+ outline-offset:3px;
+}
+#create #blend-panel #mix-name:focus{
+ outline:0;
+ border-color:#303A31;
+ border-bottom-width:2px;
+}
+#create #blend-panel #mix-name::placeholder{color:#A8AFA6;font-weight:400}
+#create #blend-panel .lab-description-toggle{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ width:100%;
+ min-height:50px;
+ margin:16px 0 0;
+ padding:10px 2px;
+ border:0;
+ border-bottom:1px solid #E6E9E2;
+ border-radius:0;
+ background:transparent;
+ color:#636E63;
+ text-align:left;
+ font-family:var(--gyeol-font);
+ font-size:13px;
+ font-weight:530;
+}
+#create #blend-panel .lab-description-symbol{
+ font-size:23px;
+ line-height:1;
+ font-weight:400;
+ color:#343E35;
+}
+#create #blend-panel .lab-description-fields{padding:10px 0 0}
+#create #blend-panel #mix-definition{
+ min-height:93px;
+ border-radius:2px;
+ background:#F6F7F4;
+ font-size:14px;
+ line-height:1.5;
+}
+#create.is-finished .result-actions{
+ position:fixed;
+ left:50%;
+ bottom:var(--lab-keyboard-lift,0px);
+ transform:translateX(-50%);
+ z-index:65;
+ display:flex;
+ flex-direction:column;
+ align-items:stretch;
+ gap:4px;
+ box-sizing:border-box;
+ width:min(100vw,520px);
+ margin:0;
+ padding:12px max(var(--gyeol-gutter,22px),env(safe-area-inset-left)) calc(9px + env(safe-area-inset-bottom));
+ background:#FBFBF9;
+ border-top:1px solid #E5E8E1;
+}
+#create.is-finished .result-actions button{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ flex:none;
+ box-sizing:border-box;
+ width:100%;
+ min-height:50px;
+ margin:0;
+ padding:12px 16px;
+ font-size:14px;
+ font-weight:650;
+}
+#create.is-finished .result-actions #save-word{
+ background:#242B25;
+ color:#FFF;
+ border:1px solid #242B25;
+}
+#create.is-finished .result-actions #use-word{
+ display:flex;
+ justify-content:center;
+ min-height:36px;
+ padding:6px 12px;
+ border:0;
+ background:transparent;
+ color:#545F54;
+ font-size:12px;
+ font-weight:560;
+}
+#create.is-finished .result-actions #use-word span{margin-left:5px}
+@media(max-height:650px){
+ #create.is-finished .mix-stage{height:174px}
+ #create.is-finished #blend-panel{padding-bottom:calc(138px + env(safe-area-inset-bottom))}
+}
+@media(prefers-reduced-motion:reduce){
+ #create.is-finished .result-actions,
+ #create #blend-panel .lab-description-symbol{transition:none}
+}
