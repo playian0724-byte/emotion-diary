@@ -7,7 +7,7 @@
 <meta name="description" content="나의 감정을 꺼내어 바라보는 가벼운 색깔 일기, 결.">
 <title>결. — 감정 일기</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
-<link rel="stylesheet" href="./styles.css?v=74.2">
+<link rel="stylesheet" href="./styles.css?v=74.3">
 <style id="v35-expiry-slider-style">
 /* Kept with the markup deliberately: a new HTML deploy must never show an
    unstyled blue native range while its CSS asset is still propagating. */
@@ -49,6 +49,19 @@
 #settings .settings-group .expiry-scale{grid-column:1 / -1;grid-row:2;margin-top:11px;}
 #settings .settings-group .expiry-labels{grid-column:1 / -1;grid-row:3;margin-top:0;margin-bottom:0;}
 #settings .settings-group #edit-expiry-summary{grid-column:1 / -1;}
+
+/* V74.3 readable Settings: typography and spacing only, slider behavior intact. */
+#settings .settings-group .settings-label,
+#settings .settings-backup-title{font-family:var(--gyeol-font);font-size:14px;font-weight:600;line-height:1.5;letter-spacing:-.02em;color:#2c342e;}
+#settings .settings-group .expiry-reading strong{font-family:var(--gyeol-font);font-size:18px;font-weight:640;line-height:1.25;letter-spacing:-.04em;color:#293b30;}
+#settings .settings-group .expiry-scale{margin-top:16px;}
+#settings .expiry-labels span{font-size:12px;font-weight:470;color:#737a72;}
+#settings .expiry-labels span.selected{font-weight:670;color:#315c48;}
+#settings .settings-backup{margin-top:36px;padding-top:25px;border-top:1px solid #dce0d8;}
+#settings .settings-backup-title{margin-bottom:9px;}
+#settings .settings-backup-explain{font-size:12px;line-height:1.75;color:#6f786e;margin-bottom:19px;}
+#settings .settings-backup-action{font-size:14px;font-weight:520;line-height:1.5;letter-spacing:-.02em;color:#2c342e;min-height:52px;padding:13px 2px;border-color:#e3e6de;}
+#settings .settings-backup-actions{border-color:#e3e6de;}
 </style>
 <script defer src="./orb-renderer.js?v=8.2"></script>
 <script defer src="./app.js?v=73"></script>
@@ -201,7 +214,7 @@
 
 <div class="settings-backup" aria-labelledby="backup-title">
   <h2 id="backup-title" class="settings-backup-title">Data archive</h2>
-  <p class="settings-backup-explain">감정 기록과 직접 만든 감정을 파일로 보관하고, 다른 기기에서 다시 불러올 수 있어요.</p>
+  <p class="settings-backup-explain">감정 기록을 파일로 보관하거나 다시 불러올 수 있어요.</p>
   <div class="settings-backup-actions">
     <button type="button" id="backup-export" class="settings-backup-action"><span>기록 내보내기</span><span aria-hidden="true">↗</span></button>
     <button type="button" id="backup-import" class="settings-backup-action"><span>기록 가져오기</span><span aria-hidden="true">↗</span></button>
