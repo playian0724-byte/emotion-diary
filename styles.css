@@ -5528,3 +5528,17 @@ html.splash-enabled #app-splash{display:block}
  #create .lab-intro{transition:none!important}
  #create.is-finished #blend-panel.lab-finish:not([hidden]){animation:none!important}
 }
+
+/* V86 — weekly Archive header is a quiet catalogue caption, not a headline.
+   Scope only to the default seven-day Stack view; month/year posters keep
+   their established typographic scale and zoom-transition treatment. */
+#archive.week-study .calendar-controls strong#month-label{
+ font-family:var(--gyeol-font);
+ font-size:clamp(24px,6.5vw,26px);
+ font-weight:480;
+ letter-spacing:-.028em;
+ line-height:1.2;
+ font-variant-numeric:tabular-nums;
+ white-space:nowrap;
+ color:#323A33;
+}

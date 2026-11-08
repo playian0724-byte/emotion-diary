@@ -1,5 +1,12 @@
 # inside in — 감정 아카이브
 
+## V86 — Archive 주간 날짜 범위 타이포그래피 정리
+
+- Archive 주 화면 `11.02 — 11.08`처럼 표시되는 **주간 범위**를 기존 큰 헤드라인(약 31~43px)에서 **24~26px**로 축소. 굵기 `480`, 자간 `-.028em`, 단정한 잉크색으로 정리.
+- 앱 전체의 **SUIT Variable** 글꼴은 그대로 사용하고, `#archive.week-study .calendar-controls strong#month-label`로 주간 화면에만 적용. 월·3개월·6개월·1년 헤더, 화살표, 달력 확대 및 구슬 배열은 그대로 유지.
+- 기록·로컬 저장·백업 및 JS 동작 변경 없음.
+- [V86 Archive](https://playian0724-byte.github.io/emotion-diary/v86.html?view=archive) · [최신 웹앱](https://playian0724-byte.github.io/emotion-diary/?v=86)
+
 ## V85 — Emotion Lab 전환 시 덜컹임 제거
 
 - 완료 순간 위쪽 제목 영역을 `max-height:130px → 0`로 접던 로직을 폐기. 실제 제목의 **현재 렌더링 높이를 측정**한 뒤 `height:실제값 → 0`으로 460ms 동안 변화시켜 중간 속도 변화/갑작스런 점프 방지.
