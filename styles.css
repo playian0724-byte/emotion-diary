@@ -4613,3 +4613,59 @@ body.drawer-open #menu-toggle.menu-toggle{
 
 /* V74.2 — final compact expiry type; matches the HTML first paint. */
 #settings .settings-group .expiry-reading strong{font-size:13px;font-weight:520;letter-spacing:-.02em;color:#5c655c}
+
+/* V74.3 — clearer visual hierarchy without cards.
+   Match the source-of-truth first-paint rules inside the V74.3 HTML.
+   Deliberately leave the native slider hit area and persistence unchanged. */
+#settings .settings-group .settings-label,
+#settings .settings-backup-title{
+ font-family:var(--gyeol-font);
+ font-size:14px;
+ font-weight:600;
+ line-height:1.5;
+ letter-spacing:-.02em;
+ color:#2c342e;
+}
+#settings .settings-group .expiry-reading strong{
+ font-family:var(--gyeol-font);
+ font-size:18px;
+ font-weight:640;
+ line-height:1.25;
+ letter-spacing:-.04em;
+ color:#293b30;
+}
+#settings .settings-group .expiry-scale{margin-top:16px;}
+#settings .expiry-labels span{
+ color:#737a72;
+ font-size:12px;
+ font-weight:470;
+}
+#settings .expiry-labels span.selected{
+ color:#315c48;
+ font-weight:670;
+}
+#settings .settings-backup{
+ margin-top:36px;
+ padding-top:25px;
+ border-top:1px solid #dce0d8;
+}
+#settings .settings-backup-title{margin-bottom:9px;}
+#settings .settings-backup-explain{
+ font-size:12px;
+ line-height:1.75;
+ color:#6f786e;
+ margin-bottom:19px;
+}
+#settings .settings-backup-action{
+ font-size:14px;
+ font-weight:520;
+ line-height:1.5;
+ letter-spacing:-.02em;
+ color:#2c342e;
+ min-height:52px;
+ padding:13px 2px;
+}
+#settings .settings-backup-actions,
+#settings .settings-backup-action{
+ border-color:#e3e6de;
+}
