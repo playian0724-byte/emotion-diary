@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png?v=77">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=77">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
-<link rel="stylesheet" href="./styles.css?v=78">
+<link rel="stylesheet" href="./styles.css?v=78.1">
 <style id="v35-expiry-slider-style">
 /* Kept with the markup deliberately: a new HTML deploy must never show an
    unstyled blue native range while its CSS asset is still propagating. */
@@ -127,49 +127,151 @@
     if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){dismiss();return}
     el.addEventListener('animationend',function(e){if(e.animationName==='inside-splash-exit')dismiss()});
     requestAnimationFrame(function(){el.classList.add('is-playing')});
-    setTimeout(dismiss,1800);
+    setTimeout(dismiss,2300);
   },{once:true});
 })();
 </script>
 </head>
 <body>
-<!-- V78: static archive-grid poster. No saved entries are read or changed. -->
-<div id="app-splash" class="app-splash" aria-hidden="true">
-  <div class="splash-grid"><span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
-<span class="splash-bead splash-bead--selected" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
-<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span></div>
+<!-- V78.1: full-bleed calendar grid; SVG central orb stays crisp at final size. -->
+<div id="app-splash" class="app-splash splash-edge-to-edge" aria-hidden="true">
+  <div class="splash-grid">
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead splash-bead--selected" aria-hidden="true"><svg class="splash-bead-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><circle cx="100" cy="100" r="98" fill="#80B0E8"/><circle cx="100" cy="100" r="71.4" fill="#F4D242"/><circle cx="100" cy="100" r="44.8" fill="#C45F3F"/></svg></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+    <span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+  </div>
   <div class="splash-wordmark"><strong>inside in</strong><span>내 안의 감정을 보관하는 공간</span></div>
 </div>
 

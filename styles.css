@@ -4991,3 +4991,73 @@ html.splash-enabled #app-splash{display:block}
  html.splash-enabled{overflow:auto}
  #app-splash *{animation:none!important}
 }
+
+/* V78.1 — full viewport archive grid, cropped at all four edges.
+   Render the expanding three-color orb at its actual SVG dimensions,
+   NOT via a composited CSS scale, to keep edges sharp on mobile Safari.
+   Scoped to the new splash variant; v78.html remains visually unchanged. */
+#app-splash.splash-edge-to-edge{
+ --splash-small-size:clamp(22px,6.7vw,34px);
+ --splash-final-size:clamp(142px,40vw,174px);
+}
+#app-splash.splash-edge-to-edge .splash-grid{
+ position:absolute;
+ left:50%;
+ top:50%;
+ width:calc(100vw + 56px);
+ height:calc(100vh + 44px);
+ height:calc(100dvh + 44px);
+ transform:translate(-50%,-50%);
+ display:grid;
+ grid-template-columns:repeat(9,minmax(0,1fr));
+ grid-template-rows:repeat(15,minmax(0,1fr));
+ column-gap:0;
+ row-gap:0;
+ justify-items:center;
+ align-items:center;
+}
+#app-splash.splash-edge-to-edge .splash-bead{
+ width:var(--splash-small-size);
+ height:var(--splash-small-size);
+ border-radius:50%;
+ flex:none;
+}
+#app-splash.splash-edge-to-edge .splash-bead--selected{
+ width:var(--splash-small-size);
+ height:var(--splash-small-size);
+ justify-self:center;
+ align-self:center;
+ min-width:0;
+ min-height:0;
+ border-radius:0;
+ background:transparent;
+ transform:none;
+ will-change:width,height;
+}
+#app-splash.splash-edge-to-edge .splash-bead--selected::before,
+#app-splash.splash-edge-to-edge .splash-bead--selected::after{
+ content:none;
+}
+#app-splash.splash-edge-to-edge .splash-bead-svg{
+ display:block;
+ width:100%;
+ height:100%;
+ overflow:visible;
+ shape-rendering:geometricPrecision;
+}
+#app-splash.splash-edge-to-edge .splash-wordmark{
+ top:calc(50% + clamp(71px,20vw,87px) + 20px);
+}
+#app-splash.splash-edge-to-edge.is-playing{
+ animation:inside-splash-exit 260ms ease 1720ms forwards;
+}
+#app-splash.splash-edge-to-edge.is-playing .splash-bead--selected{
+ animation:inside-splash-vector-grow 580ms cubic-bezier(.22,.82,.2,1) 170ms forwards;
+}
+@keyframes inside-splash-vector-grow{
+ from{width:var(--splash-small-size);height:var(--splash-small-size)}
+ to{width:var(--splash-final-size);height:var(--splash-final-size)}
+}
+@media(prefers-reduced-motion:reduce){
+ #app-splash.splash-edge-to-edge .splash-bead--selected{will-change:auto}
+}
