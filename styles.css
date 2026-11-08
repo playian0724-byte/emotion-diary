@@ -4529,3 +4529,40 @@ body.drawer-open #menu-toggle.menu-toggle{
  margin:15px 0 0;color:#a0a39b;
  font:400 10px/1.6 var(--gyeol-font);
 }
+
+/* V74 — Settings uses one flat archival catalogue language.
+   Preserve V35's native range, ticks, labels and all existing behavior. */
+#settings .settings-group{
+ margin:30px 0 0;
+ padding:0;
+ border:0;
+ border-radius:0;
+ background:transparent;
+ box-shadow:none;
+ font-family:var(--gyeol-font);
+}
+#settings .settings-group .settings-label{
+ display:block;
+ margin:0 0 10px;
+ font-family:var(--gyeol-font);
+ font-size:13px;
+ font-weight:530;
+ line-height:1.4;
+ letter-spacing:-.02em;
+ color:#343934;
+}
+#settings .settings-group .expiry-reading{
+ margin:12px 0 12px;
+}
+#settings .settings-group .expiry-reading strong{
+ font-family:var(--gyeol-font);
+ font-size:37px;
+ font-weight:550;
+ line-height:1.14;
+ letter-spacing:-.075em;
+ color:#263d32;
+}
+#settings .settings-group .expiry-labels{margin-bottom:0}
+#settings .settings-backup{
+ margin-top:27px;
+}
