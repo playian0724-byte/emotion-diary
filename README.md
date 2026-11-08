@@ -1,5 +1,15 @@
 # 결. — 감정 일기
 
+## V76 — Settings 위계와 아코디언 모션, Today 아이콘
+
+- [V76 실제 웹앱 — Settings](https://playian0724-byte.github.io/emotion-diary/v76.html?view=settings)
+- Settings H1은 35–42px, 하위 메뉴 Expiration date / Data archive는 22–27px로 시각적 위계를 분명히 함.
+- V75의 `details` 패널을 Today와 같은 `grid-template-rows: 0fr → 1fr` CSS 전환으로 교체. 열기와 닫기 모두 부드럽게 펼쳐지고 접히며, 메뉴는 서로 독립적이고 기본 닫힌 상태임.
+- 상단 `+`는 열리면 45° 회전하여 `×`처럼 보이고, Today의 Basic / Custom emotion에서도 `−` 텍스트 교체 대신 같은 회전 아이콘을 사용.
+- `aria-expanded`, `aria-hidden`, `inert`, 버튼 포커스 스타일과 reduced-motion 설정 유지.
+- 설정값, 슬라이더, JSON 백업·복원, `gyeol-v2` 저장 데이터 및 감정 관련 코드 로직은 변경 없음.
+- 실기기 체크: 두 Settings 패널 열기/닫기 반복, 빠른 터치, Today 감정 패널 전환, 유통기한 변경, iOS Safari의 버튼/레이아웃, 기록 내보내기/복원.
+
 ## V75 — Settings 아코디언
 
 - [V75 실제 웹앱 — Settings 바로 열기](https://playian0724-byte.github.io/emotion-diary/v75.html?view=settings)
