@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png?v=77">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=77">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css">
-<link rel="stylesheet" href="./styles.css?v=77">
+<link rel="stylesheet" href="./styles.css?v=78">
 <style id="v35-expiry-slider-style">
 /* Kept with the markup deliberately: a new HTML deploy must never show an
    unstyled blue native range while its CSS asset is still propagating. */
@@ -106,9 +106,73 @@
 @media(prefers-reduced-motion:reduce){#settings .settings-accordion-panel{transition:none}#settings .settings-accordion-symbol{transition:none}}
 </style>
 <script defer src="./orb-renderer.js?v=8.2"></script>
-<script defer src="./app.js?v=77"></script>
+<script defer src="./app.js?v=78"></script>
+
+<script>
+/* V78 opening poster: only on normal launch; use ?splash=1 to preview again.
+   Abort on reduced-motion, and always remove overlay even if animation fails. */
+(function(){
+  var p=new URLSearchParams(location.search);
+  var show=p.get('splash')==='1'||(p.get('splash')!=='0'&&!p.has('view'));
+  if(!show)return;
+  document.documentElement.classList.add('splash-enabled');
+  function dismiss(){
+    var el=document.getElementById('app-splash');
+    if(el)el.remove();
+    document.documentElement.classList.remove('splash-enabled');
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    var el=document.getElementById('app-splash');
+    if(!el)return;
+    if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){dismiss();return}
+    el.addEventListener('animationend',function(e){if(e.animationName==='inside-splash-exit')dismiss()});
+    requestAnimationFrame(function(){el.classList.add('is-playing')});
+    setTimeout(dismiss,1800);
+  },{once:true});
+})();
+</script>
 </head>
 <body>
+<!-- V78: static archive-grid poster. No saved entries are read or changed. -->
+<div id="app-splash" class="app-splash" aria-hidden="true">
+  <div class="splash-grid"><span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+<span class="splash-bead splash-bead--selected" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#F29CC3" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#008471" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#D1CAEA" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#C45F3F" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#F4D242" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#D6D35F" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#898E46" aria-hidden="true"></span>
+<span class="splash-bead" style="--splash-color:#80B0E8" aria-hidden="true"></span></div>
+  <div class="splash-wordmark"><strong>inside in</strong><span>내 안의 감정을 보관하는 공간</span></div>
+</div>
+
 <button type="button" id="menu-toggle" class="menu-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="side-drawer"><span></span><span></span><span></span></button>
 <div id="drawer-overlay" class="drawer-overlay" aria-hidden="true"></div>
 <aside id="side-drawer" class="side-drawer" aria-label="페이지 메뉴" aria-hidden="true" inert>
