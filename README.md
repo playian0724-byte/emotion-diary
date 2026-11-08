@@ -1,5 +1,14 @@
 # inside in — 감정 아카이브
 
+## V87 — Emotion Recorder 명칭 및 Settings 타이포그래피 위계
+
+- Today 페이지 제목 오타 `Emotion recoder` → **`Emotion Recorder`**로 수정. 제목 위에 있던 `INSIDE IN / DAILY OBJECT` 작은 문구 삭제. 오늘 날짜와 기록 UI는 유지.
+- Settings의 `Settings` 제목을 Today와 똑같은 **SUIT 26~34px / 굵기 650 / 자간 -.065em**으로 조정해 다른 페이지들과 시각적 일관성 통일.
+- Settings 아래 `Expiration date`·`Data archive` 제목은 **19~22px / 굵기 550 / 부드러운 회녹색**으로 낮춰 페이지 제목과 명확히 구분. 열려 있는 섹션은 더 짙은 색과 굵기 590으로 구분.
+- 설정값은 17px·굵기 560, 백업 동작은 13px 중간 굵기, 설명은 12px 회색, 개인정보 안내는 10.5px 연회색. 상자/구분선 추가 없이 **폰트 크기·굵기·색상만으로 정보 위계 형성**. 플러스 아이콘도 26px로 절제.
+- iPhone 첫 화면에서 오래된 Settings 글꼴이 깜빡이지 않도록 HTML의 중요 인라인 스타일도 같이 갱신. 저장·백업·아카이브·감정 합성 기능과 데이터 키 `gyeol-v2`는 그대로.
+- [V87 Today](https://playian0724-byte.github.io/emotion-diary/v87.html?view=today) · [V87 Settings](https://playian0724-byte.github.io/emotion-diary/v87.html?view=settings) · [V87 최신 앱](https://playian0724-byte.github.io/emotion-diary/?v=87)
+
 ## V86 — Archive 주간 날짜 범위 타이포그래피 정리
 
 - Archive 주 화면 `11.02 — 11.08`처럼 표시되는 **주간 범위**를 기존 큰 헤드라인(약 31~43px)에서 **24~26px**로 축소. 굵기 `480`, 자간 `-.028em`, 단정한 잉크색으로 정리.
