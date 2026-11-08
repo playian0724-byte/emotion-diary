@@ -1,5 +1,12 @@
 # 결. — 감정 일기
 
+## V74.3 — Settings 가독성 조정
+
+- [V74.3 Settings](https://playian0724-byte.github.io/emotion-diary/v74-3.html?view=settings)
+- 박스 없는 V74 디자인을 유지하고 텍스트 위계를 회복: 섹션 제목 14px, 선택한 유통기한 18px, 백업 액션 14px, 슬라이더 선택지 12px.
+- 색 대비와 영역 사이 여백을 높이고 Data archive 설명을 간결하게 조정.
+- 기존 설정값, 유통기한 슬라이더 동작, 기록 및 백업 로직 변경 없음.
+
 ## V74 — Settings 플랫 카탈로그 UI 통일
 
 - [V74 실제 웹앱 — Settings](https://playian0724-byte.github.io/emotion-diary/v74.html?view=settings)
