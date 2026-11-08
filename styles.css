@@ -5079,12 +5079,22 @@ html.splash-enabled #app-splash{display:block}
 
 /* V80 — Emotion Lab has two states: mix pigments, then name and archive.
    Completed objects stay in the showroom; palette and mix controls go away. */
-#create.is-finished .lab-palette-heading,
-#create.is-finished #drop-emotions,
-#create.is-finished .mix-controls,
-#create.is-finished #mix-button{display:none!important}
-#create.is-finished .mix-stage{
- height:clamp(185px,44vw,215px);
+/* V82: the entire palette collapses as one unit, rather than popping
+   out with display:none. It stays non-focusable after completion. */
+#create .lab-mix-tools{
+ display:grid;
+ grid-template-rows:1fr;
+ opacity:1;
+ transition:grid-template-rows 370ms cubic-bezier(.22,.8,.22,1),opacity 240ms ease;
+}
+#create .lab-mix-tools-inner{
+ min-height:0;
+ overflow:hidden;
+}
+#create.is-finished .lab-mix-tools{
+ grid-template-rows:0fr;
+ opacity:0;
+ pointer-events:none;
 }
 #create.is-finished #blend-panel{
  margin:15px 0 0;
@@ -5223,7 +5233,6 @@ html.splash-enabled #app-splash{display:block}
 }
 #create.is-finished .result-actions #use-word span{margin-left:5px}
 @media(max-height:650px){
- #create.is-finished .mix-stage{height:174px}
  #create.is-finished #blend-panel{padding-bottom:calc(138px + env(safe-area-inset-bottom))}
 }
 @media(prefers-reduced-motion:reduce){
@@ -5268,4 +5277,37 @@ html.splash-enabled #app-splash{display:block}
 /* When the finished editor opens, no colored stage/panel reappears. */
 #create.is-finished #mix-stage.mix-stage{
  background:transparent!important;
+}
+
+/* V82 — no bead size jump. The mixing Canvas has the same geometry in
+   both states, so its 73px sphere radius and bitmap never reallocate. */
+#create #mix-stage.mix-stage,
+#create.is-finished #mix-stage.mix-stage{
+ height:clamp(260px,68vw,300px)!important;
+}
+#create #mix-stage .mixresult{
+ padding:0 13px 17px;
+}
+#create #mix-stage .mixstats{
+ margin:0 auto;
+ width:100%;
+ max-width:100%;
+ min-height:17px;
+ text-align:center;
+ font-size:12px;
+ line-height:1.5;
+ letter-spacing:-.018em;
+ transition:opacity 280ms ease 110ms;
+}
+#create #blend-panel.lab-finish:not([hidden]){
+ animation:inside-lab-finish-enter 380ms cubic-bezier(.22,.8,.22,1) both;
+}
+@keyframes inside-lab-finish-enter{
+ from{opacity:0;transform:translateY(12px)}
+ to{opacity:1;transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){
+ #create .lab-mix-tools{transition:none!important}
+ #create #blend-panel.lab-finish:not([hidden]){animation:none!important}
+ #create #mix-stage .mixstats{transition:none!important}
 }

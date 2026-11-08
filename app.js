@@ -2487,6 +2487,7 @@ function setMixDescriptionOpen(open){
 function resetMix(){
  if(v8Shader)v8Shader.detach();
  $('create').classList.remove('is-finished');
+ $('lab-mix-tools').inert=false;
  $('lab-actions')?.style.removeProperty('--lab-keyboard-lift');
  amounts={};drops=[];mixed=null;mixBusy=false;mixStartedAt=0;lastWaterFrame=0;
  $('water').style.opacity='1';
@@ -2503,6 +2504,7 @@ function editMix(){
  if(!mixed||mixBusy)return;
  mixed=null;mixBusy=false;
  $('create').classList.remove('is-finished');
+ $('lab-mix-tools').inert=false;
  $('blend-panel').hidden=true;
  $('lab-actions').style.removeProperty('--lab-keyboard-lift');
  $('mix-stats').style.opacity='0';
@@ -2527,18 +2529,30 @@ function positionLabActions(){
  if(overlap>0)bar.style.setProperty('--lab-keyboard-lift',Math.min(680,overlap)+'px')
 }
 function finishMix(){
+ // Keep the canvas at precisely the same dimensions; the completed bead
+ // must not change diameter while the palette quietly closes.
  $('blend-panel').hidden=false;
  $('create').classList.add('is-finished');
+ $('lab-mix-tools').inert=true;
  $('mix-undo').disabled=true;
  $('mix-summary').textContent='완성';
  requestAnimationFrame(()=>{
-   // Repaint the final sphere at the new stage dimensions, then reveal its
-   // editor without automatically invoking the mobile software keyboard.
    drawWater();
-   const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-   window.scrollTo({top:0,behavior:reduce?'auto':'smooth'});
+   positionLabActions();
+ });
+ // Let the collapsing controls settle before scrolling, and only scroll
+ // when the bead itself is hidden above the visible area.
+ setTimeout(()=>{
+   if(!$('create').classList.contains('active')||
+      !$('create').classList.contains('is-finished'))return;
+   const target=$('mix-stage').getBoundingClientRect();
+   if(target.top<85){
+     const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+     window.scrollTo({top:Math.max(0,window.scrollY+target.top-110),
+       behavior:reduced?'auto':'smooth'})
+   }
    positionLabActions()
- })
+ },380)
 }
 /* V56: badges are always present, so adding drops does not add nodes. */
 function refreshMixCounts(){
