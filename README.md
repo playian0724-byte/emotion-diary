@@ -1,5 +1,11 @@
 # inside in — 감정 아카이브
 
+## V88 — 첫 화면 카피 조정
+
+- Emotion Recorder 화면 상단 제목을 `Emotion Recorder`에서 **`record your emotion.`**으로 교체. 소문자와 마침표까지 그대로 적용.
+- 기존 구슬, 감정 선택, Save, 날짜 및 기타 UI·기록 데이터 동작은 유지. iPhone 캐시 갱신용 정적 자산 버전 `?v=88` 적용.
+- [V88 첫 화면](https://playian0724-byte.github.io/emotion-diary/v88.html?view=today) · [V88 메인 앱](https://playian0724-byte.github.io/emotion-diary/?v=88)
+
 ## V87 — Emotion Recorder 명칭 및 Settings 타이포그래피 위계
 
 - Today 페이지 제목 오타 `Emotion recoder` → **`Emotion Recorder`**로 수정. 제목 위에 있던 `INSIDE IN / DAILY OBJECT` 작은 문구 삭제. 오늘 날짜와 기록 UI는 유지.
